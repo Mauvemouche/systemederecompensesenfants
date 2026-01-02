@@ -1,0 +1,632 @@
+{
+  "0PY4kD964dEp4ergLDEu": {
+    "title": "Débarrasser la table",
+    "description": "Après chaque repas, débarrasser et mettre dans l’évier",
+    "assignedTo": "florent",
+    "stars": 1,
+    "category": "quotidien",
+    "isBonus": false,
+    "isPenalty": false,
+    "isSeriousFault": false,
+    "completed": false,
+    "dayOfWeek": 2,
+    "createdAt": {
+      "_seconds": 1767188954,
+      "_nanoseconds": 425000000
+    },
+    "updatedAt": {
+      "_seconds": 1767188954,
+      "_nanoseconds": 425000000
+    },
+    "order": 1
+  },
+  "0e6Vc9j0m2qS1QzvLVwr": {
+    "title": "Débarrasser la table",
+    "description": "Après chaque repas, débarrasser et mettre la vaisselle sale dans l’évier",
+    "assignedTo": "harry",
+    "stars": 1,
+    "category": "quotidien",
+    "isBonus": false,
+    "isPenalty": false,
+    "isSeriousFault": false,
+    "completed": false,
+    "dayOfWeek": 0,
+    "createdAt": {
+      "_seconds": 1767189074,
+      "_nanoseconds": 762000000
+    },
+    "updatedAt": {
+      "_seconds": 1767189074,
+      "_nanoseconds": 762000000
+    },
+    "order": 1
+  },
+  "2o2rKKUQR1CnB5D9HNoY": {
+    "title": "Débarrasser la table",
+    "description": "Après chaque repas, débarrasser et mettre la vaisselle sale dans l’évier",
+    "assignedTo": "harry",
+    "stars": 1,
+    "category": "quotidien",
+    "isBonus": false,
+    "isPenalty": false,
+    "isSeriousFault": false,
+    "completed": false,
+    "order": 0,
+    "dayOfWeek": 1,
+    "createdAt": {
+      "_seconds": 1767189074,
+      "_nanoseconds": 815000000
+    },
+    "updatedAt": {
+      "_seconds": 1767189074,
+      "_nanoseconds": 815000000
+    }
+  },
+  "5THxoMOaINp5zBjO2GGN": {
+    "title": "Débarrasser la table",
+    "description": "Après chaque repas, débarrasser et mettre dans l’évier",
+    "assignedTo": "florent",
+    "stars": 1,
+    "category": "quotidien",
+    "isBonus": false,
+    "isPenalty": false,
+    "isSeriousFault": false,
+    "completed": false,
+    "order": 0,
+    "dayOfWeek": 5,
+    "createdAt": {
+      "_seconds": 1767188954,
+      "_nanoseconds": 556000000
+    },
+    "updatedAt": {
+      "_seconds": 1767188954,
+      "_nanoseconds": 556000000
+    }
+  },
+  "6znCZvkGPqUOk9KvOAdm": {
+    "title": "test flo",
+    "description": "",
+    "assignedTo": "florent",
+    "stars": 1,
+    "category": "quotidien",
+    "isBonus": false,
+    "isPenalty": false,
+    "isSeriousFault": false,
+    "completed": false,
+    "order": 16,
+    "dayOfWeek": 4,
+    "createdAt": {
+      "_seconds": 1767192225,
+      "_nanoseconds": 108000000
+    },
+    "updatedAt": {
+      "_seconds": 1767192225,
+      "_nanoseconds": 108000000
+    }
+  },
+  "7GcYJXFuPv1YUqSw8IWm": {
+    "title": "Test déploiement propre database Firestore",
+    "description": "Test",
+    "assignedTo": "papa",
+    "stars": 3,
+    "category": "mensuel",
+    "isBonus": false,
+    "isPenalty": false,
+    "isSeriousFault": false,
+    "order": 0,
+    "dayOfWeek": 1,
+    "createdAt": {
+      "_seconds": 1766968394,
+      "_nanoseconds": 175000000
+    },
+    "completed": true,
+    "updatedAt": {
+      "_seconds": 1766969008,
+      "_nanoseconds": 530000000
+    }
+  },
+  "7f8YC1JEVP47ebjTinVd": {
+    "title": "test flo",
+    "description": "",
+    "assignedTo": "florent",
+    "stars": 1,
+    "category": "quotidien",
+    "isBonus": false,
+    "isPenalty": false,
+    "isSeriousFault": false,
+    "completed": false,
+    "order": 16,
+    "dayOfWeek": 2,
+    "createdAt": {
+      "_seconds": 1767192224,
+      "_nanoseconds": 988000000
+    },
+    "updatedAt": {
+      "_seconds": 1767192224,
+      "_nanoseconds": 988000000
+    }
+  },
+  "8btnqOJdyCMR8LXSCKEA": {
+    "title": "test flo",
+    "description": "",
+    "assignedTo": "florent",
+    "stars": 3,
+    "category": "quotidien",
+    "isBonus": false,
+    "isPenalty": false,
+    "isSeriousFault": false,
+    "completed": false,
+    "order": 9,
+    "dayOfWeek": 4,
+    "createdAt": {
+      "_seconds": 1767192048,
+      "_nanoseconds": 343000000
+    },
+    "updatedAt": {
+      "_seconds": 1767192048,
+      "_nanoseconds": 343000000
+    }
+  },
+  "8t9Hg4NkzUfabTPqT5kn": {
+    "title": "Débarrasser la table",
+    "description": "Après chaque repas, débarrasser et mettre la vaisselle sale dans l’évier",
+    "assignedTo": "harry",
+    "stars": 1,
+    "category": "quotidien",
+    "isBonus": false,
+    "isPenalty": false,
+    "isSeriousFault": false,
+    "completed": false,
+    "order": 0,
+    "dayOfWeek": 5,
+    "createdAt": {
+      "_seconds": 1767189075,
+      "_nanoseconds": 24000000
+    },
+    "updatedAt": {
+      "_seconds": 1767189075,
+      "_nanoseconds": 24000000
+    }
+  },
+  "9YdbH5Xufku9J269oV4i": {
+    "title": "test flo",
+    "description": "",
+    "assignedTo": "florent",
+    "stars": 3,
+    "category": "quotidien",
+    "isBonus": false,
+    "isPenalty": false,
+    "isSeriousFault": false,
+    "completed": false,
+    "order": 9,
+    "dayOfWeek": 5,
+    "createdAt": {
+      "_seconds": 1767192048,
+      "_nanoseconds": 385000000
+    },
+    "updatedAt": {
+      "_seconds": 1767192048,
+      "_nanoseconds": 385000000
+    }
+  },
+  "BHMajZyg95lzWkZ6woZa": {
+    "title": "S’entrainer a la guitare",
+    "description": "",
+    "assignedTo": "florent",
+    "stars": 2,
+    "category": "quotidien",
+    "isBonus": true,
+    "isPenalty": false,
+    "isSeriousFault": false,
+    "completed": false,
+    "order": 18,
+    "dayOfWeek": 6,
+    "createdAt": {
+      "_seconds": 1767196436,
+      "_nanoseconds": 603000000
+    },
+    "updatedAt": {
+      "_seconds": 1767196436,
+      "_nanoseconds": 603000000
+    }
+  },
+  "DY62INrRJxRGGpGmQpwq": {
+    "title": "Débarrasser la table",
+    "description": "Après chaque repas, débarrasser et mettre dans l’évier",
+    "assignedTo": "florent",
+    "stars": 1,
+    "category": "quotidien",
+    "isBonus": false,
+    "isPenalty": false,
+    "isSeriousFault": false,
+    "completed": false,
+    "order": 0,
+    "dayOfWeek": 1,
+    "createdAt": {
+      "_seconds": 1767188954,
+      "_nanoseconds": 381000000
+    },
+    "updatedAt": {
+      "_seconds": 1767188954,
+      "_nanoseconds": 381000000
+    }
+  },
+  "F507HtLMt2Nebc3umjGh": {
+    "title": "Débarrasser la table",
+    "description": "Après chaque repas, débarrasser et mettre la vaisselle sale dans l’évier",
+    "assignedTo": "harry",
+    "stars": 1,
+    "category": "quotidien",
+    "isBonus": false,
+    "isPenalty": false,
+    "isSeriousFault": false,
+    "completed": false,
+    "order": 0,
+    "dayOfWeek": 4,
+    "createdAt": {
+      "_seconds": 1767189074,
+      "_nanoseconds": 979000000
+    },
+    "updatedAt": {
+      "_seconds": 1767189074,
+      "_nanoseconds": 979000000
+    }
+  },
+  "GeKfMHuot2nbdOTbdbD2": {
+    "title": "Débarrasser la table",
+    "description": "Après chaque repas, débarrasser et mettre dans l’évier",
+    "assignedTo": "florent",
+    "stars": 1,
+    "category": "quotidien",
+    "isBonus": false,
+    "isPenalty": false,
+    "isSeriousFault": false,
+    "completed": false,
+    "order": 0,
+    "dayOfWeek": 6,
+    "createdAt": {
+      "_seconds": 1767188954,
+      "_nanoseconds": 595000000
+    },
+    "updatedAt": {
+      "_seconds": 1767188954,
+      "_nanoseconds": 595000000
+    }
+  },
+  "HABJo5k9cJ3Awty00Gn7": {
+    "title": "test flo",
+    "description": "",
+    "assignedTo": "florent",
+    "stars": 3,
+    "category": "quotidien",
+    "isBonus": false,
+    "isPenalty": false,
+    "isSeriousFault": false,
+    "completed": false,
+    "order": 9,
+    "dayOfWeek": 0,
+    "createdAt": {
+      "_seconds": 1767192048,
+      "_nanoseconds": 169000000
+    },
+    "updatedAt": {
+      "_seconds": 1767192048,
+      "_nanoseconds": 169000000
+    }
+  },
+  "KWJYw4VjjMVKjT2lPld7": {
+    "title": "Débarrasser la table",
+    "description": "Après chaque repas, débarrasser et mettre la vaisselle sale dans l’évier",
+    "assignedTo": "harry",
+    "stars": 1,
+    "category": "quotidien",
+    "isBonus": false,
+    "isPenalty": false,
+    "isSeriousFault": false,
+    "completed": false,
+    "order": 0,
+    "dayOfWeek": 6,
+    "createdAt": {
+      "_seconds": 1767189075,
+      "_nanoseconds": 67000000
+    },
+    "updatedAt": {
+      "_seconds": 1767189075,
+      "_nanoseconds": 67000000
+    }
+  },
+  "QUCADsVM8R2BYMqmHFC7": {
+    "title": "S’entrainer a la guitare",
+    "description": "",
+    "assignedTo": "florent",
+    "stars": 2,
+    "category": "quotidien",
+    "isBonus": true,
+    "isPenalty": false,
+    "isSeriousFault": false,
+    "completed": false,
+    "order": 18,
+    "dayOfWeek": 2,
+    "createdAt": {
+      "_seconds": 1767196436,
+      "_nanoseconds": 436000000
+    },
+    "updatedAt": {
+      "_seconds": 1767196436,
+      "_nanoseconds": 436000000
+    }
+  },
+  "UY4nzMk1hS0zifrB41od": {
+    "title": "test flo",
+    "description": "",
+    "assignedTo": "florent",
+    "stars": 1,
+    "category": "quotidien",
+    "isBonus": false,
+    "isPenalty": false,
+    "isSeriousFault": false,
+    "completed": false,
+    "order": 16,
+    "dayOfWeek": 6,
+    "createdAt": {
+      "_seconds": 1767192225,
+      "_nanoseconds": 241000000
+    },
+    "updatedAt": {
+      "_seconds": 1767192225,
+      "_nanoseconds": 241000000
+    }
+  },
+  "WCcDswBwNpgHhMfxsYZb": {
+    "title": "S’entrainer a la guitare",
+    "description": "",
+    "assignedTo": "florent",
+    "stars": 2,
+    "category": "quotidien",
+    "isBonus": true,
+    "isPenalty": false,
+    "isSeriousFault": false,
+    "completed": false,
+    "order": 18,
+    "dayOfWeek": 1,
+    "createdAt": {
+      "_seconds": 1767196436,
+      "_nanoseconds": 383000000
+    },
+    "updatedAt": {
+      "_seconds": 1767196436,
+      "_nanoseconds": 383000000
+    }
+  },
+  "axinfAapHSWMkyRIG6eE": {
+    "title": "S’entrainer a la guitare",
+    "description": "",
+    "assignedTo": "florent",
+    "stars": 2,
+    "category": "quotidien",
+    "isBonus": true,
+    "isPenalty": false,
+    "isSeriousFault": false,
+    "completed": false,
+    "order": 18,
+    "dayOfWeek": 0,
+    "createdAt": {
+      "_seconds": 1767196436,
+      "_nanoseconds": 321000000
+    },
+    "updatedAt": {
+      "_seconds": 1767196436,
+      "_nanoseconds": 321000000
+    }
+  },
+  "b6VPm9yb4JgpKnOuUIL5": {
+    "title": "Débarrasser la table",
+    "description": "Après chaque repas, débarrasser et mettre dans l’évier",
+    "assignedTo": "florent",
+    "stars": 1,
+    "category": "quotidien",
+    "isBonus": false,
+    "isPenalty": false,
+    "isSeriousFault": false,
+    "completed": false,
+    "order": 0,
+    "dayOfWeek": 4,
+    "createdAt": {
+      "_seconds": 1767188954,
+      "_nanoseconds": 508000000
+    },
+    "updatedAt": {
+      "_seconds": 1767188954,
+      "_nanoseconds": 508000000
+    }
+  },
+  "ecbY7c2mUKxjs4ohRwT3": {
+    "title": "test flo",
+    "description": "",
+    "assignedTo": "florent",
+    "stars": 1,
+    "category": "quotidien",
+    "isBonus": false,
+    "isPenalty": false,
+    "isSeriousFault": false,
+    "completed": false,
+    "order": 16,
+    "dayOfWeek": 5,
+    "createdAt": {
+      "_seconds": 1767192225,
+      "_nanoseconds": 186000000
+    },
+    "updatedAt": {
+      "_seconds": 1767192225,
+      "_nanoseconds": 186000000
+    }
+  },
+  "hxMEcOyIw6BMQkwyBpiY": {
+    "title": "Débarrasser la table",
+    "description": "Après chaque repas, débarrasser et mettre la vaisselle sale dans l’évier",
+    "assignedTo": "harry",
+    "stars": 1,
+    "category": "quotidien",
+    "isBonus": false,
+    "isPenalty": false,
+    "isSeriousFault": false,
+    "completed": false,
+    "order": 0,
+    "dayOfWeek": 2,
+    "createdAt": {
+      "_seconds": 1767189074,
+      "_nanoseconds": 870000000
+    },
+    "updatedAt": {
+      "_seconds": 1767189074,
+      "_nanoseconds": 870000000
+    }
+  },
+  "iqoSZynxw3zFZImF7xvC": {
+    "title": "test flo",
+    "description": "",
+    "assignedTo": "florent",
+    "stars": 1,
+    "category": "quotidien",
+    "isBonus": false,
+    "isPenalty": false,
+    "isSeriousFault": false,
+    "completed": false,
+    "order": 16,
+    "dayOfWeek": 0,
+    "createdAt": {
+      "_seconds": 1767192224,
+      "_nanoseconds": 894000000
+    },
+    "updatedAt": {
+      "_seconds": 1767192224,
+      "_nanoseconds": 894000000
+    }
+  },
+  "lhNhzmJbH90No9X41u43": {
+    "title": "S’entrainer a la guitare",
+    "description": "",
+    "assignedTo": "florent",
+    "stars": 2,
+    "category": "quotidien",
+    "isBonus": true,
+    "isPenalty": false,
+    "isSeriousFault": false,
+    "completed": false,
+    "order": 18,
+    "dayOfWeek": 5,
+    "createdAt": {
+      "_seconds": 1767196436,
+      "_nanoseconds": 548000000
+    },
+    "updatedAt": {
+      "_seconds": 1767196436,
+      "_nanoseconds": 548000000
+    }
+  },
+  "off3D7zUHx6FA2xfUyEV": {
+    "title": "S’entrainer a la guitare",
+    "description": "",
+    "assignedTo": "florent",
+    "stars": 2,
+    "category": "quotidien",
+    "isBonus": true,
+    "isPenalty": false,
+    "isSeriousFault": false,
+    "completed": false,
+    "order": 18,
+    "dayOfWeek": 4,
+    "createdAt": {
+      "_seconds": 1767196436,
+      "_nanoseconds": 509000000
+    },
+    "updatedAt": {
+      "_seconds": 1767196436,
+      "_nanoseconds": 509000000
+    }
+  },
+  "qawjV6jtwt4z8R081M2T": {
+    "title": "test flo",
+    "description": "",
+    "assignedTo": "florent",
+    "stars": 1,
+    "category": "quotidien",
+    "isBonus": false,
+    "isPenalty": false,
+    "isSeriousFault": false,
+    "completed": false,
+    "order": 16,
+    "dayOfWeek": 1,
+    "createdAt": {
+      "_seconds": 1767192224,
+      "_nanoseconds": 956000000
+    },
+    "updatedAt": {
+      "_seconds": 1767192224,
+      "_nanoseconds": 956000000
+    }
+  },
+  "uABRKlvgw72gROdTxszg": {
+    "title": "test flo",
+    "description": "",
+    "assignedTo": "florent",
+    "stars": 3,
+    "category": "quotidien",
+    "isBonus": false,
+    "isPenalty": false,
+    "isSeriousFault": false,
+    "completed": false,
+    "order": 9,
+    "dayOfWeek": 2,
+    "createdAt": {
+      "_seconds": 1767192048,
+      "_nanoseconds": 252000000
+    },
+    "updatedAt": {
+      "_seconds": 1767192048,
+      "_nanoseconds": 252000000
+    }
+  },
+  "vYjQhs6t4cqFSOdfT1WH": {
+    "title": "test flo",
+    "description": "",
+    "assignedTo": "florent",
+    "stars": 3,
+    "category": "quotidien",
+    "isBonus": false,
+    "isPenalty": false,
+    "isSeriousFault": false,
+    "completed": false,
+    "order": 9,
+    "dayOfWeek": 1,
+    "createdAt": {
+      "_seconds": 1767192048,
+      "_nanoseconds": 209000000
+    },
+    "updatedAt": {
+      "_seconds": 1767192048,
+      "_nanoseconds": 209000000
+    }
+  },
+  "xcEYquzcQZATY4L7x4BN": {
+    "title": "test flo",
+    "description": "",
+    "assignedTo": "florent",
+    "stars": 3,
+    "category": "quotidien",
+    "isBonus": false,
+    "isPenalty": false,
+    "isSeriousFault": false,
+    "completed": false,
+    "order": 9,
+    "dayOfWeek": 6,
+    "createdAt": {
+      "_seconds": 1767192048,
+      "_nanoseconds": 433000000
+    },
+    "updatedAt": {
+      "_seconds": 1767192048,
+      "_nanoseconds": 433000000
+    }
+  }
+}

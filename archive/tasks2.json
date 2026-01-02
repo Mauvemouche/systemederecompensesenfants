@@ -1,0 +1,28 @@
+[
+  {
+    "title": "Tache test",
+    "description": "description test",
+    "assignedTo": "enfants",
+    "stars": 1,
+    "category": "quotidien",
+    "completed": false,
+    "dayOfWeek": null,
+    "order": null,
+    "isBonus": false,
+    "isPenalty": false,
+    "isSeriousFault": false
+  },
+  {
+    "title": "Tache test2",
+    "description": "description test2",
+    "assignedTo": "tous",
+    "stars": 2,
+    "category": "quotidien",
+    "completed": false,
+    "dayOfWeek": null,
+    "order": null,
+    "isBonus": false,
+    "isPenalty": false,
+    "isSeriousFault": false
+  }
+]

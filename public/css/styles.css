@@ -1,0 +1,47 @@
+.progress-container {
+    margin: 15px 0 20px;
+}
+
+.progress-bar {
+    height: 12px;
+    background: #f0f0f0;
+    border-radius: 20px;
+    overflow: hidden;
+    margin-bottom: 8px;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(to right, #4caf50, #ffeb3b);
+    width: 0%;
+    transition: width 0.4s ease;
+}
+
+.progress-details {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    font-size: 0.95rem;
+    color: #555;
+    text-align: center;
+}
+
+.base-time {
+    opacity: 0.8;
+}
+
+.screen-time-badge {
+    background: #d0f0c0;
+    padding: 6px 16px;
+    border-radius: 30px;
+    color: #006400;
+    font-weight: bold;
+    font-size: 1rem;
+}
+
+.bonus-time {
+    color: #b8860b;
+    font-weight: bold;
+}

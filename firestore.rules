@@ -1,0 +1,90 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Règles pour la collection tasks
+    match /tasks/{taskId} {
+      // Permettre la lecture à tous
+      allow read: if true;
+      
+      // Validation des données lors de la création/modification
+      allow create: if request.resource.data.keys().hasAll(['title', 'assignedTo', 'completed', 'stars', 'category'])
+                    && request.resource.data.title is string
+                    && request.resource.data.title.size() > 0
+                    && request.resource.data.title.size() <= 200
+                    && request.resource.data.assignedTo in ['papa', 'maman', 'bastien', 'florent']
+                    && request.resource.data.completed is bool
+                    && request.resource.data.stars is int
+                    && request.resource.data.stars >= 1
+                    && request.resource.data.stars <= 5
+                    && request.resource.data.category in ['quotidien', 'hebdomadaire', 'mensuel'];
+      
+      allow update: if request.resource.data.keys().hasAll(['title', 'assignedTo', 'completed', 'stars', 'category'])
+                    && request.resource.data.title is string
+                    && request.resource.data.title.size() > 0
+                    && request.resource.data.title.size() <= 200
+                    && request.resource.data.assignedTo in ['papa', 'maman', 'bastien', 'florent']
+                    && request.resource.data.completed is bool
+                    && request.resource.data.stars is int
+                    && request.resource.data.stars >= 1
+                    && request.resource.data.stars <= 5
+                    && request.resource.data.category in ['quotidien', 'hebdomadaire', 'mensuel'];
+      
+      allow delete: if true;
+    }
+    
+    // Règles pour la collection family_members
+    match /family_members/{memberId} {
+      // Permettre la lecture à tous
+      allow read: if true;
+      
+      // Permettre la modification des statistiques uniquement
+      allow update: if request.resource.data.diff(resource.data).affectedKeys().hasOnly(['tasksCompleted']);
+      
+      // Empêcher la création et suppression (données fixes)
+      allow create, delete: if false;
+    }
+    
+    // Règles pour la collection reset_config
+    match /reset_config/{configId} {
+      // Permettre la lecture à tous
+      allow read: if true;
+      
+      // Permettre la création et modification (pour initialisation et interface admin)
+      allow create, update: if true;
+      
+      // Empêcher la suppression
+      allow delete: if false;
+    }
+    
+    // Règles pour la collection daily_stats
+    match /daily_stats/{statsId} {
+      // Permettre la lecture à tous
+      allow read: if true;
+      
+      // Empêcher toute écriture manuelle (seulement via Cloud Functions)
+      allow create, update, delete: if false;
+    }
+    
+    // Règles pour la collection personSettings (max étoiles par personne et jour)
+    match /personSettings/{settingId} {
+      // Permettre la lecture à tous
+      allow read: if true;
+      
+      // Validation des données lors de la création/modification
+      allow create, update: if request.resource.data.keys().hasAll(['person', 'dayOfWeek', 'maxStars'])
+                            && request.resource.data.person is string
+                            && request.resource.data.person in ['papa', 'maman', 'bastien', 'florent']
+                            && request.resource.data.dayOfWeek is int
+                            && request.resource.data.dayOfWeek >= 0
+                            && request.resource.data.dayOfWeek <= 6
+                            && request.resource.data.maxStars is int
+                            && request.resource.data.maxStars >= 0
+                            && request.resource.data.maxStars <= 200;
+      
+      // Permettre la suppression
+      allow delete: if true;
+    }
+  }
+}

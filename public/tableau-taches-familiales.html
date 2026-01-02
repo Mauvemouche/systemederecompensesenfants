@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tableau des Tâches Familiales</title>
+    <style>
+        @page {
+            size: A4 portrait;
+            margin: 15mm;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            background: #f5f5f5;
+            padding: 0;
+        }
+        
+        .page {
+            background: white;
+            padding: 20px;
+            min-height: 297mm;
+            page-break-after: always;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .page:last-child {
+            page-break-after: auto;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 25px;
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+        }
+        
+        .header h1 {
+            font-size: 42px;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 16px;
+            opacity: 0.95;
+        }
+        
+        .header.papa {
+            background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
+        }
+        
+        .header.maman {
+            background: linear-gradient(135deg, #E91E63 0%, #C2185B 100%);
+        }
+        
+        .header.florent {
+            background: linear-gradient(135deg, #4CAF50 0%, #388E3C 100%);
+        }
+        
+        .header.harry {
+            background: linear-gradient(135deg, #FF9800 0%, #F57C00 100%);
+        }
+        
+        .content {
+            flex: 1;
+        }
+        
+        .person-section {
+            border: 4px solid;
+            border-radius: 15px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 30px;
+        }
+        
+        .person-section.papa {
+            border-color: #2196F3;
+            background: #e3f2fd;
+        }
+        
+        .person-section.maman {
+            border-color: #E91E63;
+            background: #fce4ec;
+        }
+        
+        .person-section.florent {
+            border-color: #4CAF50;
+            background: #e8f5e9;
+        }
+        
+        .person-section.harry {
+            border-color: #FF9800;
+            background: #fff3e0;
+        }
+        
+        .person-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 3px solid currentColor;
+        }
+        
+        .person-name {
+            font-size: 32px;
+            font-weight: bold;
+        }
+        
+        .papa .person-name { color: #2196F3; }
+        .maman .person-name { color: #E91E63; }
+        .florent .person-name { color: #4CAF50; }
+        .harry .person-name { color: #FF9800; }
+        
+        .stars-earned {
+            font-size: 28px;
+            font-weight: bold;
+            color: #FFD700;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .tasks {
+            margin-bottom: 20px;
+        }
+        
+        .task-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+            background: white;
+            padding: 12px;
+            border-radius: 10px;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+        }
+        
+        .checkbox {
+            width: 35px;
+            height: 35px;
+            border: 4px solid;
+            border-radius: 50%;
+            margin-right: 15px;
+            flex-shrink: 0;
+            background: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .checkbox:hover {
+            transform: scale(1.1);
+        }
+        
+        .checkbox.checked {
+            background: #4CAF50;
+            border-color: #4CAF50;
+        }
+        
+        .checkbox.checked::after {
+            content: '✓';
+            color: white;
+            font-weight: bold;
+            font-size: 24px;
+            line-height: 35px;
+            text-align: center;
+            display: block;
+        }
+        
+        .task-title {
+            font-weight: 600;
+            font-size: 1.2rem;
+            display: block;
+        }
+        
+        .bonus-badge {
+            background: #ffeb3b;
+            color: #333;
+            padding: 4px 10px;
+            border-radius: 8px;
+            font-size: 0.9em;
+            margin-left: 10px;
+            font-weight: bold;
+        }
+        
+        .star-value {
+            margin-left: auto;
+            font-weight: bold;
+            color: #FF9800;
+        }
+        
+        .footer {
+            margin-top: auto;
+            text-align: center;
+            font-size: 14px;
+            color: #666;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
+    </style>
+</head>
+<body>
+    <!-- Le contenu généré dynamiquement par ton script existant -->
+    <!-- (je ne le répète pas ici car il est très long, mais il reste identique) -->
+
+    <script>
+        // Fonction pour calculer le total des étoiles pour une section
+        function calculateTotal(personSection) {
+            let total = 0;
+            
+            // Ajouter les tâches cochées
+            const taskItems = personSection.querySelectorAll('.task-item');
+            taskItems.forEach(item => {
+                const checkbox = item.querySelector('.checkbox');
+                const starValue = item.querySelector('.star-value');
+                if (checkbox && checkbox.classList.contains('checked') && starValue) {
+                    const value = parseInt(starValue.textContent.match(/\d+/)[0]);
+                    total += value;
+                }
+            });
+            
+            // Soustraire les pénalités cochées
+            const penaltyItems = personSection.querySelectorAll('.penalty-item');
+            penaltyItems.forEach(item => {
+                const checkbox = item.querySelector('.penalty-checkbox');
+                const penaltyValue = item.querySelector('.penalty-value');
+                if (checkbox && checkbox.classList.contains('checked') && penaltyValue) {
+                    const value = parseInt(penaltyValue.textContent.match(/\d+/)[0]);
+                    total -= value;
+                }
+            });
+            
+            // Ne pas descendre en dessous de 0
+            total = Math.max(0, total);
+            
+            return total;
+        }
+        
+        // Fonction pour mettre à jour l'affichage du total
+        function updateTotal(personSection) {
+            const total = calculateTotal(personSection);
+            const starsEarned = personSection.querySelector('.stars-earned');
+            if (starsEarned) {
+                const maxStars = starsEarned.textContent.match(/\/ (\d+)/)[1];
+                starsEarned.textContent = `⭐ ${total} / ${maxStars}`;
+            }
+        }
+        
+        // Initialiser tous les checkboxes et penalty-checkboxes
+        document.addEventListener('DOMContentLoaded', function() {
+            // Gérer les clics sur les checkboxes de tâches
+            const checkboxes = document.querySelectorAll('.checkbox');
+            checkboxes.forEach(checkbox => {
+                checkbox.addEventListener('click', function() {
+                    this.classList.toggle('checked');
+                    const personSection = this.closest('.person-section');
+                    updateTotal(personSection);
+                });
+            });
+            
+            // Gérer les clics sur les checkboxes de pénalités
+            const penaltyCheckboxes = document.querySelectorAll('.penalty-checkbox');
+            penaltyCheckboxes.forEach(checkbox => {
+                checkbox.addEventListener('click', function() {
+                    this.classList.toggle('checked');
+                    
+                    // Synchroniser avec les autres checkboxes ayant le même data-penalty-id
+                    const penaltyId = this.getAttribute('data-penalty-id');
+                    if (penaltyId) {
+                        const isChecked = this.classList.contains('checked');
+                        const allSamePenalties = document.querySelectorAll(`[data-penalty-id="${penaltyId}"]`);
+                        allSamePenalties.forEach(cb => {
+                            if (isChecked) {
+                                cb.classList.add('checked');
+                            } else {
+                                cb.classList.remove('checked');
+                            }
+                        });
+                    }
+                    
+                    const personSection = this.closest('.person-section');
+                    updateTotal(personSection);
+                });
+            });
+        });
+    </script>
+</body>
+</html>

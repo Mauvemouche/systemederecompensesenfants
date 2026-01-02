@@ -1,0 +1,1119 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tableau des Tâches Familiales</title>
+    <style>
+        @page {
+            size: A4 portrait;
+            margin: 15mm;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            background: #f5f5f5;
+            padding: 0;
+        }
+        
+        .page {
+            background: white;
+            padding: 20px;
+            min-height: 297mm;
+            page-break-after: always;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .page:last-child {
+            page-break-after: auto;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 25px;
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+        }
+        
+        .header h1 {
+            font-size: 42px;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 16px;
+            opacity: 0.95;
+        }
+        
+        .header.papa {
+            background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
+        }
+        
+        .header.maman {
+            background: linear-gradient(135deg, #E91E63 0%, #C2185B 100%);
+        }
+        
+        .header.florent {
+            background: linear-gradient(135deg, #4CAF50 0%, #388E3C 100%);
+        }
+        
+        .header.harry {
+            background: linear-gradient(135deg, #FF9800 0%, #F57C00 100%);
+        }
+        
+        .content {
+            flex: 1;
+        }
+        
+        .person-section {
+            border: 4px solid;
+            border-radius: 15px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .person-section.papa {
+            border-color: #2196F3;
+            background: #e3f2fd;
+        }
+        
+        .person-section.maman {
+            border-color: #E91E63;
+            background: #fce4ec;
+        }
+        
+        .person-section.florent {
+            border-color: #4CAF50;
+            background: #e8f5e9;
+        }
+        
+        .person-section.harry {
+            border-color: #FF9800;
+            background: #fff3e0;
+        }
+        
+        .person-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 3px solid currentColor;
+        }
+        
+        .person-name {
+            font-size: 32px;
+            font-weight: bold;
+        }
+        
+        .papa .person-name { color: #2196F3; }
+        .maman .person-name { color: #E91E63; }
+        .florent .person-name { color: #4CAF50; }
+        .harry .person-name { color: #FF9800; }
+        
+        .stars-earned {
+            font-size: 28px;
+            font-weight: bold;
+            color: #FFD700;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .tasks {
+            margin-bottom: 20px;
+        }
+        
+        .task-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+            background: white;
+            padding: 12px;
+            border-radius: 10px;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+        }
+        
+        .checkbox {
+            width: 35px;
+            height: 35px;
+            border: 4px solid;
+            border-radius: 50%;
+            margin-right: 15px;
+            flex-shrink: 0;
+            background: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .checkbox:hover {
+            transform: scale(1.1);
+        }
+        
+        .papa .checkbox { border-color: #2196F3; }
+        .maman .checkbox { border-color: #E91E63; }
+        .florent .checkbox { border-color: #4CAF50; }
+        .harry .checkbox { border-color: #FF9800; }
+        
+        .papa .checkbox.checked { background: #2196F3; }
+        .maman .checkbox.checked { background: #E91E63; }
+        .florent .checkbox.checked { background: #4CAF50; }
+        .harry .checkbox.checked { background: #FF9800; }
+        
+        .checkbox.checked::after {
+            content: '✓';
+            display: block;
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+            text-align: center;
+            line-height: 27px;
+        }
+        
+        .penalty-checkbox {
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .penalty-checkbox:hover {
+            transform: scale(1.1);
+        }
+        
+        .penalty-checkbox.checked {
+            background: #f44336;
+        }
+        
+        .penalty-checkbox.checked::after {
+            content: '✗';
+            display: block;
+            color: white;
+            font-size: 20px;
+            font-weight: bold;
+            text-align: center;
+            line-height: 27px;
+        }
+        
+        .task-text {
+            flex: 1;
+            font-size: 18px;
+            line-height: 1.4;
+            font-weight: 500;
+        }
+        
+        .task-icon {
+            font-size: 28px;
+            margin-right: 8px;
+            display: inline-block;
+        }
+        
+        .star-value {
+            color: #FFD700;
+            font-weight: bold;
+            font-size: 20px;
+            margin-left: 10px;
+        }
+        
+        .penalties {
+            margin-top: 12px;
+            background: #ffebee;
+            border: 3px solid #f44336;
+            border-radius: 10px;
+            padding: 12px;
+        }
+        
+        @media print {
+            .penalties {
+                display: none;
+            }
+            
+            .penalties-page {
+                display: block !important;
+            }
+        }
+        
+        .penalties-page {
+            display: none;
+        }
+        
+        .penalties-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: #d32f2f;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        
+        .penalty-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+            background: white;
+            padding: 10px;
+            border-radius: 8px;
+        }
+        
+        .penalty-item:last-child {
+            margin-bottom: 0;
+        }
+        
+        .penalty-checkbox {
+            width: 30px;
+            height: 30px;
+            border: 3px solid #f44336;
+            border-radius: 50%;
+            margin-right: 12px;
+            flex-shrink: 0;
+            background: white;
+        }
+        
+        .penalty-text {
+            flex: 1;
+            font-size: 16px;
+            line-height: 1.3;
+            color: #d32f2f;
+            font-weight: 500;
+        }
+        
+        .penalty-icon {
+            font-size: 24px;
+            margin-right: 6px;
+            display: inline-block;
+        }
+        
+        .penalty-value {
+            color: #f44336;
+            font-weight: bold;
+            font-size: 18px;
+            margin-left: 10px;
+        }
+        
+        .reward-tracker {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 3px dashed currentColor;
+        }
+        
+        .reward-title {
+            text-align: center;
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+        
+        .reward-scale {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-top: 10px;
+        }
+        
+        .reward-level {
+            text-align: center;
+            flex: 1;
+            position: relative;
+        }
+        
+        .reward-level::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 100%;
+            width: 100%;
+            height: 2px;
+            background: #ddd;
+            z-index: 0;
+        }
+        
+        .reward-level:last-child::after {
+            display: none;
+        }
+        
+        .reward-number {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: #f0f0f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 8px;
+            font-weight: bold;
+            font-size: 18px;
+            border: 3px solid currentColor;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .reward-label {
+            font-size: 14px;
+            font-weight: bold;
+        }
+        
+        .footer {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 14px;
+            color: #666;
+            font-style: italic;
+        }
+        
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+            
+            .container {
+                box-shadow: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Page florent -->
+    <div class="page">
+        <div class="header florent">
+            <h1>👦 Florent</h1>
+            <p>Mes tâches quotidiennes - Gagnons des étoiles ! ⭐</p>
+        </div>
+        
+        <div class="content">
+            <div class="person-section florent" id="florent-section">
+                <div class="person-header">
+                    <span class="person-name">Mes Tâches</span>
+                    <span class="stars-earned">⭐ ___ / 82</span>
+                </div>
+                <div class="tasks">
+                    <div class="task-item">
+                        <div class="checkbox"></div>
+                        <div class="task-text"><span class="task-icon">👕</span>S'habiller tout seul</div>
+                        <div class="star-value">⭐ 5</div>
+                    </div>
+                    <div class="task-item">
+                        <div class="checkbox"></div>
+                        <div class="task-text"><span class="task-icon">⏰</span>Descendre à temps (7h45)</div>
+                        <div class="star-value">⭐ 1</div>
+                    </div>
+                    <div class="task-item">
+                        <div class="checkbox"></div>
+                        <div class="task-text"><span class="task-icon">🦷</span>Se brosser les dents matin</div>
+                        <div class="star-value">⭐ 2</div>
+                    </div>
+                    <div class="task-item">
+                        <div class="checkbox"></div>
+                        <div class="task-text"><span class="task-icon">🧹</span>Débarrasser la table du petit déjeuner</div>
+                        <div class="star-value">⭐ 5</div>
+                    </div>
+                    <div class="task-item">
+                        <div class="checkbox"></div>
+                        <div class="task-text"><span class="task-icon">🎒</span>Prendre son cartable</div>
+                        <div class="star-value">⭐ 2</div>
+                    </div>
+                    <div class="task-item">
+                        <div class="checkbox"></div>
+                        <div class="task-text"><span class="task-icon">🚲</span>Aller prendre son vélo</div>
+                        <div class="star-value">⭐ 2</div>
+                    </div>
+                    <div class="task-item">
+                        <div class="checkbox"></div>
+                        <div class="task-text"><span class="task-icon">🏠</span>Au retour de l'école : prendre son cartable et toutes ses affaires</div>
+                        <div class="star-value">⭐ 5</div>
+                    </div>
+                    <div class="task-item">
+                        <div class="checkbox"></div>
+                        <div class="task-text"><span class="task-icon">📔</span>Sortir le journal de classe</div>
+                        <div class="star-value">⭐ 2</div>
+                    </div>
+                    <div class="task-item">
+                        <div class="checkbox"></div>
+                        <div class="task-text"><span class="task-icon">🍱</span>Sortir la boîte à tartine</div>
+                        <div class="star-value">⭐ 2</div>
+                    </div>
+                    <div class="task-item">
+                        <div class="checkbox"></div>
+                        <div class="task-text"><span class="task-icon">🧃</span>Sortir la gourde</div>
+                        <div class="star-value">⭐ 2</div>
+                    </div>
+                    <div class="task-item">
+                        <div class="checkbox"></div>
+                        <div class="task-text"><span class="task-icon">📦</span>Sortir les boîtes supplémentaires</div>
+                        <div class="star-value">⭐ 2</div>
+                    </div>
+                    <div class="task-item">
+                        <div class="checkbox"></div>
+                        <div class="task-text"><span class="task-icon">🍽️</span>Mettre ou débarrasser la table</div>
+                        <div class="star-value">⭐ 10</div>
+                    </div>
+                    <div class="task-item">
+                        <div class="checkbox"></div>
+                        <div class="task-text"><span class="task-icon">✏️</span>Faire ses devoirs</div>
+                        <div class="star-value">⭐ 20</div>
+                    </div>
+                    <div class="task-item">
+                        <div class="checkbox"></div>
+                        <div class="task-text"><span class="task-icon">⚽</span>Préparer vêtements foot (mar/mer)</div>
+                        <div class="star-value">⭐ 5</div>
+                    </div>
+                    <div class="task-item">
+                        <div class="checkbox"></div>
+                        <div class="task-text"><span class="task-icon">🚿</span>Prendre sa douche</div>
+                        <div class="star-value">⭐ 5</div>
+                    </div>
+                    <div class="task-item">
+                        <div class="checkbox"></div>
+                        <div class="task-text"><span class="task-icon">🧤</span>Mettre vêtements dans le bon bac à linge</div>
+                        <div class="star-value">⭐ 2</div>
+                    </div>
+                    <div class="task-item">
+                        <div class="checkbox"></div>
+                        <div class="task-text"><span class="task-icon">🚿</span>Vérifier que la salle de bain est en ordre</div>
+                        <div class="star-value">⭐ 3</div>
+                    </div>
+                    <div class="task-item">
+                        <div class="checkbox"></div>
+                        <div class="task-text"><span class="task-icon">⏰</span>Être prêt pour 18h40</div>
+                        <div class="star-value">⭐ 5</div>
+                    </div>
+                    <div class="task-item">
+                        <div class="checkbox"></div>
+                        <div class="task-text"><span class="task-icon">🦷</span>Se brosser les dents soir</div>
+                        <div class="star-value">⭐ 2</div>
+                    </div>
+                </div>
+                <div class="penalties">
+                    <div class="penalties-title">⚠️ PÉNALITÉS (étoiles en moins) ⚠️</div>
+                    <div class="penalty-item">
+                        <div class="penalty-checkbox" data-penalty-id="florent-p1"></div>
+                        <div class="penalty-text"><span class="penalty-icon">😡</span>Crier sur papa ou maman</div>
+                        <div class="penalty-value">-20 ⭐</div>
+                    </div>
+                    <div class="penalty-item">
+                        <div class="penalty-checkbox" data-penalty-id="florent-p2"></div>
+                        <div class="penalty-text"><span class="penalty-icon">🥊</span>Frapper son frère</div>
+                        <div class="penalty-value">-15 ⭐</div>
+                    </div>
+                    <div class="penalty-item">
+                        <div class="penalty-checkbox" data-penalty-id="florent-p3"></div>
+                        <div class="penalty-text"><span class="penalty-icon">🤥</span>Mentir</div>
+                        <div class="penalty-value">-20 ⭐</div>
+                    </div>
+                    <div class="penalty-item">
+                        <div class="penalty-checkbox" data-penalty-id="florent-p4"></div>
+                        <div class="penalty-text"><span class="penalty-icon">🙅</span>Ne pas écouter</div>
+                        <div class="penalty-value">-5 ⭐</div>
+                    </div>
+                    <div class="penalty-item">
+                        <div class="penalty-checkbox" data-penalty-id="florent-p5"></div>
+                        <div class="penalty-text"><span class="penalty-icon">😒</span>Dire "Je m'en fiche", "J'ai la flemme"...</div>
+                        <div class="penalty-value">-10 ⭐</div>
+                    </div>
+                </div>
+                <div class="reward-tracker">
+                    <div class="reward-title">🎁 Échelle des Récompenses 🎁</div>
+                    <div class="reward-scale">
+                        <div class="reward-level">
+                            <div class="reward-number">20</div>
+                            <div class="reward-label">📺 5min</div>
+                        </div>
+                        <div class="reward-level">
+                            <div class="reward-number">40</div>
+                            <div class="reward-label">📺 10min</div>
+                        </div>
+                        <div class="reward-level">
+                            <div class="reward-number">60</div>
+                            <div class="reward-label">📺/🎮 15min</div>
+                        </div>
+                        <div class="reward-level">
+                            <div class="reward-number">75</div>
+                            <div class="reward-label">📺/🎮 20min</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            💡 Cliquez sur les cases rondes pour marquer les tâches accomplies ! Le total se calcule automatiquement.
+        </div>
+    </div>
+    
+    <!-- Page harry -->
+    <div class="page">
+        <div class="header harry">
+            <h1>👦 Harry</h1>
+            <p>Mes tâches quotidiennes - Gagnons des étoiles ! ⭐</p>
+        </div>
+        
+        <div class="content">
+            <div class="person-section harry" id="harry-section">
+                <div class="person-header">
+                    <span class="person-name">Mes Tâches</span>
+                    <span class="stars-earned">⭐ ___ / 82</span>
+                </div>
+                <div class="tasks">
+                    <div class="task-item">
+                        <div class="checkbox"></div>
+                        <div class="task-text"><span class="task-icon">👕</span>S'habiller tout seul</div>
+                        <div class="star-value">⭐ 5</div>
+                    </div>
+                    <div class="task-item">
+                        <div class="checkbox"></div>
+                        <div class="task-text"><span class="task-icon">⏰</span>Descendre à temps (7h45)</div>
+                        <div class="star-value">⭐ 1</div>
+                    </div>
+                    <div class="task-item">
+                        <div class="checkbox"></div>
+                        <div class="task-text"><span class="task-icon">🦷</span>Se brosser les dents matin</div>
+                        <div class="star-value">⭐ 2</div>
+                    </div>
+                    <div class="task-item">
+                        <div class="checkbox"></div>
+                        <div class="task-text"><span class="task-icon">🧹</span>Débarrasser la table du petit déjeuner</div>
+                        <div class="star-value">⭐ 5</div>
+                    </div>
+                    <div class="task-item">
+                        <div class="checkbox"></div>
+                        <div class="task-text"><span class="task-icon">🎒</span>Prendre son cartable</div>
+                        <div class="star-value">⭐ 2</div>
+                    </div>
+                    <div class="task-item">
+                        <div class="checkbox"></div>
+                        <div class="task-text"><span class="task-icon">🚲</span>Aller prendre son vélo</div>
+                        <div class="star-value">⭐ 2</div>
+                    </div>
+                    <div class="task-item">
+                        <div class="checkbox"></div>
+                        <div class="task-text"><span class="task-icon">🏠</span>Au retour de l'école : prendre son cartable et toutes ses affaires</div>
+                        <div class="star-value">⭐ 5</div>
+                    </div>
+                    <div class="task-item">
+                        <div class="checkbox"></div>
+                        <div class="task-text"><span class="task-icon">📔</span>Sortir le journal de classe</div>
+                        <div class="star-value">⭐ 2</div>
+                    </div>
+                    <div class="task-item">
+                        <div class="checkbox"></div>
+                        <div class="task-text"><span class="task-icon">🍱</span>Sortir la boîte à tartine</div>
+                        <div class="star-value">⭐ 2</div>
+                    </div>
+                    <div class="task-item">
+                        <div class="checkbox"></div>
+                        <div class="task-text"><span class="task-icon">🧃</span>Sortir la gourde</div>
+                        <div class="star-value">⭐ 2</div>
+                    </div>
+                    <div class="task-item">
+                        <div class="checkbox"></div>
+                        <div class="task-text"><span class="task-icon">📦</span>Sortir les boîtes supplémentaires</div>
+                        <div class="star-value">⭐ 2</div>
+                    </div>
+                    <div class="task-item">
+                        <div class="checkbox"></div>
+                        <div class="task-text"><span class="task-icon">🍽️</span>Mettre ou débarrasser la table</div>
+                        <div class="star-value">⭐ 10</div>
+                    </div>
+                    <div class="task-item">
+                        <div class="checkbox"></div>
+                        <div class="task-text"><span class="task-icon">✏️</span>Faire ses devoirs</div>
+                        <div class="star-value">⭐ 20</div>
+                    </div>
+                    <div class="task-item">
+                        <div class="checkbox"></div>
+                        <div class="task-text"><span class="task-icon">🏒</span>Préparer vêtements hockey (mar/jeu)</div>
+                        <div class="star-value">⭐ 5</div>
+                    </div>
+                    <div class="task-item">
+                        <div class="checkbox"></div>
+                        <div class="task-text"><span class="task-icon">🚿</span>Prendre sa douche</div>
+                        <div class="star-value">⭐ 5</div>
+                    </div>
+                    <div class="task-item">
+                        <div class="checkbox"></div>
+                        <div class="task-text"><span class="task-icon">🧤</span>Mettre vêtements dans le bon bac à linge</div>
+                        <div class="star-value">⭐ 2</div>
+                    </div>
+                    <div class="task-item">
+                        <div class="checkbox"></div>
+                        <div class="task-text"><span class="task-icon">🚿</span>Vérifier que la salle de bain est en ordre</div>
+                        <div class="star-value">⭐ 3</div>
+                    </div>
+                    <div class="task-item">
+                        <div class="checkbox"></div>
+                        <div class="task-text"><span class="task-icon">⏰</span>Être prêt pour 18h40</div>
+                        <div class="star-value">⭐ 5</div>
+                    </div>
+                    <div class="task-item">
+                        <div class="checkbox"></div>
+                        <div class="task-text"><span class="task-icon">🦷</span>Se brosser les dents soir</div>
+                        <div class="star-value">⭐ 2</div>
+                    </div>
+                </div>
+                <div class="penalties">
+                    <div class="penalties-title">⚠️ PÉNALITÉS (étoiles en moins) ⚠️</div>
+                    <div class="penalty-item">
+                        <div class="penalty-checkbox" data-penalty-id="harry-p1"></div>
+                        <div class="penalty-text"><span class="penalty-icon">😡</span>Crier sur papa ou maman</div>
+                        <div class="penalty-value">-20 ⭐</div>
+                    </div>
+                    <div class="penalty-item">
+                        <div class="penalty-checkbox" data-penalty-id="harry-p2"></div>
+                        <div class="penalty-text"><span class="penalty-icon">🥊</span>Frapper son frère</div>
+                        <div class="penalty-value">-15 ⭐</div>
+                    </div>
+                    <div class="penalty-item">
+                        <div class="penalty-checkbox" data-penalty-id="harry-p3"></div>
+                        <div class="penalty-text"><span class="penalty-icon">🤥</span>Mentir</div>
+                        <div class="penalty-value">-20 ⭐</div>
+                    </div>
+                    <div class="penalty-item">
+                        <div class="penalty-checkbox" data-penalty-id="harry-p4"></div>
+                        <div class="penalty-text"><span class="penalty-icon">🙅</span>Ne pas écouter</div>
+                        <div class="penalty-value">-5 ⭐</div>
+                    </div>
+                    <div class="penalty-item">
+                        <div class="penalty-checkbox" data-penalty-id="harry-p5"></div>
+                        <div class="penalty-text"><span class="penalty-icon">😒</span>Dire "Je m'en fiche", "J'ai la flemme"...</div>
+                        <div class="penalty-value">-10 ⭐</div>
+                    </div>
+                </div>
+                <div class="reward-tracker">
+                    <div class="reward-title">🎁 Échelle des Récompenses 🎁</div>
+                    <div class="reward-scale">
+                        <div class="reward-level">
+                            <div class="reward-number">20</div>
+                            <div class="reward-label">📺 5min</div>
+                        </div>
+                        <div class="reward-level">
+                            <div class="reward-number">40</div>
+                            <div class="reward-label">📺 10min</div>
+                        </div>
+                        <div class="reward-level">
+                            <div class="reward-number">60</div>
+                            <div class="reward-label">📺/🎮 15min</div>
+                        </div>
+                        <div class="reward-level">
+                            <div class="reward-number">75</div>
+                            <div class="reward-label">📺/🎮 20min</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            💡 Cliquez sur les cases rondes pour marquer les tâches accomplies ! Le total se calcule automatiquement.
+        </div>
+    </div>
+    
+    <!-- Page Papa -->
+    <div class="page">
+        <div class="header papa">
+            <h1>👨 Papa</h1>
+            <p>Mes tâches quotidiennes - Gagnons des étoiles ! ⭐</p>
+        </div>
+        
+        <div class="content">
+            <div class="person-section papa">
+                <div class="person-header">
+                    <span class="person-name">Mes Tâches</span>
+                    <span class="stars-earned">⭐ ___ / 139</span>
+                </div>
+                <div class="tasks">
+                    <div class="task-item">
+                        <div class="checkbox"></div>
+                        <div class="task-text"><span class="task-icon">🚿</span>Prendre sa douche</div>
+                        <div class="star-value">⭐ 5</div>
+                    </div>
+                    <div class="task-item">
+                        <div class="checkbox"></div>
+                        <div class="task-text"><span class="task-icon">🍳</span>Préparer le petit déjeuner</div>
+                        <div class="star-value">⭐ 10</div>
+                    </div>
+                    <div class="task-item">
+                        <div class="checkbox"></div>
+                        <div class="task-text"><span class="task-icon">🧹</span>Débarrasser la table du petit déjeuner</div>
+                        <div class="star-value">⭐ 5</div>
+                    </div>
+                    <div class="task-item">
+                        <div class="checkbox"></div>
+                        <div class="task-text"><span class="task-icon">🦷</span>Se brosser les dents matin</div>
+                        <div class="star-value">⭐ 2</div>
+                    </div>
+                    <div class="task-item">
+                        <div class="checkbox"></div>
+                        <div class="task-text"><span class="task-icon">🧺</span>Lancer une machine à laver</div>
+                        <div class="star-value">⭐ 10</div>
+                    </div>
+                    <div class="task-item">
+                        <div class="checkbox"></div>
+                        <div class="task-text"><span class="task-icon">👕</span>Sortir la machine / étendre le linge</div>
+                        <div class="star-value">⭐ 10</div>
+                    </div>
+                    <div class="task-item">
+                        <div class="checkbox"></div>
+                        <div class="task-text"><span class="task-icon">🚗</span>Aller chercher les enfants à l'école</div>
+                        <div class="star-value">⭐ 15</div>
+                    </div>
+                    <div class="task-item">
+                        <div class="checkbox"></div>
+                        <div class="task-text"><span class="task-icon">📚</span>Faire les devoirs avec les enfants</div>
+                        <div class="star-value">⭐ 15</div>
+                    </div>
+                    <div class="task-item">
+                        <div class="checkbox"></div>
+                        <div class="task-text"><span class="task-icon">📖</span>Contrôler le journal de classe</div>
+                        <div class="star-value">⭐ 5</div>
+                    </div>
+                    <div class="task-item">
+                        <div class="checkbox"></div>
+                        <div class="task-text"><span class="task-icon">🍽️</span>Faire la vaisselle</div>
+                        <div class="star-value">⭐ 10</div>
+                    </div>
+                    <div class="task-item">
+                        <div class="checkbox"></div>
+                        <div class="task-text"><span class="task-icon">🏠</span>Ranger la maison</div>
+                        <div class="star-value">⭐ 10</div>
+                    </div>
+                    <div class="task-item">
+                        <div class="checkbox"></div>
+                        <div class="task-text"><span class="task-icon">🛒</span>Gérer les courses</div>
+                        <div class="star-value">⭐ 15</div>
+                    </div>
+                    <div class="task-item">
+                        <div class="checkbox"></div>
+                        <div class="task-text"><span class="task-icon">🚗</span>Conduire les enfants aux sports</div>
+                        <div class="star-value">⭐ 10</div>
+                    </div>
+                    <div class="task-item">
+                        <div class="checkbox"></div>
+                        <div class="task-text"><span class="task-icon">👶</span>Garder les enfants seul (temps pour l'autre)</div>
+                        <div class="star-value">⭐ 15</div>
+                    </div>
+                    <div class="task-item">
+                        <div class="checkbox"></div>
+                        <div class="task-text"><span class="task-icon">🦷</span>Se brosser les dents soir</div>
+                        <div class="star-value">⭐ 2</div>
+                    </div>
+                </div>
+                <div class="reward-tracker">
+                    <div class="reward-title">🎁 Échelle des Récompenses 🎁</div>
+                    <div class="reward-scale">
+                        <div class="reward-level">
+                            <div class="reward-number">20</div>
+                            <div class="reward-label">🎁</div>
+                        </div>
+                        <div class="reward-level">
+                            <div class="reward-number">40</div>
+                            <div class="reward-label">🎁🎁</div>
+                        </div>
+                        <div class="reward-level">
+                            <div class="reward-number">60</div>
+                            <div class="reward-label">🎁🎁🎁</div>
+                        </div>
+                        <div class="reward-level">
+                            <div class="reward-number">80</div>
+                            <div class="reward-label">🏆</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            💡 Cliquez sur les cases rondes pour marquer les tâches accomplies ! Le total se calcule automatiquement.
+        </div>
+    </div>
+    
+    <!-- Page Maman -->
+    <div class="page">
+        <div class="header maman">
+            <h1>👩 Maman</h1>
+            <p>Mes tâches quotidiennes - Gagnons des étoiles ! ⭐</p>
+        </div>
+        
+        <div class="content">
+            <div class="person-section maman">
+                <div class="person-header">
+                    <span class="person-name">Mes Tâches</span>
+                    <span class="stars-earned">⭐ ___ / 104</span>
+                </div>
+                <div class="tasks">
+                    <div class="task-item">
+                        <div class="checkbox"></div>
+                        <div class="task-text"><span class="task-icon">🚿</span>Prendre sa douche</div>
+                        <div class="star-value">⭐ 5</div>
+                    </div>
+                    <div class="task-item">
+                        <div class="checkbox"></div>
+                        <div class="task-text"><span class="task-icon">🍳</span>Préparer la cuisine</div>
+                        <div class="star-value">⭐ 15</div>
+                    </div>
+                    <div class="task-item">
+                        <div class="checkbox"></div>
+                        <div class="task-text"><span class="task-icon">🧹</span>Débarrasser la table du petit déjeuner</div>
+                        <div class="star-value">⭐ 5</div>
+                    </div>
+                    <div class="task-item">
+                        <div class="checkbox"></div>
+                        <div class="task-text"><span class="task-icon">🎒</span>Préparer les sacs pour l'école</div>
+                        <div class="star-value">⭐ 10</div>
+                    </div>
+                    <div class="task-item">
+                        <div class="checkbox"></div>
+                        <div class="task-text"><span class="task-icon">🛁</span>Bain/douche des enfants</div>
+                        <div class="star-value">⭐ 10</div>
+                    </div>
+                    <div class="task-item">
+                        <div class="checkbox"></div>
+                        <div class="task-text"><span class="task-icon">🌙</span>Gérer le coucher des enfants</div>
+                        <div class="star-value">⭐ 10</div>
+                    </div>
+                    <div class="task-item">
+                        <div class="checkbox"></div>
+                        <div class="task-text"><span class="task-icon">🏠</span>Ranger la maison</div>
+                        <div class="star-value">⭐ 10</div>
+                    </div>
+                    <div class="task-item">
+                        <div class="checkbox"></div>
+                        <div class="task-text"><span class="task-icon">🍳</span>Préparer le repas du soir</div>
+                        <div class="star-value">⭐ 20</div>
+                    </div>
+                    <div class="task-item">
+                        <div class="checkbox"></div>
+                        <div class="task-text"><span class="task-icon">🧺</span>Gérer le linge</div>
+                        <div class="star-value">⭐ 10</div>
+                    </div>
+                    <div class="task-item">
+                        <div class="checkbox"></div>
+                        <div class="task-text"><span class="task-icon">👶</span>Garder les enfants seule (temps pour l'autre)</div>
+                        <div class="star-value">⭐ 15</div>
+                    </div>
+                    <div class="task-item">
+                        <div class="checkbox"></div>
+                        <div class="task-text"><span class="task-icon">🦷</span>Se brosser les dents matin</div>
+                        <div class="star-value">⭐ 2</div>
+                    </div>
+                    <div class="task-item">
+                        <div class="checkbox"></div>
+                        <div class="task-text"><span class="task-icon">🦷</span>Se brosser les dents soir</div>
+                        <div class="star-value">⭐ 2</div>
+                    </div>
+                </div>
+                <div class="reward-tracker">
+                    <div class="reward-title">🎁 Échelle des Récompenses 🎁</div>
+                    <div class="reward-scale">
+                        <div class="reward-level">
+                            <div class="reward-number">20</div>
+                            <div class="reward-label">🎁</div>
+                        </div>
+                        <div class="reward-level">
+                            <div class="reward-number">40</div>
+                            <div class="reward-label">🎁🎁</div>
+                        </div>
+                        <div class="reward-level">
+                            <div class="reward-number">60</div>
+                            <div class="reward-label">🎁🎁🎁</div>
+                        </div>
+                        <div class="reward-level">
+                            <div class="reward-number">80</div>
+                            <div class="reward-label">🏆</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            💡 Cliquez sur les cases rondes pour marquer les tâches accomplies ! Le total se calcule automatiquement.
+        </div>
+    </div>
+    
+    <!-- Page des Pénalités florent (visible uniquement à l'impression) -->
+    <div class="page penalties-page">
+        <div class="header florent">
+            <h1>⚠️ Pénalités - florent</h1>
+            <p>Points négatifs à déduire</p>
+        </div>
+        
+        <div class="content">
+            <div class="person-section florent">
+                <div class="person-header">
+                    <span class="person-name">👦 florent - Pénalités</span>
+                </div>
+                <div class="penalties" style="display: block; margin-top: 15px;">
+                    <div class="penalties-title">⚠️ PÉNALITÉS (étoiles en moins) ⚠️</div>
+                    <div class="penalty-item">
+                        <div class="penalty-checkbox" data-penalty-id="florent-p1"></div>
+                        <div class="penalty-text"><span class="penalty-icon">😡</span>Crier sur papa ou maman</div>
+                        <div class="penalty-value">-20 ⭐</div>
+                    </div>
+                    <div class="penalty-item">
+                        <div class="penalty-checkbox" data-penalty-id="florent-p2"></div>
+                        <div class="penalty-text"><span class="penalty-icon">🥊</span>Frapper son frère</div>
+                        <div class="penalty-value">-15 ⭐</div>
+                    </div>
+                    <div class="penalty-item">
+                        <div class="penalty-checkbox" data-penalty-id="florent-p3"></div>
+                        <div class="penalty-text"><span class="penalty-icon">🤥</span>Mentir</div>
+                        <div class="penalty-value">-20 ⭐</div>
+                    </div>
+                    <div class="penalty-item">
+                        <div class="penalty-checkbox" data-penalty-id="florent-p4"></div>
+                        <div class="penalty-text"><span class="penalty-icon">🙅</span>Ne pas écouter</div>
+                        <div class="penalty-value">-5 ⭐</div>
+                    </div>
+                    <div class="penalty-item">
+                        <div class="penalty-checkbox" data-penalty-id="florent-p5"></div>
+                        <div class="penalty-text"><span class="penalty-icon">😒</span>Dire "Je m'en fiche", "J'ai la flemme"...</div>
+                        <div class="penalty-value">-10 ⭐</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            💡 Les pénalités sont automatiquement déduites du total d'étoiles.
+        </div>
+    </div>
+    
+    <!-- Page des Pénalités harry (visible uniquement à l'impression) -->
+    <div class="page penalties-page">
+        <div class="header harry">
+            <h1>⚠️ Pénalités - harry</h1>
+            <p>Points négatifs à déduire</p>
+        </div>
+        
+        <div class="content">
+            <div class="person-section harry">
+                <div class="person-header">
+                    <span class="person-name">👦 harry - Pénalités</span>
+                </div>
+                <div class="penalties" style="display: block; margin-top: 15px;">
+                    <div class="penalties-title">⚠️ PÉNALITÉS (étoiles en moins) ⚠️</div>
+                    <div class="penalty-item">
+                        <div class="penalty-checkbox" data-penalty-id="harry-p1"></div>
+                        <div class="penalty-text"><span class="penalty-icon">😡</span>Crier sur papa ou maman</div>
+                        <div class="penalty-value">-20 ⭐</div>
+                    </div>
+                    <div class="penalty-item">
+                        <div class="penalty-checkbox" data-penalty-id="harry-p2"></div>
+                        <div class="penalty-text"><span class="penalty-icon">🥊</span>Frapper son frère</div>
+                        <div class="penalty-value">-15 ⭐</div>
+                    </div>
+                    <div class="penalty-item">
+                        <div class="penalty-checkbox" data-penalty-id="harry-p3"></div>
+                        <div class="penalty-text"><span class="penalty-icon">🤥</span>Mentir</div>
+                        <div class="penalty-value">-20 ⭐</div>
+                    </div>
+                    <div class="penalty-item">
+                        <div class="penalty-checkbox" data-penalty-id="harry-p4"></div>
+                        <div class="penalty-text"><span class="penalty-icon">🙅</span>Ne pas écouter</div>
+                        <div class="penalty-value">-5 ⭐</div>
+                    </div>
+                    <div class="penalty-item">
+                        <div class="penalty-checkbox" data-penalty-id="harry-p5"></div>
+                        <div class="penalty-text"><span class="penalty-icon">😒</span>Dire "Je m'en fiche", "J'ai la flemme"...</div>
+                        <div class="penalty-value">-10 ⭐</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            💡 Les pénalités sont automatiquement déduites du total d'étoiles.
+        </div>
+    </div>
+    
+    <script>
+        // Fonction pour calculer le total des étoiles pour une section
+        function calculateTotal(personSection) {
+            let total = 0;
+            
+            // Ajouter les tâches cochées
+            const taskItems = personSection.querySelectorAll('.task-item');
+            taskItems.forEach(item => {
+                const checkbox = item.querySelector('.checkbox');
+                const starValue = item.querySelector('.star-value');
+                if (checkbox && checkbox.classList.contains('checked') && starValue) {
+                    const value = parseInt(starValue.textContent.match(/\d+/)[0]);
+                    total += value;
+                }
+            });
+            
+            // Soustraire les pénalités cochées
+            const penaltyItems = personSection.querySelectorAll('.penalty-item');
+            penaltyItems.forEach(item => {
+                const checkbox = item.querySelector('.penalty-checkbox');
+                const penaltyValue = item.querySelector('.penalty-value');
+                if (checkbox && checkbox.classList.contains('checked') && penaltyValue) {
+                    const value = parseInt(penaltyValue.textContent.match(/\d+/)[0]);
+                    total -= value;
+                }
+            });
+            
+            // Ne pas descendre en dessous de 0
+            total = Math.max(0, total);
+            
+            return total;
+        }
+        
+        // Fonction pour mettre à jour l'affichage du total
+        function updateTotal(personSection) {
+            const total = calculateTotal(personSection);
+            const starsEarned = personSection.querySelector('.stars-earned');
+            if (starsEarned) {
+                const maxStars = starsEarned.textContent.match(/\/ (\d+)/)[1];
+                starsEarned.textContent = `⭐ ${total} / ${maxStars}`;
+            }
+        }
+        
+        // Initialiser tous les checkboxes et penalty-checkboxes
+        document.addEventListener('DOMContentLoaded', function() {
+            // Gérer les clics sur les checkboxes de tâches
+            const checkboxes = document.querySelectorAll('.checkbox');
+            checkboxes.forEach(checkbox => {
+                checkbox.addEventListener('click', function() {
+                    this.classList.toggle('checked');
+                    const personSection = this.closest('.person-section');
+                    updateTotal(personSection);
+                });
+            });
+            
+            // Gérer les clics sur les checkboxes de pénalités
+            const penaltyCheckboxes = document.querySelectorAll('.penalty-checkbox');
+            penaltyCheckboxes.forEach(checkbox => {
+                checkbox.addEventListener('click', function() {
+                    this.classList.toggle('checked');
+                    
+                    // Synchroniser avec les autres checkboxes ayant le même data-penalty-id
+                    const penaltyId = this.getAttribute('data-penalty-id');
+                    if (penaltyId) {
+                        const isChecked = this.classList.contains('checked');
+                        const allSamePenalties = document.querySelectorAll(`[data-penalty-id="${penaltyId}"]`);
+                        allSamePenalties.forEach(cb => {
+                            if (isChecked) {
+                                cb.classList.add('checked');
+                            } else {
+                                cb.classList.remove('checked');
+                            }
+                        });
+                    }
+                    
+                    const personSection = this.closest('.person-section');
+                    updateTotal(personSection);
+                });
+            });
+        });
+    </script>
+</body>
+</html>

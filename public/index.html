@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tableau des Tâches Familiales</title>
+    <link rel="stylesheet" href="css/styles.css?v=10.0">
+</head>
+<body>
+    <div class="container">
+        <header class="main-header">
+            <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                <div>
+                    <h1>📋 Tâches Familiales</h1>
+                    <p>Gérez vos tâches quotidiennes en famille</p>
+                </div>
+                <button onclick="window.location.reload()" class="btn-primary" style="border-radius: 25px;">🔄 Actualiser</button>
+            </div>
+        </header>
+
+        <div class="filters" style="margin-bottom: 10px;">
+            <button class="filter-btn" onclick="changeDayRelative(-1)">← Hier</button>
+            <button class="filter-btn active" id="dayNavigationTitle">📅 CHARGEMENT...</button>
+            <button class="filter-btn" onclick="changeDayRelative(1)">Demain →</button>
+        </div>
+        
+        <div class="filters">
+            <button id="dayBtn1" class="filter-btn" onclick="changeDay(1)">Lun</button>
+            <button id="dayBtn2" class="filter-btn" onclick="changeDay(2)">Mar</button>
+            <button id="dayBtn3" class="filter-btn" onclick="changeDay(3)">Mer</button>
+            <button id="dayBtn4" class="filter-btn" onclick="changeDay(4)">Jeu</button>
+            <button id="dayBtn5" class="filter-btn" onclick="changeDay(5)">Ven</button>
+            <button id="dayBtn6" class="filter-btn" onclick="changeDay(6)">Sam</button>
+            <button id="dayBtn0" class="filter-btn" onclick="changeDay(0)">Dim</button>
+        </div>
+
+        <div class="add-task-section">
+            <button id="toggleFormBtn" class="btn-primary">➕ Ajouter une tâche</button>
+            <form id="taskForm" class="task-form hidden">
+                <h3>Nouvelle Tâche</h3>
+                <div class="form-group">
+                    <label>Titre (ajoutez "BONUS" dans le titre pour une tâche bonus)</label>
+                    <input type="text" id="taskTitle" required>
+                </div>
+                <div class="form-group">
+                    <label>Assignée à</label>
+                    <select id="assignedTo">
+                        <option value="papa">Papa</option>
+                        <option value="maman">Maman</option>
+                        <option value="florent">Florent</option>
+                        <option value="harry">Harry</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Type de récurrence</label>
+                    <select id="category">
+                        <option value="quotidien">Quotidien (Tous les jours)</option>
+                        <option value="hebdomadaire">Hebdomadaire (Toutes les semaines, à compléter le dimanche)</option>
+                        <option value="mensuel">Mensuel (Tous les mois, à compléter le dernier dimanche du mois)</option>
+                        <option value="ponctuel">Ponctuel (Une seule fois)</option>
+                    </select>
+                </div>
+                <div id="specificDateGroup" class="form-group" style="display: none;">
+                    <label id="dateLabel">Date spécifique</label>
+                    <input type="date" id="specificDate">
+                </div>
+                <div id="daysSelectionGroup" class="form-group">
+                    <label>Jours actifs</label>
+                    <div class="days-selector">
+                        <label><input type="checkbox" id="day1" checked> Lun</label>
+                        <label><input type="checkbox" id="day2" checked> Mar</label>
+                        <label><input type="checkbox" id="day3" checked> Mer</label>
+                        <label><input type="checkbox" id="day4" checked> Jeu</label>
+                        <label><input type="checkbox" id="day5" checked> Ven</label>
+                        <label><input type="checkbox" id="day6" checked> Sam</label>
+                        <label><input type="checkbox" id="day0" checked> Dim</label>
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn-primary">Enregistrer</button>
+                    <button type="button" onclick="resetForm()" class="btn-secondary">Annuler</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="persons-container">
+            <div class="person-section papa">
+                <div class="person-header">
+                    <div class="person-name">👨 Papa</div>
+                    <div class="stats"><div class="stars-earned">⭐ <span id="stars-count-papa" class="stars-count">0 / 0</span></div></div>
+                </div>
+                <div class="progress-container">
+                    <div class="progress-bar"><div class="progress-fill" id="progress-fill-papa"></div></div>
+                    <div class="progress-details">
+                        <span id="percentage-papa">0%</span>
+                        <span class="base-time" id="base-time-papa">(⏱ <span id="base-minutes-papa">0</span>m)</span>
+                        <span class="screen-time-badge" id="screen-time-badge-papa">📺 <span id="screen-minutes-papa">0</span>min</span>
+                        <span class="bonus-time" id="bonus-time-papa"> + 🎁 <span id="bonus-minutes-papa">0</span>m = <span id="total-minutes-papa">0</span>m</span>
+                    </div>
+                </div>
+                <div id="tasks-papa" class="tasks-list"></div>
+            </div>
+
+            <div class="person-section maman">
+                <div class="person-header">
+                    <div class="person-name">👩 Maman</div>
+                    <div class="stats"><div class="stars-earned">⭐ <span id="stars-count-maman" class="stars-count">0 / 0</span></div></div>
+                </div>
+                <div class="progress-container">
+                    <div class="progress-bar"><div class="progress-fill" id="progress-fill-maman"></div></div>
+                    <div class="progress-details">
+                        <span id="percentage-maman">0%</span>
+                        <span class="base-time" id="base-time-maman">(⏱ <span id="base-minutes-maman">0</span>m)</span>
+                        <span class="screen-time-badge" id="screen-time-badge-maman">📺 <span id="screen-minutes-maman">0</span>min</span>
+                        <span class="bonus-time" id="bonus-time-maman"> + 🎁 <span id="bonus-minutes-maman">0</span>m = <span id="total-minutes-maman">0</span>m</span>
+                    </div>
+                </div>
+                <div id="tasks-maman" class="tasks-list"></div>
+            </div>
+
+            <div class="person-section florent">
+                <div class="person-header">
+                    <div class="person-name">👦 Florent</div>
+                    <div class="stats"><div class="stars-earned">⭐ <span id="stars-count-florent" class="stars-count">0 / 0</span></div></div>
+                </div>
+                <div class="progress-container">
+                    <div class="progress-bar"><div class="progress-fill" id="progress-fill-florent"></div></div>
+                    <div class="progress-details">
+                        <span id="percentage-florent">0%</span>
+                        <span class="base-time" id="base-time-florent">(⏱ <span id="base-minutes-florent">0</span>m)</span>
+                        <span class="screen-time-badge" id="screen-time-badge-florent">📺 <span id="screen-minutes-florent">0</span>min</span>
+                        <span class="bonus-time" id="bonus-time-florent"> + 🎁 <span id="bonus-minutes-florent">0</span>m = <span id="total-minutes-florent">0</span>m</span>
+                    </div>
+                </div>
+                <div id="tasks-florent" class="tasks-list"></div>
+            </div>
+
+            <div class="person-section harry">
+                <div class="person-header">
+                    <div class="person-name">👶 Harry</div>
+                    <div class="stats"><div class="stars-earned">⭐ <span id="stars-count-harry" class="stars-count">0 / 0</span></div></div>
+                </div>
+                <div class="progress-container">
+                    <div class="progress-bar"><div class="progress-fill" id="progress-fill-harry"></div></div>
+                    <div class="progress-details">
+                        <span id="percentage-harry">0%</span>
+                        <span class="base-time" id="base-time-harry">(⏱ <span id="base-minutes-harry">0</span>m)</span>
+                        <span class="screen-time-badge" id="screen-time-badge-harry">📺 <span id="screen-minutes-harry">0</span>min</span>
+                        <span class="bonus-time" id="bonus-time-harry"> + 🎁 <span id="bonus-minutes-harry">0</span>m = <span id="total-minutes-harry">0</span>m</span>
+                    </div>
+                </div>
+                <div id="tasks-harry" class="tasks-list"></div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getFirestore } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+        const firebaseConfig = {
+            apiKey: "AIzaSyAyay5CLnEs7xFBNKmMLu2lLz7YaAiZUzo",
+            authDomain: "systemederecompensesenfants.firebaseapp.com",
+            projectId: "systemederecompensesenfants",
+            storageBucket: "systemederecompensesenfants.firebasestorage.app",
+            messagingSenderId: "460424153190",
+            appId: "1:460424153190:web:8fbb6fb189a9d7be0fc5a7"
+        };
+        const app = initializeApp(firebaseConfig);
+        window.db = getFirestore(app);
+    </script>
+    <script type="module" src="js/app.js?v=10.0"></script>
+</body>
+</html>

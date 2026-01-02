@@ -1,0 +1,215 @@
+/* ===== NAVIGATION DES JOURS ===== */
+
+.day-navigation {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 15px;
+    padding: 20px;
+    margin: 20px 0;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.day-nav-main {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.day-nav-title {
+    color: white;
+    font-size: 1.5em;
+    font-weight: bold;
+    margin: 0;
+    text-align: center;
+    flex: 1;
+}
+
+.day-nav-btn {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: white;
+    padding: 10px 15px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 1em;
+    font-weight: bold;
+    transition: all 0.3s ease;
+}
+
+.day-nav-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: scale(1.05);
+}
+
+.day-nav-quick {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.day-quick-btn {
+    background: rgba(255, 255, 255, 0.2);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    color: white;
+    padding: 8px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.9em;
+    font-weight: bold;
+    transition: all 0.3s ease;
+}
+
+.day-quick-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: translateY(-2px);
+}
+
+.day-quick-btn.active {
+    background: white;
+    color: #667eea;
+    border-color: white;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+}
+
+/* ===== BANDEAU D'AVERTISSEMENT ===== */
+
+.day-warning-banner {
+    background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+    color: white;
+    padding: 15px 20px;
+    margin: 15px 0;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+    animation: slideInDown 0.5s ease;
+}
+
+.day-warning-banner.hidden {
+    display: none;
+}
+
+.warning-content {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    justify-content: space-between;
+}
+
+.warning-icon {
+    font-size: 2em;
+}
+
+.warning-text {
+    flex: 1;
+}
+
+.warning-text strong {
+    font-size: 1.1em;
+}
+
+.warning-text small {
+    opacity: 0.9;
+}
+
+.btn-today {
+    background: white;
+    color: #ff6b6b;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-today:hover {
+    background: #f8f9fa;
+    transform: scale(1.05);
+}
+
+@keyframes slideInDown {
+    from {
+        transform: translateY(-20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* ===== CHECKBOXES DES JOURS DANS LE FORMULAIRE ===== */
+
+.days-checkboxes {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 10px;
+}
+
+.day-checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    background: #f8f9fa;
+    padding: 8px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+}
+
+.day-checkbox-label:hover {
+    background: #e9ecef;
+}
+
+.day-checkbox-label input[type="checkbox"]:checked + span {
+    font-weight: bold;
+}
+
+.day-checkbox-label:has(input[type="checkbox"]:checked) {
+    background: #667eea;
+    color: white;
+    border-color: #667eea;
+}
+
+.day-checkbox {
+    cursor: pointer;
+}
+
+/* ===== RESPONSIVE ===== */
+
+@media (max-width: 768px) {
+    .day-nav-main {
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .day-nav-title {
+        font-size: 1.2em;
+    }
+    
+    .day-nav-btn {
+        padding: 8px 12px;
+        font-size: 0.9em;
+    }
+    
+    .day-quick-btn {
+        padding: 6px 10px;
+        font-size: 0.85em;
+    }
+    
+    .warning-content {
+        flex-direction: column;
+        text-align: center;
+        gap: 10px;
+    }
+    
+    .warning-icon {
+        font-size: 1.5em;
+    }
+    
+    .days-checkboxes {
+        justify-content: center;
+    }
+}
