@@ -267,3 +267,9 @@ serviceAccountKey.json
 # Backups Firestore (garder localement uniquement)
 backups/*.json
 backups/*.gz
+
+# Secrets / service accounts
+*.json
+*adminsdk*
+*serviceAccount*
+
