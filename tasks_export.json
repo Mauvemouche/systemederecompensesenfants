@@ -1,632 +1,722 @@
 {
-  "0PY4kD964dEp4ergLDEu": {
-    "title": "Débarrasser la table",
-    "description": "Après chaque repas, débarrasser et mettre dans l’évier",
-    "assignedTo": "florent",
-    "stars": 1,
-    "category": "quotidien",
-    "isBonus": false,
-    "isPenalty": false,
-    "isSeriousFault": false,
-    "completed": false,
-    "dayOfWeek": 2,
-    "createdAt": {
-      "_seconds": 1767188954,
-      "_nanoseconds": 425000000
-    },
-    "updatedAt": {
-      "_seconds": 1767188954,
-      "_nanoseconds": 425000000
-    },
-    "order": 1
-  },
-  "0e6Vc9j0m2qS1QzvLVwr": {
-    "title": "Débarrasser la table",
-    "description": "Après chaque repas, débarrasser et mettre la vaisselle sale dans l’évier",
-    "assignedTo": "harry",
-    "stars": 1,
-    "category": "quotidien",
-    "isBonus": false,
-    "isPenalty": false,
-    "isSeriousFault": false,
-    "completed": false,
-    "dayOfWeek": 0,
-    "createdAt": {
-      "_seconds": 1767189074,
-      "_nanoseconds": 762000000
-    },
-    "updatedAt": {
-      "_seconds": 1767189074,
-      "_nanoseconds": 762000000
-    },
-    "order": 1
-  },
-  "2o2rKKUQR1CnB5D9HNoY": {
-    "title": "Débarrasser la table",
-    "description": "Après chaque repas, débarrasser et mettre la vaisselle sale dans l’évier",
-    "assignedTo": "harry",
-    "stars": 1,
-    "category": "quotidien",
-    "isBonus": false,
-    "isPenalty": false,
-    "isSeriousFault": false,
-    "completed": false,
-    "order": 0,
-    "dayOfWeek": 1,
-    "createdAt": {
-      "_seconds": 1767189074,
-      "_nanoseconds": 815000000
-    },
-    "updatedAt": {
-      "_seconds": 1767189074,
-      "_nanoseconds": 815000000
-    }
-  },
-  "5THxoMOaINp5zBjO2GGN": {
-    "title": "Débarrasser la table",
-    "description": "Après chaque repas, débarrasser et mettre dans l’évier",
-    "assignedTo": "florent",
-    "stars": 1,
-    "category": "quotidien",
-    "isBonus": false,
-    "isPenalty": false,
-    "isSeriousFault": false,
-    "completed": false,
-    "order": 0,
-    "dayOfWeek": 5,
-    "createdAt": {
-      "_seconds": 1767188954,
-      "_nanoseconds": 556000000
-    },
-    "updatedAt": {
-      "_seconds": 1767188954,
-      "_nanoseconds": 556000000
-    }
-  },
-  "6znCZvkGPqUOk9KvOAdm": {
-    "title": "test flo",
+  "0gbT7MHBSG2DHygUSngf": {
+    "templateId": "80d75fb2-cd4e-442f-b214-6d855299bbda",
+    "title": "testmensuelle",
     "description": "",
-    "assignedTo": "florent",
-    "stars": 1,
-    "category": "quotidien",
-    "isBonus": false,
-    "isPenalty": false,
-    "isSeriousFault": false,
-    "completed": false,
-    "order": 16,
-    "dayOfWeek": 4,
-    "createdAt": {
-      "_seconds": 1767192225,
-      "_nanoseconds": 108000000
-    },
-    "updatedAt": {
-      "_seconds": 1767192225,
-      "_nanoseconds": 108000000
-    }
-  },
-  "7GcYJXFuPv1YUqSw8IWm": {
-    "title": "Test déploiement propre database Firestore",
-    "description": "Test",
     "assignedTo": "papa",
     "stars": 3,
     "category": "mensuel",
     "isBonus": false,
     "isPenalty": false,
     "isSeriousFault": false,
-    "order": 0,
+    "completed": false,
+    "order": 1769187447372,
+    "dayOfWeek": -1,
+    "fullDate": null,
+    "dayOfMonth": 1,
+    "createdAt": {
+      "_seconds": 1769187447,
+      "_nanoseconds": 1000000
+    },
+    "updatedAt": {
+      "_seconds": 1769187447,
+      "_nanoseconds": 1000000
+    }
+  },
+  "2UVQymCRBI83H4kE7eWn": {
+    "templateId": "b0857d78-5eba-406f-a76e-1be93d28b6c6",
+    "title": "testquotidienneavecfautegrave",
+    "description": "",
+    "assignedTo": "papa",
+    "stars": 3,
+    "category": "quotidien",
+    "isBonus": false,
+    "isPenalty": false,
+    "isSeriousFault": true,
+    "completed": false,
+    "order": 1769187536833,
     "dayOfWeek": 1,
+    "fullDate": null,
+    "dayOfMonth": null,
     "createdAt": {
-      "_seconds": 1766968394,
-      "_nanoseconds": 175000000
-    },
-    "completed": true,
-    "updatedAt": {
-      "_seconds": 1766969008,
-      "_nanoseconds": 530000000
-    }
-  },
-  "7f8YC1JEVP47ebjTinVd": {
-    "title": "test flo",
-    "description": "",
-    "assignedTo": "florent",
-    "stars": 1,
-    "category": "quotidien",
-    "isBonus": false,
-    "isPenalty": false,
-    "isSeriousFault": false,
-    "completed": false,
-    "order": 16,
-    "dayOfWeek": 2,
-    "createdAt": {
-      "_seconds": 1767192224,
-      "_nanoseconds": 988000000
+      "_seconds": 1769187536,
+      "_nanoseconds": 510000000
     },
     "updatedAt": {
-      "_seconds": 1767192224,
-      "_nanoseconds": 988000000
+      "_seconds": 1769187536,
+      "_nanoseconds": 510000000
     }
   },
-  "8btnqOJdyCMR8LXSCKEA": {
-    "title": "test flo",
+  "5Z1Mn6XN4kF6akY99GQq": {
+    "templateId": "4338565f-84c9-4e34-a8f9-9fbe7357a5cb",
+    "title": "testquotidienne",
     "description": "",
-    "assignedTo": "florent",
+    "assignedTo": "papa",
     "stars": 3,
     "category": "quotidien",
     "isBonus": false,
     "isPenalty": false,
     "isSeriousFault": false,
     "completed": false,
-    "order": 9,
-    "dayOfWeek": 4,
-    "createdAt": {
-      "_seconds": 1767192048,
-      "_nanoseconds": 343000000
-    },
-    "updatedAt": {
-      "_seconds": 1767192048,
-      "_nanoseconds": 343000000
-    }
-  },
-  "8t9Hg4NkzUfabTPqT5kn": {
-    "title": "Débarrasser la table",
-    "description": "Après chaque repas, débarrasser et mettre la vaisselle sale dans l’évier",
-    "assignedTo": "harry",
-    "stars": 1,
-    "category": "quotidien",
-    "isBonus": false,
-    "isPenalty": false,
-    "isSeriousFault": false,
-    "completed": false,
-    "order": 0,
-    "dayOfWeek": 5,
-    "createdAt": {
-      "_seconds": 1767189075,
-      "_nanoseconds": 24000000
-    },
-    "updatedAt": {
-      "_seconds": 1767189075,
-      "_nanoseconds": 24000000
-    }
-  },
-  "9YdbH5Xufku9J269oV4i": {
-    "title": "test flo",
-    "description": "",
-    "assignedTo": "florent",
-    "stars": 3,
-    "category": "quotidien",
-    "isBonus": false,
-    "isPenalty": false,
-    "isSeriousFault": false,
-    "completed": false,
-    "order": 9,
-    "dayOfWeek": 5,
-    "createdAt": {
-      "_seconds": 1767192048,
-      "_nanoseconds": 385000000
-    },
-    "updatedAt": {
-      "_seconds": 1767192048,
-      "_nanoseconds": 385000000
-    }
-  },
-  "BHMajZyg95lzWkZ6woZa": {
-    "title": "S’entrainer a la guitare",
-    "description": "",
-    "assignedTo": "florent",
-    "stars": 2,
-    "category": "quotidien",
-    "isBonus": true,
-    "isPenalty": false,
-    "isSeriousFault": false,
-    "completed": false,
-    "order": 18,
-    "dayOfWeek": 6,
-    "createdAt": {
-      "_seconds": 1767196436,
-      "_nanoseconds": 603000000
-    },
-    "updatedAt": {
-      "_seconds": 1767196436,
-      "_nanoseconds": 603000000
-    }
-  },
-  "DY62INrRJxRGGpGmQpwq": {
-    "title": "Débarrasser la table",
-    "description": "Après chaque repas, débarrasser et mettre dans l’évier",
-    "assignedTo": "florent",
-    "stars": 1,
-    "category": "quotidien",
-    "isBonus": false,
-    "isPenalty": false,
-    "isSeriousFault": false,
-    "completed": false,
-    "order": 0,
+    "order": 1769187385170,
     "dayOfWeek": 1,
+    "fullDate": null,
+    "dayOfMonth": null,
     "createdAt": {
-      "_seconds": 1767188954,
-      "_nanoseconds": 381000000
+      "_seconds": 1769187385,
+      "_nanoseconds": 25000000
     },
     "updatedAt": {
-      "_seconds": 1767188954,
-      "_nanoseconds": 381000000
+      "_seconds": 1769187385,
+      "_nanoseconds": 25000000
     }
   },
-  "F507HtLMt2Nebc3umjGh": {
-    "title": "Débarrasser la table",
-    "description": "Après chaque repas, débarrasser et mettre la vaisselle sale dans l’évier",
-    "assignedTo": "harry",
-    "stars": 1,
-    "category": "quotidien",
-    "isBonus": false,
-    "isPenalty": false,
-    "isSeriousFault": false,
-    "completed": false,
-    "order": 0,
-    "dayOfWeek": 4,
-    "createdAt": {
-      "_seconds": 1767189074,
-      "_nanoseconds": 979000000
-    },
-    "updatedAt": {
-      "_seconds": 1767189074,
-      "_nanoseconds": 979000000
-    }
-  },
-  "GeKfMHuot2nbdOTbdbD2": {
-    "title": "Débarrasser la table",
-    "description": "Après chaque repas, débarrasser et mettre dans l’évier",
-    "assignedTo": "florent",
-    "stars": 1,
-    "category": "quotidien",
-    "isBonus": false,
-    "isPenalty": false,
-    "isSeriousFault": false,
-    "completed": false,
-    "order": 0,
-    "dayOfWeek": 6,
-    "createdAt": {
-      "_seconds": 1767188954,
-      "_nanoseconds": 595000000
-    },
-    "updatedAt": {
-      "_seconds": 1767188954,
-      "_nanoseconds": 595000000
-    }
-  },
-  "HABJo5k9cJ3Awty00Gn7": {
-    "title": "test flo",
+  "669Ld7vqTZlX5XX1n3IY": {
+    "templateId": "d7f16462-22e5-4b62-b5d7-5eebfe36ac8c",
+    "title": "testquotidienneavecpenalite",
     "description": "",
-    "assignedTo": "florent",
+    "assignedTo": "papa",
     "stars": 3,
     "category": "quotidien",
     "isBonus": false,
-    "isPenalty": false,
+    "isPenalty": true,
     "isSeriousFault": false,
     "completed": false,
-    "order": 9,
+    "order": 1769187520637,
+    "dayOfWeek": 4,
+    "fullDate": null,
+    "dayOfMonth": null,
+    "createdAt": {
+      "_seconds": 1769187520,
+      "_nanoseconds": 402000000
+    },
+    "updatedAt": {
+      "_seconds": 1769187520,
+      "_nanoseconds": 402000000
+    }
+  },
+  "6ABpn1RxQiAnjBtUdava": {
+    "templateId": "d7f16462-22e5-4b62-b5d7-5eebfe36ac8c",
+    "title": "testquotidienneavecpenalite",
+    "description": "",
+    "assignedTo": "papa",
+    "stars": 3,
+    "category": "quotidien",
+    "isBonus": false,
+    "isPenalty": true,
+    "isSeriousFault": false,
+    "completed": false,
+    "order": 1769187520633,
     "dayOfWeek": 0,
+    "fullDate": null,
+    "dayOfMonth": null,
     "createdAt": {
-      "_seconds": 1767192048,
-      "_nanoseconds": 169000000
+      "_seconds": 1769187520,
+      "_nanoseconds": 263000000
     },
     "updatedAt": {
-      "_seconds": 1767192048,
-      "_nanoseconds": 169000000
+      "_seconds": 1769187520,
+      "_nanoseconds": 263000000
     }
   },
-  "KWJYw4VjjMVKjT2lPld7": {
-    "title": "Débarrasser la table",
-    "description": "Après chaque repas, débarrasser et mettre la vaisselle sale dans l’évier",
-    "assignedTo": "harry",
-    "stars": 1,
-    "category": "quotidien",
+  "7Gz3Bboawb4A3lBL11AE": {
+    "templateId": "7d5caa17-5262-4da8-b59c-accd89574ae6",
+    "title": "testhebdomadaire",
+    "description": "",
+    "assignedTo": "papa",
+    "stars": 3,
+    "category": "hebdomadaire",
     "isBonus": false,
     "isPenalty": false,
     "isSeriousFault": false,
     "completed": false,
-    "order": 0,
-    "dayOfWeek": 6,
-    "createdAt": {
-      "_seconds": 1767189075,
-      "_nanoseconds": 67000000
-    },
-    "updatedAt": {
-      "_seconds": 1767189075,
-      "_nanoseconds": 67000000
-    }
-  },
-  "QUCADsVM8R2BYMqmHFC7": {
-    "title": "S’entrainer a la guitare",
-    "description": "",
-    "assignedTo": "florent",
-    "stars": 2,
-    "category": "quotidien",
-    "isBonus": true,
-    "isPenalty": false,
-    "isSeriousFault": false,
-    "completed": false,
-    "order": 18,
-    "dayOfWeek": 2,
-    "createdAt": {
-      "_seconds": 1767196436,
-      "_nanoseconds": 436000000
-    },
-    "updatedAt": {
-      "_seconds": 1767196436,
-      "_nanoseconds": 436000000
-    }
-  },
-  "UY4nzMk1hS0zifrB41od": {
-    "title": "test flo",
-    "description": "",
-    "assignedTo": "florent",
-    "stars": 1,
-    "category": "quotidien",
-    "isBonus": false,
-    "isPenalty": false,
-    "isSeriousFault": false,
-    "completed": false,
-    "order": 16,
-    "dayOfWeek": 6,
-    "createdAt": {
-      "_seconds": 1767192225,
-      "_nanoseconds": 241000000
-    },
-    "updatedAt": {
-      "_seconds": 1767192225,
-      "_nanoseconds": 241000000
-    }
-  },
-  "WCcDswBwNpgHhMfxsYZb": {
-    "title": "S’entrainer a la guitare",
-    "description": "",
-    "assignedTo": "florent",
-    "stars": 2,
-    "category": "quotidien",
-    "isBonus": true,
-    "isPenalty": false,
-    "isSeriousFault": false,
-    "completed": false,
-    "order": 18,
-    "dayOfWeek": 1,
-    "createdAt": {
-      "_seconds": 1767196436,
-      "_nanoseconds": 383000000
-    },
-    "updatedAt": {
-      "_seconds": 1767196436,
-      "_nanoseconds": 383000000
-    }
-  },
-  "axinfAapHSWMkyRIG6eE": {
-    "title": "S’entrainer a la guitare",
-    "description": "",
-    "assignedTo": "florent",
-    "stars": 2,
-    "category": "quotidien",
-    "isBonus": true,
-    "isPenalty": false,
-    "isSeriousFault": false,
-    "completed": false,
-    "order": 18,
+    "order": 1769187409002,
     "dayOfWeek": 0,
+    "fullDate": null,
+    "dayOfMonth": null,
     "createdAt": {
-      "_seconds": 1767196436,
-      "_nanoseconds": 321000000
+      "_seconds": 1769187408,
+      "_nanoseconds": 631000000
     },
     "updatedAt": {
-      "_seconds": 1767196436,
-      "_nanoseconds": 321000000
+      "_seconds": 1769187408,
+      "_nanoseconds": 631000000
     }
   },
-  "b6VPm9yb4JgpKnOuUIL5": {
-    "title": "Débarrasser la table",
-    "description": "Après chaque repas, débarrasser et mettre dans l’évier",
-    "assignedTo": "florent",
-    "stars": 1,
-    "category": "quotidien",
-    "isBonus": false,
-    "isPenalty": false,
-    "isSeriousFault": false,
-    "completed": false,
-    "order": 0,
-    "dayOfWeek": 4,
-    "createdAt": {
-      "_seconds": 1767188954,
-      "_nanoseconds": 508000000
-    },
-    "updatedAt": {
-      "_seconds": 1767188954,
-      "_nanoseconds": 508000000
-    }
-  },
-  "ecbY7c2mUKxjs4ohRwT3": {
-    "title": "test flo",
+  "HU7TCCR6sHCD3oHlHFnL": {
+    "templateId": "d7f16462-22e5-4b62-b5d7-5eebfe36ac8c",
+    "title": "testquotidienneavecpenalite",
     "description": "",
-    "assignedTo": "florent",
-    "stars": 1,
-    "category": "quotidien",
-    "isBonus": false,
-    "isPenalty": false,
-    "isSeriousFault": false,
-    "completed": false,
-    "order": 16,
-    "dayOfWeek": 5,
-    "createdAt": {
-      "_seconds": 1767192225,
-      "_nanoseconds": 186000000
-    },
-    "updatedAt": {
-      "_seconds": 1767192225,
-      "_nanoseconds": 186000000
-    }
-  },
-  "hxMEcOyIw6BMQkwyBpiY": {
-    "title": "Débarrasser la table",
-    "description": "Après chaque repas, débarrasser et mettre la vaisselle sale dans l’évier",
-    "assignedTo": "harry",
-    "stars": 1,
-    "category": "quotidien",
-    "isBonus": false,
-    "isPenalty": false,
-    "isSeriousFault": false,
-    "completed": false,
-    "order": 0,
-    "dayOfWeek": 2,
-    "createdAt": {
-      "_seconds": 1767189074,
-      "_nanoseconds": 870000000
-    },
-    "updatedAt": {
-      "_seconds": 1767189074,
-      "_nanoseconds": 870000000
-    }
-  },
-  "iqoSZynxw3zFZImF7xvC": {
-    "title": "test flo",
-    "description": "",
-    "assignedTo": "florent",
-    "stars": 1,
-    "category": "quotidien",
-    "isBonus": false,
-    "isPenalty": false,
-    "isSeriousFault": false,
-    "completed": false,
-    "order": 16,
-    "dayOfWeek": 0,
-    "createdAt": {
-      "_seconds": 1767192224,
-      "_nanoseconds": 894000000
-    },
-    "updatedAt": {
-      "_seconds": 1767192224,
-      "_nanoseconds": 894000000
-    }
-  },
-  "lhNhzmJbH90No9X41u43": {
-    "title": "S’entrainer a la guitare",
-    "description": "",
-    "assignedTo": "florent",
-    "stars": 2,
-    "category": "quotidien",
-    "isBonus": true,
-    "isPenalty": false,
-    "isSeriousFault": false,
-    "completed": false,
-    "order": 18,
-    "dayOfWeek": 5,
-    "createdAt": {
-      "_seconds": 1767196436,
-      "_nanoseconds": 548000000
-    },
-    "updatedAt": {
-      "_seconds": 1767196436,
-      "_nanoseconds": 548000000
-    }
-  },
-  "off3D7zUHx6FA2xfUyEV": {
-    "title": "S’entrainer a la guitare",
-    "description": "",
-    "assignedTo": "florent",
-    "stars": 2,
-    "category": "quotidien",
-    "isBonus": true,
-    "isPenalty": false,
-    "isSeriousFault": false,
-    "completed": false,
-    "order": 18,
-    "dayOfWeek": 4,
-    "createdAt": {
-      "_seconds": 1767196436,
-      "_nanoseconds": 509000000
-    },
-    "updatedAt": {
-      "_seconds": 1767196436,
-      "_nanoseconds": 509000000
-    }
-  },
-  "qawjV6jtwt4z8R081M2T": {
-    "title": "test flo",
-    "description": "",
-    "assignedTo": "florent",
-    "stars": 1,
-    "category": "quotidien",
-    "isBonus": false,
-    "isPenalty": false,
-    "isSeriousFault": false,
-    "completed": false,
-    "order": 16,
-    "dayOfWeek": 1,
-    "createdAt": {
-      "_seconds": 1767192224,
-      "_nanoseconds": 956000000
-    },
-    "updatedAt": {
-      "_seconds": 1767192224,
-      "_nanoseconds": 956000000
-    }
-  },
-  "uABRKlvgw72gROdTxszg": {
-    "title": "test flo",
-    "description": "",
-    "assignedTo": "florent",
+    "assignedTo": "papa",
     "stars": 3,
     "category": "quotidien",
     "isBonus": false,
-    "isPenalty": false,
+    "isPenalty": true,
     "isSeriousFault": false,
     "completed": false,
-    "order": 9,
-    "dayOfWeek": 2,
-    "createdAt": {
-      "_seconds": 1767192048,
-      "_nanoseconds": 252000000
-    },
-    "updatedAt": {
-      "_seconds": 1767192048,
-      "_nanoseconds": 252000000
-    }
-  },
-  "vYjQhs6t4cqFSOdfT1WH": {
-    "title": "test flo",
-    "description": "",
-    "assignedTo": "florent",
-    "stars": 3,
-    "category": "quotidien",
-    "isBonus": false,
-    "isPenalty": false,
-    "isSeriousFault": false,
-    "completed": false,
-    "order": 9,
-    "dayOfWeek": 1,
-    "createdAt": {
-      "_seconds": 1767192048,
-      "_nanoseconds": 209000000
-    },
-    "updatedAt": {
-      "_seconds": 1767192048,
-      "_nanoseconds": 209000000
-    }
-  },
-  "xcEYquzcQZATY4L7x4BN": {
-    "title": "test flo",
-    "description": "",
-    "assignedTo": "florent",
-    "stars": 3,
-    "category": "quotidien",
-    "isBonus": false,
-    "isPenalty": false,
-    "isSeriousFault": false,
-    "completed": false,
-    "order": 9,
+    "order": 1769187520639,
     "dayOfWeek": 6,
+    "fullDate": null,
+    "dayOfMonth": null,
     "createdAt": {
-      "_seconds": 1767192048,
-      "_nanoseconds": 433000000
+      "_seconds": 1769187520,
+      "_nanoseconds": 465000000
     },
     "updatedAt": {
-      "_seconds": 1767192048,
-      "_nanoseconds": 433000000
+      "_seconds": 1769187520,
+      "_nanoseconds": 465000000
+    }
+  },
+  "Hx2bj6j8LLXIM7wdRKpd": {
+    "templateId": "4338565f-84c9-4e34-a8f9-9fbe7357a5cb",
+    "title": "testquotidienne",
+    "description": "",
+    "assignedTo": "papa",
+    "stars": 3,
+    "category": "quotidien",
+    "isBonus": false,
+    "isPenalty": false,
+    "isSeriousFault": false,
+    "completed": false,
+    "order": 1769187385169,
+    "dayOfWeek": 0,
+    "fullDate": null,
+    "dayOfMonth": null,
+    "createdAt": {
+      "_seconds": 1769187384,
+      "_nanoseconds": 952000000
+    },
+    "updatedAt": {
+      "_seconds": 1769187384,
+      "_nanoseconds": 952000000
+    }
+  },
+  "JC3sG2BRrgCLsmxEiu5R": {
+    "templateId": "b0857d78-5eba-406f-a76e-1be93d28b6c6",
+    "title": "testquotidienneavecfautegrave",
+    "description": "",
+    "assignedTo": "papa",
+    "stars": 3,
+    "category": "quotidien",
+    "isBonus": false,
+    "isPenalty": false,
+    "isSeriousFault": true,
+    "completed": false,
+    "order": 1769187536837,
+    "dayOfWeek": 5,
+    "fullDate": null,
+    "dayOfMonth": null,
+    "createdAt": {
+      "_seconds": 1769187536,
+      "_nanoseconds": 583000000
+    },
+    "updatedAt": {
+      "_seconds": 1769187536,
+      "_nanoseconds": 583000000
+    }
+  },
+  "M8Y3yXaCIMYF66oaIEnW": {
+    "templateId": "d7f16462-22e5-4b62-b5d7-5eebfe36ac8c",
+    "title": "testquotidienneavecpenalite",
+    "description": "",
+    "assignedTo": "papa",
+    "stars": 3,
+    "category": "quotidien",
+    "isBonus": false,
+    "isPenalty": true,
+    "isSeriousFault": false,
+    "completed": false,
+    "order": 1769187520634,
+    "dayOfWeek": 1,
+    "fullDate": null,
+    "dayOfMonth": null,
+    "createdAt": {
+      "_seconds": 1769187520,
+      "_nanoseconds": 282000000
+    },
+    "updatedAt": {
+      "_seconds": 1769187520,
+      "_nanoseconds": 282000000
+    }
+  },
+  "MkHxAJY3HtYAvixFUeRj": {
+    "templateId": "73e0b7da-1ef0-4738-9f8c-e78e0137e7b8",
+    "title": "testquotidienneavecbonus",
+    "description": "",
+    "assignedTo": "papa",
+    "stars": 3,
+    "category": "quotidien",
+    "isBonus": true,
+    "isPenalty": false,
+    "isSeriousFault": false,
+    "completed": false,
+    "order": 1769187503254,
+    "dayOfWeek": 5,
+    "fullDate": null,
+    "dayOfMonth": null,
+    "createdAt": {
+      "_seconds": 1769187503,
+      "_nanoseconds": 117000000
+    },
+    "updatedAt": {
+      "_seconds": 1769187503,
+      "_nanoseconds": 117000000
+    }
+  },
+  "NGrJXSrGe9GBenN8zT7w": {
+    "templateId": "4338565f-84c9-4e34-a8f9-9fbe7357a5cb",
+    "title": "testquotidienne",
+    "description": "",
+    "assignedTo": "papa",
+    "stars": 3,
+    "category": "quotidien",
+    "isBonus": false,
+    "isPenalty": false,
+    "isSeriousFault": false,
+    "completed": false,
+    "order": 1769187385175,
+    "dayOfWeek": 6,
+    "fullDate": null,
+    "dayOfMonth": null,
+    "createdAt": {
+      "_seconds": 1769187385,
+      "_nanoseconds": 642000000
+    },
+    "updatedAt": {
+      "_seconds": 1769187385,
+      "_nanoseconds": 642000000
+    }
+  },
+  "TqLAyRAQvbYJBkvs1d0k": {
+    "templateId": "4338565f-84c9-4e34-a8f9-9fbe7357a5cb",
+    "title": "testquotidienne",
+    "description": "",
+    "assignedTo": "papa",
+    "stars": 3,
+    "category": "quotidien",
+    "isBonus": false,
+    "isPenalty": false,
+    "isSeriousFault": false,
+    "completed": false,
+    "order": 1769187385172,
+    "dayOfWeek": 3,
+    "fullDate": null,
+    "dayOfMonth": null,
+    "createdAt": {
+      "_seconds": 1769187385,
+      "_nanoseconds": 155000000
+    },
+    "updatedAt": {
+      "_seconds": 1769187385,
+      "_nanoseconds": 155000000
+    }
+  },
+  "UD58H2yOSzkaASG062ql": {
+    "templateId": "73e0b7da-1ef0-4738-9f8c-e78e0137e7b8",
+    "title": "testquotidienneavecbonus",
+    "description": "",
+    "assignedTo": "papa",
+    "stars": 3,
+    "category": "quotidien",
+    "isBonus": true,
+    "isPenalty": false,
+    "isSeriousFault": false,
+    "completed": false,
+    "order": 1769187503255,
+    "dayOfWeek": 6,
+    "fullDate": null,
+    "dayOfMonth": null,
+    "createdAt": {
+      "_seconds": 1769187503,
+      "_nanoseconds": 137000000
+    },
+    "updatedAt": {
+      "_seconds": 1769187503,
+      "_nanoseconds": 137000000
+    }
+  },
+  "UEfzWFxCqU4HCuCo8gnA": {
+    "templateId": "d7f16462-22e5-4b62-b5d7-5eebfe36ac8c",
+    "title": "testquotidienneavecpenalite",
+    "description": "",
+    "assignedTo": "papa",
+    "stars": 3,
+    "category": "quotidien",
+    "isBonus": false,
+    "isPenalty": true,
+    "isSeriousFault": false,
+    "completed": false,
+    "order": 1769187520638,
+    "dayOfWeek": 5,
+    "fullDate": null,
+    "dayOfMonth": null,
+    "createdAt": {
+      "_seconds": 1769187520,
+      "_nanoseconds": 446000000
+    },
+    "updatedAt": {
+      "_seconds": 1769187520,
+      "_nanoseconds": 446000000
+    }
+  },
+  "VgDt44HKw3sq5IgFRo7S": {
+    "templateId": "73e0b7da-1ef0-4738-9f8c-e78e0137e7b8",
+    "title": "testquotidienneavecbonus",
+    "description": "",
+    "assignedTo": "papa",
+    "stars": 3,
+    "category": "quotidien",
+    "isBonus": true,
+    "isPenalty": false,
+    "isSeriousFault": false,
+    "completed": false,
+    "order": 1769187503253,
+    "dayOfWeek": 4,
+    "fullDate": null,
+    "dayOfMonth": null,
+    "createdAt": {
+      "_seconds": 1769187503,
+      "_nanoseconds": 73000000
+    },
+    "updatedAt": {
+      "_seconds": 1769187503,
+      "_nanoseconds": 73000000
+    }
+  },
+  "W9aFUUVFPAA5tzSkRiab": {
+    "templateId": "b0857d78-5eba-406f-a76e-1be93d28b6c6",
+    "title": "testquotidienneavecfautegrave",
+    "description": "",
+    "assignedTo": "papa",
+    "stars": 3,
+    "category": "quotidien",
+    "isBonus": false,
+    "isPenalty": false,
+    "isSeriousFault": true,
+    "completed": false,
+    "order": 1769187536832,
+    "dayOfWeek": 0,
+    "fullDate": null,
+    "dayOfMonth": null,
+    "createdAt": {
+      "_seconds": 1769187536,
+      "_nanoseconds": 461000000
+    },
+    "updatedAt": {
+      "_seconds": 1769187536,
+      "_nanoseconds": 461000000
+    }
+  },
+  "X978lYu4KPnrN2JHgnpx": {
+    "templateId": "4338565f-84c9-4e34-a8f9-9fbe7357a5cb",
+    "title": "testquotidienne",
+    "description": "",
+    "assignedTo": "papa",
+    "stars": 3,
+    "category": "quotidien",
+    "isBonus": false,
+    "isPenalty": false,
+    "isSeriousFault": false,
+    "completed": false,
+    "order": 1769187385171,
+    "dayOfWeek": 2,
+    "fullDate": null,
+    "dayOfMonth": null,
+    "createdAt": {
+      "_seconds": 1769187385,
+      "_nanoseconds": 104000000
+    },
+    "updatedAt": {
+      "_seconds": 1769187385,
+      "_nanoseconds": 104000000
+    }
+  },
+  "Y3vCD0NomAyaIppquwX6": {
+    "templateId": "4338565f-84c9-4e34-a8f9-9fbe7357a5cb",
+    "title": "testquotidienne",
+    "description": "",
+    "assignedTo": "papa",
+    "stars": 3,
+    "category": "quotidien",
+    "isBonus": false,
+    "isPenalty": false,
+    "isSeriousFault": false,
+    "completed": false,
+    "order": 1769187385174,
+    "dayOfWeek": 5,
+    "fullDate": null,
+    "dayOfMonth": null,
+    "createdAt": {
+      "_seconds": 1769187385,
+      "_nanoseconds": 601000000
+    },
+    "updatedAt": {
+      "_seconds": 1769187385,
+      "_nanoseconds": 601000000
+    }
+  },
+  "dbDetpc8YwtI7yEYo3L6": {
+    "templateId": "73e0b7da-1ef0-4738-9f8c-e78e0137e7b8",
+    "title": "testquotidienneavecbonus",
+    "description": "",
+    "assignedTo": "papa",
+    "stars": 3,
+    "category": "quotidien",
+    "isBonus": true,
+    "isPenalty": false,
+    "isSeriousFault": false,
+    "completed": false,
+    "order": 1769187503250,
+    "dayOfWeek": 1,
+    "fullDate": null,
+    "dayOfMonth": null,
+    "createdAt": {
+      "_seconds": 1769187502,
+      "_nanoseconds": 922000000
+    },
+    "updatedAt": {
+      "_seconds": 1769187502,
+      "_nanoseconds": 922000000
+    }
+  },
+  "gT2WPcouxhhnYxXqSjLq": {
+    "templateId": "b0857d78-5eba-406f-a76e-1be93d28b6c6",
+    "title": "testquotidienneavecfautegrave",
+    "description": "",
+    "assignedTo": "papa",
+    "stars": 3,
+    "category": "quotidien",
+    "isBonus": false,
+    "isPenalty": false,
+    "isSeriousFault": true,
+    "completed": false,
+    "order": 1769187536834,
+    "dayOfWeek": 2,
+    "fullDate": null,
+    "dayOfMonth": null,
+    "createdAt": {
+      "_seconds": 1769187536,
+      "_nanoseconds": 528000000
+    },
+    "updatedAt": {
+      "_seconds": 1769187536,
+      "_nanoseconds": 528000000
+    }
+  },
+  "pZun5RRH6b23ua5RpHWD": {
+    "templateId": "73e0b7da-1ef0-4738-9f8c-e78e0137e7b8",
+    "title": "testquotidienneavecbonus",
+    "description": "",
+    "assignedTo": "papa",
+    "stars": 3,
+    "category": "quotidien",
+    "isBonus": true,
+    "isPenalty": false,
+    "isSeriousFault": false,
+    "completed": false,
+    "order": 1769187503251,
+    "dayOfWeek": 2,
+    "fullDate": null,
+    "dayOfMonth": null,
+    "createdAt": {
+      "_seconds": 1769187502,
+      "_nanoseconds": 998000000
+    },
+    "updatedAt": {
+      "_seconds": 1769187502,
+      "_nanoseconds": 998000000
+    }
+  },
+  "sWXgKrKLkjtc2E6FcP9j": {
+    "templateId": "d7f16462-22e5-4b62-b5d7-5eebfe36ac8c",
+    "title": "testquotidienneavecpenalite",
+    "description": "",
+    "assignedTo": "papa",
+    "stars": 3,
+    "category": "quotidien",
+    "isBonus": false,
+    "isPenalty": true,
+    "isSeriousFault": false,
+    "completed": false,
+    "order": 1769187520635,
+    "dayOfWeek": 2,
+    "fullDate": null,
+    "dayOfMonth": null,
+    "createdAt": {
+      "_seconds": 1769187520,
+      "_nanoseconds": 323000000
+    },
+    "updatedAt": {
+      "_seconds": 1769187520,
+      "_nanoseconds": 323000000
+    }
+  },
+  "t2a4iY0BMobLCtg9RuYf": {
+    "templateId": "b0857d78-5eba-406f-a76e-1be93d28b6c6",
+    "title": "testquotidienneavecfautegrave",
+    "description": "",
+    "assignedTo": "papa",
+    "stars": 3,
+    "category": "quotidien",
+    "isBonus": false,
+    "isPenalty": false,
+    "isSeriousFault": true,
+    "completed": false,
+    "order": 1769187536836,
+    "dayOfWeek": 4,
+    "fullDate": null,
+    "dayOfMonth": null,
+    "createdAt": {
+      "_seconds": 1769187536,
+      "_nanoseconds": 564000000
+    },
+    "updatedAt": {
+      "_seconds": 1769187536,
+      "_nanoseconds": 564000000
+    }
+  },
+  "tIwnDBVh3SszlCeiXJyw": {
+    "templateId": "b0857d78-5eba-406f-a76e-1be93d28b6c6",
+    "title": "testquotidienneavecfautegrave",
+    "description": "",
+    "assignedTo": "papa",
+    "stars": 3,
+    "category": "quotidien",
+    "isBonus": false,
+    "isPenalty": false,
+    "isSeriousFault": true,
+    "completed": false,
+    "order": 1769187536838,
+    "dayOfWeek": 6,
+    "fullDate": null,
+    "dayOfMonth": null,
+    "createdAt": {
+      "_seconds": 1769187536,
+      "_nanoseconds": 602000000
+    },
+    "updatedAt": {
+      "_seconds": 1769187536,
+      "_nanoseconds": 602000000
+    }
+  },
+  "vAQyVX3IjsGKOVjG7BKJ": {
+    "templateId": "73e0b7da-1ef0-4738-9f8c-e78e0137e7b8",
+    "title": "testquotidienneavecbonus",
+    "description": "",
+    "assignedTo": "papa",
+    "stars": 3,
+    "category": "quotidien",
+    "isBonus": true,
+    "isPenalty": false,
+    "isSeriousFault": false,
+    "completed": false,
+    "order": 1769187503249,
+    "dayOfWeek": 0,
+    "fullDate": null,
+    "dayOfMonth": null,
+    "createdAt": {
+      "_seconds": 1769187502,
+      "_nanoseconds": 879000000
+    },
+    "updatedAt": {
+      "_seconds": 1769187502,
+      "_nanoseconds": 879000000
+    }
+  },
+  "wTT9evXd13modIAkAToU": {
+    "templateId": "73e0b7da-1ef0-4738-9f8c-e78e0137e7b8",
+    "title": "testquotidienneavecbonus",
+    "description": "",
+    "assignedTo": "papa",
+    "stars": 3,
+    "category": "quotidien",
+    "isBonus": true,
+    "isPenalty": false,
+    "isSeriousFault": false,
+    "completed": false,
+    "order": 1769187503252,
+    "dayOfWeek": 3,
+    "fullDate": null,
+    "dayOfMonth": null,
+    "createdAt": {
+      "_seconds": 1769187503,
+      "_nanoseconds": 28000000
+    },
+    "updatedAt": {
+      "_seconds": 1769187503,
+      "_nanoseconds": 28000000
+    }
+  },
+  "wfgUyO4bPS303FoQNHET": {
+    "templateId": "d7f16462-22e5-4b62-b5d7-5eebfe36ac8c",
+    "title": "testquotidienneavecpenalite",
+    "description": "",
+    "assignedTo": "papa",
+    "stars": 3,
+    "category": "quotidien",
+    "isBonus": false,
+    "isPenalty": true,
+    "isSeriousFault": false,
+    "completed": false,
+    "order": 1769187520636,
+    "dayOfWeek": 3,
+    "fullDate": null,
+    "dayOfMonth": null,
+    "createdAt": {
+      "_seconds": 1769187520,
+      "_nanoseconds": 361000000
+    },
+    "updatedAt": {
+      "_seconds": 1769187520,
+      "_nanoseconds": 361000000
+    }
+  },
+  "x7nqVWM1JrKkxg0zIT7E": {
+    "templateId": "b0857d78-5eba-406f-a76e-1be93d28b6c6",
+    "title": "testquotidienneavecfautegrave",
+    "description": "",
+    "assignedTo": "papa",
+    "stars": 3,
+    "category": "quotidien",
+    "isBonus": false,
+    "isPenalty": false,
+    "isSeriousFault": true,
+    "completed": false,
+    "order": 1769187536835,
+    "dayOfWeek": 3,
+    "fullDate": null,
+    "dayOfMonth": null,
+    "createdAt": {
+      "_seconds": 1769187536,
+      "_nanoseconds": 546000000
+    },
+    "updatedAt": {
+      "_seconds": 1769187536,
+      "_nanoseconds": 546000000
+    }
+  },
+  "ztBAZ8nIeaZV1Trjqg6k": {
+    "templateId": "4338565f-84c9-4e34-a8f9-9fbe7357a5cb",
+    "title": "testquotidienne",
+    "description": "",
+    "assignedTo": "papa",
+    "stars": 3,
+    "category": "quotidien",
+    "isBonus": false,
+    "isPenalty": false,
+    "isSeriousFault": false,
+    "completed": false,
+    "order": 1769187385173,
+    "dayOfWeek": 4,
+    "fullDate": null,
+    "dayOfMonth": null,
+    "createdAt": {
+      "_seconds": 1769187385,
+      "_nanoseconds": 197000000
+    },
+    "updatedAt": {
+      "_seconds": 1769187385,
+      "_nanoseconds": 197000000
     }
   }
 }

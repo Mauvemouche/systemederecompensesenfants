@@ -1,3 +1,5 @@
+"use strict";
+
 const admin = require("firebase-admin");
 const functions = require("firebase-functions/v1");
 const nodemailer = require("nodemailer");
@@ -5,100 +7,411 @@ const nodemailer = require("nodemailer");
 admin.initializeApp();
 const db = admin.firestore();
 
+/* =========================================================
+   CONFIG
+========================================================= */
+
+const PEOPLE = ["papa", "maman", "florent", "harry"];
+const DAY_NAMES_FR = ["Dimanche", "Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"];
+
 /**
- * Configuration du transporteur Email (Gmail)
+ * Date/heure "Paris" fiable (sans lib externe).
+ * (Le scheduler est déjà en Europe/Paris, mais ça sécurise les calculs.)
  */
+function nowParis() {
+  // En Node, la manière la plus simple sans lib est de convertir via locale string TZ
+  return new Date(new Date().toLocaleString("en-US", { timeZone: "Europe/Paris" }));
+}
+
+function ymdLocal(date) {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
+
+/**
+ * Reproduit la logique de visibilité de l'app :
+ * - ponctuel: visible uniquement si fullDate == YYYY-MM-DD (date exacte)
+ * - mensuel: visible uniquement si dayOfMonth == date.getDate()
+ * - quotidien/hebdomadaire: visible si dayOfWeek == date.getDay()
+ */
+function shouldAppearForDate(task, dateObj) {
+  const category = String(task.category || "").toLowerCase().trim();
+  const dow = dateObj.getDay();
+  const ymd = ymdLocal(dateObj);
+
+  if (category === "ponctuel") return task.fullDate === ymd;
+  if (category === "mensuel") return Number(task.dayOfMonth) === dateObj.getDate();
+
+  // quotidien + hebdomadaire + fallback
+  return Number(task.dayOfWeek) === dow;
+}
+
+/* =========================================================
+   EMAIL
+   (On garde ton modèle EMAIL_USER/EMAIL_PASSWORD)
+========================================================= */
+
+function requireEnv(val, name) {
+  if (!val) throw new Error(`Missing secret/env: ${name}`);
+  return val;
+}
+
 async function sendEmail(subject, htmlContent) {
+  // On crée le transporteur à la demande (simple, robuste)
+  const user = requireEnv(process.env.EMAIL_USER, "EMAIL_USER");
+  const pass = requireEnv(process.env.EMAIL_PASSWORD, "EMAIL_PASSWORD");
+
   const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASSWORD,
-    },
+    service: "gmail",
+    auth: { user, pass },
   });
 
   await transporter.sendMail({
-    from: `"Système Récompenses" <${process.env.EMAIL_USER}>`,
-    to: process.env.EMAIL_USER,
-    subject: subject,
+    from: `"Système Récompenses" <${user}>`,
+    to: process.env.EMAIL_TO || user, // comme dans ton index restauré
+    subject,
     html: htmlContent,
   });
 }
 
-/**
- * Fonction principale : Reset quotidien, Stats et Nettoyage
- */
+const info = await transporter.sendMail({...});
+console.log("📧 Email messageId:", info.messageId);
+
+
+/* =========================================================
+   ANTI DOUBLE-ENVOI (idempotence)
+   - 1 rapport / date (YYYY-MM-DD)
+========================================================= */
+
+async function claimRunOrSkip(reportDateStr) {
+  const runRef = db.collection("cron_runs").doc(`daily_${reportDateStr}`);
+
+  const shouldContinue = await db.runTransaction(async (tx) => {
+    const snap = await tx.get(runRef);
+
+    if (snap.exists) {
+      const data = snap.data() || {};
+      if (data.status === "done") return false;
+
+      // Si "started" récent (<30min), on évite doublon parallèle
+      if (data.status === "started" && data.startedAt?.toDate) {
+        const startedAt = data.startedAt.toDate();
+        if (Date.now() - startedAt.getTime() < 30 * 60 * 1000) return false;
+      }
+    }
+
+    tx.set(
+      runRef,
+      {
+        status: "started",
+        startedAt: admin.firestore.FieldValue.serverTimestamp(),
+      },
+      { merge: true }
+    );
+    return true;
+  });
+
+  return { shouldContinue, runRef };
+}
+
+async function markRunDone(runRef) {
+  await runRef.set(
+    { status: "done", doneAt: admin.firestore.FieldValue.serverTimestamp() },
+    { merge: true }
+  );
+}
+
+async function markRunFailed(reportDateStr, error) {
+  await db.collection("cron_runs").doc(`daily_${reportDateStr}`).set(
+    {
+      status: "failed",
+      failedAt: admin.firestore.FieldValue.serverTimestamp(),
+      error: String(error?.message || error),
+    },
+    { merge: true }
+  );
+}
+
+/* =========================================================
+   STATS (alignées avec ton app.js)
+   - normalTotal = somme étoiles tâches non-bonus non-penalty
+   - normalEarned = idem cochées
+   - bonusStars compté seulement si 100% normal atteint
+   - penaltyStars soustrait
+   - seriousFault => score 0
+   - finalStars = max(0, normalEarned + bonusStars - penaltyStars) (sauf seriousFault)
+   - percent = finalStars / (normalTotal||1)
+========================================================= */
+
+function computeStatsForTasks(tasksDocs, dateObj) {
+  const tasks = tasksDocs.map((d) => ({ id: d.id, ...d.data() }));
+
+  const stats = {
+    date: ymdLocal(dateObj),
+    dayName: DAY_NAMES_FR[dateObj.getDay()],
+    dayOfWeek: dateObj.getDay(),
+    byPerson: {},
+    global: { totalStars: 0, maxStars: 0, percent: 0 },
+  };
+
+  PEOPLE.forEach((p) => {
+    stats.byPerson[p] = {
+      tasksDone: 0,
+      tasksTotal: 0,
+
+      normalEarned: 0,
+      normalTotal: 0,
+
+      bonusStars: 0,
+      penaltyStars: 0,
+
+      seriousFault: false,
+
+      finalStars: 0,
+      percent: 0,
+    };
+  });
+
+  // 1) base totals
+  tasks.forEach((t) => {
+    const person = String(t.assignedTo || "").toLowerCase().trim();
+    if (!stats.byPerson[person]) return;
+
+    const s = stats.byPerson[person];
+    s.tasksTotal += 1;
+    if (t.completed) s.tasksDone += 1;
+
+    const stars = Number(t.stars || 3);
+
+    if (t.isSeriousFault && t.completed) s.seriousFault = true;
+
+    if (t.isPenalty) {
+      if (t.completed) s.penaltyStars += stars;
+      return;
+    }
+
+    if (!t.isBonus) {
+      s.normalTotal += stars;
+      if (t.completed) s.normalEarned += stars;
+    }
+  });
+
+  // 2) bonus only if 100% normal
+  PEOPLE.forEach((p) => {
+    const s = stats.byPerson[p];
+    const allowBonus = s.normalTotal === 0 || s.normalEarned === s.normalTotal;
+
+    tasks.forEach((t) => {
+      const person = String(t.assignedTo || "").toLowerCase().trim();
+      if (person !== p) return;
+      if (!t.isBonus || !t.completed) return;
+      if (!allowBonus) return;
+
+      s.bonusStars += Number(t.stars || 3);
+    });
+
+    const normalMax = s.normalTotal || 1;
+    let finalStars = 0;
+
+    if (s.seriousFault) finalStars = 0;
+    else finalStars = Math.max(0, (s.normalEarned + s.bonusStars) - s.penaltyStars);
+
+    s.finalStars = finalStars;
+    s.percent = Math.round((finalStars / normalMax) * 100);
+
+    stats.global.totalStars += finalStars;
+    stats.global.maxStars += normalMax;
+  });
+
+  stats.global.percent = stats.global.maxStars
+    ? Math.round((stats.global.totalStars / stats.global.maxStars) * 100)
+    : 0;
+
+  return stats;
+}
+
+async function saveDailyStatsAligned(stats) {
+  // On garde ta collection daily_stats, mais on met un doc id stable
+  const docId = `stats_${stats.date}`;
+  await db.collection("daily_stats").doc(docId).set(
+    {
+      date: stats.date,
+      dayName: stats.dayName.toLowerCase(),
+      dayOfWeek: stats.dayOfWeek,
+
+      // compat + nouveau format
+      byPerson: stats.byPerson,
+      global: stats.global,
+
+      // champs "ancien style" si tu en avais besoin ailleurs
+      totalStars: stats.global.totalStars,
+      maxStars: stats.global.maxStars,
+      familyCompletionRate: stats.global.percent,
+
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+    },
+    { merge: true }
+  );
+}
+
+/* =========================================================
+   HTML EMAIL (joli + chiffres alignés)
+========================================================= */
+
+function generateEmailHtml(stats, resetCount, deleteCount, isFirstDayOfMonth) {
+  const P = stats.byPerson;
+
+  const row = (label, s) => `
+    <tr>
+      <td style="padding:10px 12px;border-bottom:1px solid #eee;"><b>${label}</b></td>
+      <td style="padding:10px 12px;border-bottom:1px solid #eee;text-align:center;">${s.tasksDone}/${s.tasksTotal}</td>
+      <td style="padding:10px 12px;border-bottom:1px solid #eee;text-align:center;">${s.finalStars} ⭐</td>
+      <td style="padding:10px 12px;border-bottom:1px solid #eee;text-align:center;">${s.percent}%</td>
+    </tr>
+  `;
+
+  const extra = [
+    isFirstDayOfMonth
+      ? `<div style="margin:10px 0 0;color:#1e88e5;"><b>📅 Mensuel :</b> reset mensuel effectué (1er jour du mois).</div>`
+      : "",
+    deleteCount > 0
+      ? `<div style="margin:6px 0 0;color:#e53935;"><b>🗑️ Ponctuel :</b> ${deleteCount} tâche(s) supprimée(s).</div>`
+      : "",
+  ].join("");
+
+  return `<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Rapport</title>
+</head>
+<body style="margin:0;background:#f6f7fb;font-family:Arial,Helvetica,sans-serif;">
+  <div style="max-width:720px;margin:0 auto;padding:22px;">
+    <div style="background:#fff;border-radius:14px;padding:18px 18px 10px;box-shadow:0 10px 26px rgba(0,0,0,.08);">
+      <h2 style="margin:0 0 6px;font-size:20px;">✅ Rapport — ${stats.dayName} ${stats.date}</h2>
+      <p style="margin:0 0 12px;color:#444;">
+        Reset : <b>${resetCount}</b> tâche(s) • Suppression : <b>${deleteCount}</b> ponctuelle(s)
+      </p>
+      ${extra}
+
+      <div style="background:#fafafa;border-radius:12px;padding:12px 14px;margin:14px 0;">
+        <b>🏆 Score global :</b> ${stats.global.percent}% —
+        <span style="white-space:nowrap;"><b>${stats.global.totalStars} ⭐</b> / ${stats.global.maxStars}</span>
+      </div>
+
+      <table style="width:100%;border-collapse:collapse;font-size:14px;">
+        <thead>
+          <tr>
+            <th style="text-align:left;padding:10px 12px;border-bottom:2px solid #eaeaea;">Membre</th>
+            <th style="text-align:center;padding:10px 12px;border-bottom:2px solid #eaeaea;">Tâches</th>
+            <th style="text-align:center;padding:10px 12px;border-bottom:2px solid #eaeaea;">Étoiles</th>
+            <th style="text-align:center;padding:10px 12px;border-bottom:2px solid #eaeaea;">%</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${row("👨 Papa", P.papa)}
+          ${row("👩 Maman", P.maman)}
+          ${row("👦 Florent", P.florent)}
+          ${row("👦 Harry", P.harry)}
+        </tbody>
+      </table>
+
+      <div style="margin-top:14px;color:#777;font-size:12px;text-align:center;">
+        Rapport généré automatiquement — Système de récompenses
+      </div>
+    </div>
+  </div>
+</body>
+</html>`;
+}
+
+/* =========================================================
+   DAILY CRON (v1) — 06:00 Europe/Paris
+   - Rapport = VEILLE (J-1 Paris)
+   - Anti double-envoi
+   - Stats alignées UI
+   - Reset + cleanup
+========================================================= */
+
 exports.dailyResetAndStats = functions
   .region("europe-west1")
-  .runWith({ 
+  .runWith({
     secrets: ["EMAIL_USER", "EMAIL_PASSWORD"],
-    timeoutSeconds: 300 
+    timeoutSeconds: 300,
   })
-  .pubsub
-  .schedule("0 6 * * *")
+  .pubsub.schedule("0 6 * * *")
   .timeZone("Europe/Paris")
-  .onRun(async (context) => {
+  .onRun(async () => {
     console.log("🔄 Début du cycle quotidien");
 
+    const execNow = nowParis();
+    const reportDate = new Date(execNow);
+    reportDate.setDate(reportDate.getDate() - 1);
+
+    const reportDateStr = ymdLocal(reportDate);
+    const reportDow = reportDate.getDay();
+
+    const isFirstDayOfMonth = execNow.getDate() === 1;
+
+    let runRef = null;
+
     try {
-      const now = new Date();
-      const todayStr = now.toISOString().split('T')[0];
-      const currentDayOfWeek = now.getDay(); 
-      const isFirstDayOfMonth = (now.getDate() === 1);
+      // 0) Anti double
+      const claim = await claimRunOrSkip(reportDateStr);
+      runRef = claim.runRef;
 
+      if (!claim.shouldContinue) {
+        console.log(`⏭️ Rapport ${reportDateStr} déjà généré (ou exécution en cours).`);
+        return null;
+      }
+
+      // 1) Charger toutes les tâches (collection petite => simple + évite index)
       const snapshot = await db.collection("tasks").get();
-      
-      // --- 1. FILTRAGE DES TÂCHES QUI DOIVENT APPARAÎTRE AUJOURD'HUI ---
-      const tasksToday = snapshot.docs.filter(doc => {
-        const data = doc.data();
-        const category = (data.category || "").toLowerCase().trim();
+      const allDocs = snapshot.docs;
 
-        if (category === "quotidien") {
-            return data.dayOfWeek === currentDayOfWeek || data.dayOfWeek == null;
-        }
-        if (category === "hebdomadaire" || category === "mensuel") {
-            return currentDayOfWeek === 0; // Toujours le dimanche
-        }
-        if (category === "ponctuel") {
-            return data.dayOfWeek === currentDayOfWeek; // Le jour spécifique choisi
-        }
-        return data.dayOfWeek === currentDayOfWeek;
-      });
+      // 2) Tâches "affichées" à la date du rapport (veille)
+      const tasksForReport = allDocs.filter((doc) => shouldAppearForDate(doc.data(), reportDate));
 
-      // 2. Calcul et sauvegarde des stats basées sur ce qui était affiché
-      const stats = await saveDailyStats(todayStr, currentDayOfWeek, tasksToday);
+      // 3) Stats alignées UI + sauvegarde
+      const stats = computeStatsForTasks(tasksForReport, reportDate);
+      await saveDailyStatsAligned(stats);
 
-      // --- 3. LOGIQUE DE RESET ET DE SUPPRESSION ---
+      // 4) Reset / cleanup
+      // - On supprime les ponctuelles de la veille (elles ont "servi")
+      // - On reset completed des tâches quotidiennes/hebdo de la veille
+      // - Mensuel : reset seulement le 1er jour du mois (date d'exécution)
       const batch = db.batch();
       let resetCount = 0;
       let deleteCount = 0;
 
-      tasksToday.forEach(doc => {
-        const data = doc.data();
-        const category = (data.category || "").toLowerCase().trim();
+      tasksForReport.forEach((docSnap) => {
+        const data = docSnap.data();
+        const category = String(data.category || "").toLowerCase().trim();
 
-        // CAS A : Tâche Ponctuelle -> Suppression définitive
         if (category === "ponctuel") {
-          batch.delete(doc.ref);
+          batch.delete(docSnap.ref);
           deleteCount++;
           return;
         }
 
-        // CAS B : Réinitialisation du statut 'completed'
         if (data.completed === true) {
           let shouldReset = false;
 
           if (category === "mensuel") {
             if (isFirstDayOfMonth) shouldReset = true;
           } else {
-            // Quotidien et Hebdo reset à chaque fois
+            // quotidien + hebdo: reset après le rapport
             shouldReset = true;
           }
 
           if (shouldReset) {
-            batch.update(doc.ref, { 
-              completed: false, 
-              updatedAt: admin.firestore.FieldValue.serverTimestamp() 
+            batch.update(docSnap.ref, {
+              completed: false,
+              updatedAt: admin.firestore.FieldValue.serverTimestamp(),
             });
             resetCount++;
           }
@@ -108,105 +421,33 @@ exports.dailyResetAndStats = functions
       if (resetCount > 0 || deleteCount > 0) {
         await batch.commit();
         console.log(`✅ Nettoyage fini : ${resetCount} reset, ${deleteCount} supprimées.`);
+      } else {
+        console.log("ℹ️ Aucun reset / suppression à effectuer.");
       }
 
-      // 4. Email récapitulatif
-      const emailHtml = generateSuccessHtml(stats, resetCount, deleteCount, isFirstDayOfMonth);
-      await sendEmail(`✅ Rapport Quotidien - ${stats.dayName} ${todayStr}`, emailHtml);
+      // 5) Email
+      const html = generateEmailHtml(stats, resetCount, deleteCount, isFirstDayOfMonth);
+      await sendEmail(`✅ Rapport Quotidien - ${stats.dayName} ${stats.date}`, html);
 
+      // 6) Done
+      await markRunDone(runRef);
+
+      console.log("✅ Cycle terminé (mail envoyé).");
       return null;
     } catch (error) {
       console.error("❌ Erreur critique :", error);
+
       try {
-        await sendEmail("⚠️ Erreur Reset Automatique", `<p>Le reset a échoué : ${error.message}</p>`);
+        await markRunFailed(reportDateStr, error);
+      } catch (e2) {
+        console.error("Impossible de marquer failed", e2);
+      }
+
+      try {
+        await sendEmail("⚠️ Erreur Reset Automatique", `<p>Le reset a échoué : ${String(error?.message || error)}</p>`);
       } catch (e) {
         console.error("Impossible d'envoyer l'email d'erreur", e);
       }
       return null;
     }
   });
-
-/**
- * Calcule et enregistre les statistiques
- */
-async function saveDailyStats(dateStr, dayOfWeek, tasksToday) {
-  const dayNames = ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'];
-  
-  const statsByPerson = {
-    papa: { completed: 0, total: 0, stars: 0 },
-    maman: { completed: 0, total: 0, stars: 0 },
-    florent: { completed: 0, total: 0, stars: 0 },
-    harry: { completed: 0, total: 0, stars: 0 },
-  };
-
-  tasksToday.forEach(doc => {
-    const task = doc.data();
-    const person = (task.assignedTo || "").toLowerCase().trim();
-
-    if (statsByPerson[person]) {
-      statsByPerson[person].total++;
-      if (task.completed) {
-        statsByPerson[person].completed++;
-        statsByPerson[person].stars += (Number(task.stars) || 0);
-      }
-    }
-  });
-
-  const totalTasks = tasksToday.length;
-  const totalCompleted = Object.values(statsByPerson).reduce((sum, p) => sum + p.completed, 0);
-  const totalStars = Object.values(statsByPerson).reduce((sum, p) => sum + p.stars, 0);
-
-  const statsDoc = {
-    date: dateStr,
-    dayName: dayNames[dayOfWeek],
-    byPerson: statsByPerson,
-    totalTasks,
-    totalCompleted,
-    totalStars,
-    familyCompletionRate: totalTasks > 0 ? Math.round((totalCompleted / totalTasks) * 100) : 0,
-    createdAt: admin.firestore.FieldValue.serverTimestamp()
-  };
-
-  await db.collection("daily_stats").doc(`stats_${dateStr}`).set(statsDoc);
-  return statsDoc;
-}
-
-/**
- * Génère le contenu HTML de l'email
- */
-function generateSuccessHtml(stats, resetCount, deleteCount, isFirstDayOfMonth) {
-  const renderRow = (name, s) => `
-    <tr>
-      <td style="padding: 8px; border-bottom: 1px solid #ddd;"><strong>${name}</strong></td>
-      <td style="padding: 8px; border-bottom: 1px solid #ddd;">${s.completed}/${s.total}</td>
-      <td style="padding: 8px; border-bottom: 1px solid #ddd;">${s.stars} ⭐</td>
-    </tr>
-  `;
-
-  let infoExtra = "";
-  if (isFirstDayOfMonth) infoExtra += `<p style="color: #2196F3;">📅 <strong>Mois :</strong> Reset des tâches mensuelles effectué !</p>`;
-  if (deleteCount > 0) infoExtra += `<p style="color: #F44336;">🗑️ <strong>One-off :</strong> ${deleteCount} tâche(s) ponctuelle(s) supprimée(s).</p>`;
-
-  return `
-    <div style="font-family: Arial, sans-serif; color: #333; max-width: 600px; padding: 20px;">
-      <h2 style="color: #4CAF50;">✅ Rapport de fin de journée</h2>
-      <p>Le système a réinitialisé <strong>${resetCount}</strong> tâches récurrentes.</p>
-      ${infoExtra}
-      <div style="background: #f9f9f9; padding: 15px; border-radius: 8px;">
-        <h3>📊 Stats du ${stats.dayName} ${stats.date}</h3>
-        <table style="width: 100%; border-collapse: collapse;">
-          <tr style="background: #eee;">
-            <th style="padding: 8px; text-align: left;">Membre</th>
-            <th style="padding: 8px; text-align: left;">Tâches</th>
-            <th style="padding: 8px; text-align: left;">Étoiles</th>
-          </tr>
-          ${renderRow('👨 Papa', stats.byPerson.papa)}
-          ${renderRow('👩 Maman', stats.byPerson.maman)}
-          ${renderRow('🧒 Florent', stats.byPerson.florent)}
-          ${renderRow('👦 Harry', stats.byPerson.harry)}
-        </table>
-        <p><strong>🏆 Score Global : ${stats.familyCompletionRate}%</strong> (Total : ${stats.totalStars} ⭐)</p>
-      </div>
-    </div>
-  `;
-}
