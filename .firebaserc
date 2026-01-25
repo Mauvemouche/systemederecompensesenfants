@@ -1,7 +1,26 @@
 {
   "projects": {
-    "prod": "systemederecompensesenfants"
+    "default": "systemederecompensesenfants",
+    "systemederecompensesenfantsqa": "systemederecompensesenfantsqa"
   },
-  "targets": {},
+  "targets": {
+    "systemederecompensesenfantsqa": {
+      "hosting": {
+        "prod": [
+          "systemederecompensesenfants"
+        ],
+        "qa": [
+          "systemederecompensesenfantsqa"
+        ]
+      }
+    },
+    "systemederecompensesenfants": {
+      "hosting": {
+        "prod": [
+          "systemederecompensesenfants"
+        ]
+      }
+    }
+  },
   "etags": {}
 }
