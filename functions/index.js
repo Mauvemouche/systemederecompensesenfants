@@ -76,10 +76,6 @@ async function sendEmail(subject, htmlContent) {
   });
 }
 
-const info = await transporter.sendMail({...});
-console.log("📧 Email messageId:", info.messageId);
-
-
 /* =========================================================
    ANTI DOUBLE-ENVOI (idempotence)
    - 1 rapport / date (YYYY-MM-DD)
@@ -141,9 +137,9 @@ async function markRunFailed(reportDateStr, error) {
    - bonusStars compté seulement si 100% normal atteint
    - penaltyStars soustrait
    - seriousFault => score 0
-   - finalStars = max(0, normalEarned + bonusStars - penaltyStars) (sauf seriousFault)
-   - percent = finalStars / (normalTotal||1)
-========================================================= */
+   - finalStars = (normalEarned + bonusStars - penaltyStars) (sauf seriousFault => 0)
+   - percent = finalStars / normalTotal (si normalTotal == 0 => 0)
+  ========================================================= */
 
 function computeStatsForTasks(tasksDocs, dateObj) {
   const tasks = tasksDocs.map((d) => ({ id: d.id, ...d.data() }));
@@ -183,7 +179,7 @@ function computeStatsForTasks(tasksDocs, dateObj) {
     s.tasksTotal += 1;
     if (t.completed) s.tasksDone += 1;
 
-    const stars = Number(t.stars || 3);
+    const stars = Math.abs(Number(t.stars || 3));
 
     if (t.isSeriousFault && t.completed) s.seriousFault = true;
 
@@ -192,10 +188,12 @@ function computeStatsForTasks(tasksDocs, dateObj) {
       return;
     }
 
-    if (!t.isBonus) {
-      s.normalTotal += stars;
-      if (t.completed) s.normalEarned += stars;
-    }
+// normal = ni bonus, ni pénalité, ni faute grave
+if (!t.isBonus && !t.isPenalty && !t.isSeriousFault) {
+  s.normalTotal += stars;
+  if (t.completed) s.normalEarned += stars;
+}
+
   });
 
   // 2) bonus only if 100% normal
@@ -209,20 +207,20 @@ function computeStatsForTasks(tasksDocs, dateObj) {
       if (!t.isBonus || !t.completed) return;
       if (!allowBonus) return;
 
-      s.bonusStars += Number(t.stars || 3);
+      s.bonusStars += Math.abs(Number(t.stars || 3));
     });
 
-    const normalMax = s.normalTotal || 1;
-    let finalStars = 0;
+    const normalMax = s.normalTotal; // peut être 0
+let finalStars;
 
-    if (s.seriousFault) finalStars = 0;
-    else finalStars = Math.max(0, (s.normalEarned + s.bonusStars) - s.penaltyStars);
+if (s.seriousFault) finalStars = 0;
+else finalStars = (s.normalEarned + s.bonusStars) - s.penaltyStars;
 
-    s.finalStars = finalStars;
-    s.percent = Math.round((finalStars / normalMax) * 100);
+s.finalStars = finalStars;
+s.percent = normalMax === 0 ? 0 : Math.round((finalStars / normalMax) * 100);
 
-    stats.global.totalStars += finalStars;
-    stats.global.maxStars += normalMax;
+stats.global.totalStars += finalStars;
+stats.global.maxStars += normalMax;
   });
 
   stats.global.percent = stats.global.maxStars
@@ -264,14 +262,31 @@ async function saveDailyStatsAligned(stats) {
 function generateEmailHtml(stats, resetCount, deleteCount, isFirstDayOfMonth) {
   const P = stats.byPerson;
 
-  const row = (label, s) => `
+  const row = (label, s) => {
+  const denom = s.normalTotal; // total possible (tâches normales uniquement)
+  const num = s.finalStars;    // score obtenu (incluant bonus, pénalités; faute grave => 0)
+
+  const detail = `
+    <div style="font-size:12px;line-height:1.35;color:#555;margin-top:4px;">
+      <div>Normal : <b>${s.normalEarned}</b> / ${s.normalTotal}</div>
+      <div>Bonus : <b>+${s.bonusStars}</b></div>
+      <div>Pénalités : <b>-${s.penaltyStars}</b></div>
+      <div>Faute grave : <b>${s.seriousFault ? "OUI" : "non"}</b></div>
+    </div>
+  `;
+
+  return `
     <tr>
       <td style="padding:10px 12px;border-bottom:1px solid #eee;"><b>${label}</b></td>
-      <td style="padding:10px 12px;border-bottom:1px solid #eee;text-align:center;">${s.tasksDone}/${s.tasksTotal}</td>
-      <td style="padding:10px 12px;border-bottom:1px solid #eee;text-align:center;">${s.finalStars} ⭐</td>
-      <td style="padding:10px 12px;border-bottom:1px solid #eee;text-align:center;">${s.percent}%</td>
+      <td style="padding:10px 12px;border-bottom:1px solid #eee;">
+        <div style="font-weight:700;">${num} / ${denom} ⭐</div>
+        <div style="color:#777;font-size:12px;">${s.percent}%</div>
+        <div style="color:#999;font-size:12px;">(${s.tasksDone}/${s.tasksTotal} tâches)</div>
+        ${detail}
+      </td>
     </tr>
   `;
+};
 
   const extra = [
     isFirstDayOfMonth
@@ -305,13 +320,12 @@ function generateEmailHtml(stats, resetCount, deleteCount, isFirstDayOfMonth) {
 
       <table style="width:100%;border-collapse:collapse;font-size:14px;">
         <thead>
-          <tr>
-            <th style="text-align:left;padding:10px 12px;border-bottom:2px solid #eaeaea;">Membre</th>
-            <th style="text-align:center;padding:10px 12px;border-bottom:2px solid #eaeaea;">Tâches</th>
-            <th style="text-align:center;padding:10px 12px;border-bottom:2px solid #eaeaea;">Étoiles</th>
-            <th style="text-align:center;padding:10px 12px;border-bottom:2px solid #eaeaea;">%</th>
-          </tr>
-        </thead>
+  <tr>
+    <th style="text-align:left;padding:10px 12px;border-bottom:1px solid #eee;">Membre</th>
+    <th style="text-align:left;padding:10px 12px;border-bottom:1px solid #eee;">Score & détails</th>
+  </tr>
+</thead>
+
         <tbody>
           ${row("👨 Papa", P.papa)}
           ${row("👩 Maman", P.maman)}

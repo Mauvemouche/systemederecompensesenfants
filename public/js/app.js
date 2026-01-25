@@ -53,35 +53,35 @@ document.addEventListener("DOMContentLoaded", () => {
 ========================================================= */
 function setupEvents() {
   // Toggle form (OUVERTURE uniquement via le bandeau)
-const toggle = document.getElementById("toggleFormBtn");
-const form = document.getElementById("taskForm");
+  const toggle = document.getElementById("toggleFormBtn");
+  const form = document.getElementById("taskForm");
 
-toggle?.addEventListener("click", () => {
-  if (!form) return;
+  toggle?.addEventListener("click", () => {
+    if (!form) return;
 
-  if (form.classList.contains("hidden")) {
-    form.classList.remove("hidden");
-    toggle.setAttribute("aria-expanded", "true");
+    if (form.classList.contains("hidden")) {
+      form.classList.remove("hidden");
+      toggle.setAttribute("aria-expanded", "true");
 
-    setTimeout(() => {
-      form.scrollIntoView({ behavior: "smooth", block: "start" });
-      document.getElementById("taskTitle")?.focus();
-    }, 50);
-  }
-});
+      setTimeout(() => {
+        form.scrollIntoView({ behavior: "smooth", block: "start" });
+        document.getElementById("taskTitle")?.focus();
+      }, 50);
+    }
+  });
 
-// Bouton Annuler = SEULE façon de fermer
-document.getElementById("cancelFormBtn")?.addEventListener("click", (e) => {
-  e.preventDefault();
-  e.stopPropagation(); // 🔑 empêche le toggle du bandeau
-  resetAndCloseForm();
-});
+  // Bouton Annuler = SEULE façon de fermer
+  document.getElementById("cancelFormBtn")?.addEventListener("click", (e) => {
+    e.preventDefault();
+    e.stopPropagation(); // 🔑 empêche le toggle du bandeau
+    resetAndCloseForm();
+  });
 
-// Esc ferme aussi (bonus UX)
-document.addEventListener("keydown", (e) => {
-  if (e.key === "Escape") resetAndCloseForm();
-})
-;
+  // Esc ferme aussi (bonus UX)
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") resetAndCloseForm();
+  })
+    ;
 
   // Submit form
   document.getElementById("taskForm")?.addEventListener("submit", submitTask);
@@ -101,8 +101,8 @@ document.addEventListener("keydown", (e) => {
 
   // Refresh button (robust, no inline onclick)
   document.getElementById("refreshBtn")?.addEventListener("click", () => {
-  location.reload();
-});
+    location.reload();
+  });
 
   // Refresh / debug
   window.toggleDebugAndRefresh = () => {
@@ -344,7 +344,7 @@ function renderTasks(rawTasks) {
   // ✅ Filtre d'affichage (quotidien/hebdo/mensuel/ponctuel) côté client
   const tasks = rawTasks.filter((t) => taskAppliesToDate(t, date));
   // clear lists
-  
+
   PEOPLE.forEach((p) => {
     const el = document.getElementById(`tasks-${p}`);
     if (el) el.innerHTML = "";
@@ -381,19 +381,21 @@ function renderTasks(rawTasks) {
       container.appendChild(createTaskElement(t));
 
       const s = stats[person];
-      const stars = Number(t.stars || 3);
+      const stars = Math.abs(Number(t.stars || 3));
 
       if (t.isSeriousFault && t.completed) s.seriousFault = true;
 
       if (t.isPenalty) {
-        if (t.completed) s.penaltyStars += stars;
+        if (t.completed) s.penaltyStars += Math.abs(stars);
         return;
       }
 
-      if (!t.isBonus) {
+      // ✅ normal = ni bonus, ni pénalité, ni faute grave
+      if (!t.isBonus && !t.isSeriousFault) {
         s.normalTotal += stars;
         if (t.completed) s.normalEarned += stars;
       }
+
     });
   });
 
@@ -405,7 +407,7 @@ function renderTasks(rawTasks) {
     (byPerson[person] || []).forEach((t) => {
       if (!t.isBonus || !t.completed) return;
       if (!allowBonus) return;
-      s.bonusStars += Number(t.stars || 3);
+      s.bonusStars += Math.abs(Number(t.stars || 3));
     });
   });
 
@@ -416,9 +418,12 @@ function renderTasks(rawTasks) {
     // ✅ garder /0 si aucune tâche
     const normalMax = s.normalTotal; // peut être 0
 
-    let earnedStars = 0;
-    if (s.seriousFault) earnedStars = 0;
-    else earnedStars = Math.max(0, (s.normalEarned + s.bonusStars) - s.penaltyStars);
+    let earnedStars;
+    if (s.seriousFault) {
+      earnedStars = 0; // ✅ faute grave => score du jour nul (persistant)
+    } else {
+      earnedStars = (s.normalEarned + s.bonusStars) - s.penaltyStars; // ✅ pénalité = négatif
+    };
 
     const starsEl = document.getElementById(`stars-count-${person}`);
     if (starsEl) starsEl.innerHTML = `${earnedStars} <span style="opacity:.6">/ ${normalMax}</span>`;
@@ -432,7 +437,8 @@ function renderTasks(rawTasks) {
     if (percentEl) percentEl.textContent = `${percent}%`;
 
     const fill = document.getElementById(`progress-fill-${person}`);
-    if (fill) fill.style.width = `${Math.min(160, percent)}%`;
+    if (fill) fill.style.width = `${Math.max(0, Math.min(160, percent))}%`;
+
 
     // ---------------------------
     // Screen time: children only
@@ -445,79 +451,95 @@ function renderTasks(rawTasks) {
     let bonusMin = 0;
 
     if (CHILDREN.has(person)) {
-      const normalPercent100 = normalMax === 0 ? 0 : (s.normalEarned / normalMax) * 100;
-      const baseMin = Math.round((normalPercent100 / 100) * 20);
+      // 💀 Faute grave => temps = 0 pour la journée
+      if (s.seriousFault) {
+        bonusMin = 0;
+        const baseMin = 0;
+        const totalMin = 0;
 
-      // bonus autorisé seulement si 100% normal (ou pas de tâches)
-      const allowBonus = (s.normalTotal === 0) || (s.normalEarned === s.normalTotal);
-      bonusMin = allowBonus ? s.bonusStars : 0;
+        setText(`base-minutes-${person}`, baseMin);
+        setText(`screen-minutes-${person}`, totalMin);
+        setText(`bonus-minutes-${person}`, bonusMin);
+        setText(`total-minutes-${person}`, totalMin);
+        setText(`gift-minutes-${person}`, bonusMin);
 
-      const totalMin = baseMin + bonusMin;
+      } else {
+        // ✅ Base impactée par pénalités
+        const netNormalEarned = Math.max(0, s.normalEarned - s.penaltyStars);
+        const baseRatio = normalMax === 0 ? 0 : (netNormalEarned / normalMax);
+        const baseMin = Math.round(baseRatio * 20);
 
-      setText(`base-minutes-${person}`, baseMin);
-      setText(`screen-minutes-${person}`, totalMin);
-      setText(`bonus-minutes-${person}`, bonusMin);
-      setText(`total-minutes-${person}`, totalMin);
+        // 🎁 Bonus autorisé seulement si 100% normal (ou pas de tâches)
+        const allowBonus = (s.normalTotal === 0) || (s.normalEarned === s.normalTotal);
+        bonusMin = allowBonus ? s.bonusStars : 0;
 
-     // Gift badge
-setText(`gift-minutes-${person}`, bonusMin);
+        const totalMin = baseMin + bonusMin;
 
-if (giftEl) {
-  const isActive = bonusMin > 0;
-
-  giftEl.style.display = "inline-flex";
-  giftEl.classList.toggle("active", isActive);
-
-  // ✅ Intent utilisateur (cochage bonus) = SEUL déclencheur
-  const intent = window.__bonusAnimIntent;
-  const okIntent =
-    intent &&
-    intent.person === person &&
-    intent.day === getCurrentDow() &&
-    (Date.now() - intent.ts) < 8000;
-
-  // Anti double-trigger si renderTasks() est appelé 2x
-  const key = okIntent ? `${intent.person}-${intent.day}-${intent.ts}` : null;
-  if (key && window.__lastBonusAnimKey === key) {
-    window.__bonusAnimIntent = null;
-  }
-
-  // ✅ On déclenche seulement si: action utilisateur récente + bonus réellement >0
-  if (okIntent && isActive && window.__lastBonusAnimKey !== key) {
-    window.__lastBonusAnimKey = key;
-    window.__bonusAnimIntent = null; // consomme l’intent
-
-    if (!window.__confettiScrollLock) {
-      window.__confettiScrollLock = true;
-
-      const scrollTarget = document.querySelector(".main-header") || document.body;
-
-      scrollTarget.scrollIntoView({ behavior: "smooth", block: "start" });
-
-      setTimeout(() => {
-        giftEl.classList.add("pop");
-        setTimeout(() => giftEl.classList.remove("pop"), 220);
-
-        if (typeof spawnConfettiBurst === "function") {
-          spawnConfettiBurst(giftEl, 110);
-        }
-
-        setTimeout(() => { window.__confettiScrollLock = false; }, 400);
-      }, 2000);
-
-    } else {
-      // déjà en cours : pop + confettis sans scroll
-      giftEl.classList.add("pop");
-      setTimeout(() => giftEl.classList.remove("pop"), 220);
-
-      if (typeof spawnConfettiBurst === "function") {
-        spawnConfettiBurst(giftEl, 110);
+        setText(`base-minutes-${person}`, baseMin);
+        setText(`screen-minutes-${person}`, totalMin);
+        setText(`bonus-minutes-${person}`, bonusMin);
+        setText(`total-minutes-${person}`, totalMin);
+        setText(`gift-minutes-${person}`, bonusMin);
       }
 
-      setTimeout(() => { window.__confettiScrollLock = false; }, 400);
-    }
-  }
-} // ✅ ferme if (giftEl)
+      // Gift badge
+      
+      if (giftEl) {
+        const isActive = bonusMin > 0;
+
+        giftEl.style.display = "inline-flex";
+        giftEl.classList.toggle("active", isActive);
+
+        // ✅ Intent utilisateur (cochage bonus) = SEUL déclencheur
+        const intent = window.__bonusAnimIntent;
+        const okIntent =
+          intent &&
+          intent.person === person &&
+          intent.day === getCurrentDow() &&
+          (Date.now() - intent.ts) < 8000;
+
+        // Anti double-trigger si renderTasks() est appelé 2x
+        const key = okIntent ? `${intent.person}-${intent.day}-${intent.ts}` : null;
+        if (key && window.__lastBonusAnimKey === key) {
+          window.__bonusAnimIntent = null;
+        }
+
+        // ✅ On déclenche seulement si: action utilisateur récente + bonus réellement >0
+        if (okIntent && isActive && window.__lastBonusAnimKey !== key) {
+          window.__lastBonusAnimKey = key;
+          window.__bonusAnimIntent = null; // consomme l’intent
+
+          if (!window.__confettiScrollLock) {
+            window.__confettiScrollLock = true;
+
+            const scrollTarget = document.querySelector(".main-header") || document.body;
+
+            scrollTarget.scrollIntoView({ behavior: "smooth", block: "start" });
+
+            setTimeout(() => {
+              giftEl.classList.add("pop");
+              setTimeout(() => giftEl.classList.remove("pop"), 220);
+
+              if (typeof spawnConfettiBurst === "function") {
+                spawnConfettiBurst(giftEl, 110);
+              }
+
+              setTimeout(() => { window.__confettiScrollLock = false; }, 400);
+            }, 2000);
+
+          } else {
+            // déjà en cours : pop + confettis sans scroll
+            giftEl.classList.add("pop");
+            setTimeout(() => giftEl.classList.remove("pop"), 220);
+
+            if (typeof spawnConfettiBurst === "function") {
+              spawnConfettiBurst(giftEl, 110);
+            }
+
+            setTimeout(() => { window.__confettiScrollLock = false; }, 400);
+          }
+        }
+      } // ✅ ferme if (giftEl)
 
       if (baseTimeEl) baseTimeEl.style.display = "inline-flex";
       if (badgeEl) badgeEl.style.display = "inline-flex";
@@ -545,8 +567,9 @@ function createTaskElement(t) {
   if (t.isPenalty) div.classList.add("penalty");
   if (t.isSeriousFault) div.classList.add("serious-fault");
 
-  const stars = Number(t.stars || 3);
-  const starsDisplay = t.isPenalty ? `-${stars}⭐` : `⭐ ${stars}`;
+  const rawStars = Number(t.stars || 3);
+  const absStars = Math.abs(rawStars);
+  const starsDisplay = t.isPenalty ? `-${absStars}⭐` : `⭐ ${absStars}`;
 
   const badges = [
     t.isBonus ? `<span class="badge badge-bonus">🎁 BONUS</span>` : "",
@@ -580,19 +603,19 @@ function createTaskElement(t) {
 
   // Toggle completion
   div.querySelector(".checkbox")?.addEventListener("click", () => {
-  const nextCompleted = !t.completed;
+    const nextCompleted = !t.completed;
 
-  // ✅ marque que l'utilisateur vient de cocher un bonus (pour autoriser l'animation)
-  if (t.isBonus && nextCompleted) {
-    window.__bonusAnimIntent = {
-      person: t.assignedTo,
-      day: getCurrentDow(),
-      ts: Date.now()
-    };
-  }
+    // ✅ marque que l'utilisateur vient de cocher un bonus (pour autoriser l'animation)
+    if (t.isBonus && nextCompleted) {
+      window.__bonusAnimIntent = {
+        person: t.assignedTo,
+        day: getCurrentDow(),
+        ts: Date.now()
+      };
+    }
 
-  toggleTaskCompletion(t.id, nextCompleted);
-});
+    toggleTaskCompletion(t.id, nextCompleted);
+  });
 
   // Admin actions
   div.querySelector(".btn-delete")?.addEventListener("click", () => deleteTask(t.id));
