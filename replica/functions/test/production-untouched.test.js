@@ -33,3 +33,27 @@ describe("Anthony's live family app stays a separate instance", () => {
     assert.match(cfg, /YOUR_REPLICA_PROJECT_ID/);
   });
 });
+
+describe("replica template does not leak Anthony's family defaults", () => {
+  it("gestion-taches person selects do not hardcode Florent or Harry", () => {
+    const html = fs.readFileSync(path.join(repoRoot, "replica/public/gestion-taches.html"), "utf8");
+    assert.equal(/option[^>]*value=["']florent["']/i.test(html), false);
+    assert.equal(/option[^>]*value=["']harry["']/i.test(html), false);
+    assert.equal(html.includes("Florent"), false);
+    assert.equal(html.includes("Harry"), false);
+    assert.match(html, /option value="papa"/);
+    assert.match(html, /option value="maman"/);
+  });
+
+  it("reset admin email has no pierre.thonon@gmail.com default", () => {
+    const files = [
+      "replica/public/js/reset-admin-standalone.js",
+      "replica/public/js/reset-admin.js",
+      "replica/public/admin.html",
+    ];
+    for (const rel of files) {
+      const text = fs.readFileSync(path.join(repoRoot, rel), "utf8");
+      assert.equal(text.includes("pierre.thonon@gmail.com"), false, rel);
+    }
+  });
+});

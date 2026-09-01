@@ -197,7 +197,7 @@ async function openResetConfigModal() {
             // Email
             const emailConfig = config.notifications?.email || {};
             document.getElementById('emailEnabled').checked = emailConfig.enabled !== false;
-            document.getElementById('resetEmail').value = emailConfig.address || 'pierre.thonon@gmail.com';
+            document.getElementById('resetEmail').value = emailConfig.address || '';
             document.getElementById('emailOnSuccess').checked = emailConfig.onSuccess !== false;
             document.getElementById('emailOnError').checked = emailConfig.onError !== false;
             document.getElementById('emailWeeklyStats').checked = emailConfig.weeklyStats || false;
