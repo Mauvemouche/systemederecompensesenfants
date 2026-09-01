@@ -19,8 +19,8 @@ const DAY_NAMES_FR = ["Dimanche", "Lundi", "Mardi", "Mercredi", "Jeudi", "Vendre
 
 async function loadFamilyPeople() {
   const snap = await db.collection("family_config").doc("settings").get();
-  const people = snap.exists && Array.isArray(snap.data().people) ? snap.data().people : family.DEFAULT_PARENTS;
-  return people.length ? people : family.DEFAULT_PARENTS;
+  const people = snap.exists && Array.isArray(snap.data().people) ? snap.data().people : family.DEFAULT_FAMILY;
+  return people.length ? people : family.DEFAULT_FAMILY;
 }
 
 /**
@@ -152,7 +152,7 @@ async function markRunFailed(reportDateStr, error) {
 
 function computeStatsForTasks(tasksDocs, dateObj, peopleIds) {
   const tasks = tasksDocs.map((d) => ({ id: d.id, ...d.data() }));
-  const PEOPLE = peopleIds && peopleIds.length ? peopleIds : family.personIds(family.DEFAULT_PARENTS);
+  const PEOPLE = peopleIds && peopleIds.length ? peopleIds : family.personIds(family.DEFAULT_FAMILY);
 
   const stats = {
     date: ymdLocal(dateObj),
@@ -271,7 +271,7 @@ async function saveDailyStatsAligned(stats) {
 
 function generateEmailHtml(stats, resetCount, deleteCount, isFirstDayOfMonth, people) {
   const P = stats.byPerson;
-  const members = people && people.length ? people : family.DEFAULT_PARENTS;
+  const members = people && people.length ? people : family.DEFAULT_FAMILY;
 
   const row = (label, s) => {
   const denom = s.normalTotal; // total possible (tâches normales uniquement)

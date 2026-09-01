@@ -35,25 +35,44 @@ describe("Anthony's live family app stays a separate instance", () => {
 });
 
 describe("replica template does not leak Anthony's family defaults", () => {
-  it("gestion-taches person selects do not hardcode Florent or Harry", () => {
+  it("gestion-taches person selects default to Kid 1 and Kid 2, not Florent or Harry", () => {
     const html = fs.readFileSync(path.join(repoRoot, "replica/public/gestion-taches.html"), "utf8");
     assert.equal(/option[^>]*value=["']florent["']/i.test(html), false);
     assert.equal(/option[^>]*value=["']harry["']/i.test(html), false);
     assert.equal(html.includes("Florent"), false);
     assert.equal(html.includes("Harry"), false);
-    assert.match(html, /option value="papa"/);
-    assert.match(html, /option value="maman"/);
+    assert.match(html, /option value="papa">Papa</);
+    assert.match(html, /option value="maman">Maman</);
+    assert.match(html, /option value="kid-1">Kid 1</);
+    assert.match(html, /option value="kid-2">Kid 2</);
+  });
+
+  it("other replica person lists use Kid 1 and Kid 2", () => {
+    const files = [
+      "replica/public/index.html",
+      "replica/public/manage-tasks-person.html",
+    ];
+    for (const rel of files) {
+      const html = fs.readFileSync(path.join(repoRoot, rel), "utf8");
+      assert.equal(html.includes("Florent"), false, rel);
+      assert.equal(html.includes("Harry"), false, rel);
+      assert.match(html, /option value="kid-1">Kid 1</);
+      assert.match(html, /option value="kid-2">Kid 2</);
+    }
   });
 
   it("reset admin email has no pierre.thonon@gmail.com default", () => {
     const files = [
       "replica/public/js/reset-admin-standalone.js",
       "replica/public/js/reset-admin.js",
+      "replica/public/js/firebase-config.js",
       "replica/public/admin.html",
     ];
     for (const rel of files) {
       const text = fs.readFileSync(path.join(repoRoot, rel), "utf8");
       assert.equal(text.includes("pierre.thonon@gmail.com"), false, rel);
     }
+    const cfg = fs.readFileSync(path.join(repoRoot, "replica/public/js/firebase-config.js"), "utf8");
+    assert.match(cfg, /export const RESET_NOTIFICATION_EMAIL = ""/);
   });
 });

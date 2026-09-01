@@ -1,5 +1,7 @@
+import { DEFAULT_FAMILY } from "./family-defaults.js";
+
 export function renderFamilyShell(people) {
-  const list = Array.isArray(people) && people.length ? people : [];
+  const list = Array.isArray(people) && people.length ? people : DEFAULT_FAMILY;
   const filters = document.querySelector(".filters");
   if (filters) {
     const current = document.querySelector(".filter-btn.active")?.dataset.filter || "all";

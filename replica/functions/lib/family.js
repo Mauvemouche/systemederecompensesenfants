@@ -1,11 +1,18 @@
 "use strict";
 
-const THEME_KEYS = ["papa", "maman", "florent", "harry"];
+const THEME_KEYS = ["papa", "maman", "child-a", "child-b"];
 
 const DEFAULT_PARENTS = [
   { id: "papa", name: "Papa", role: "parent", theme: "papa" },
   { id: "maman", name: "Maman", role: "parent", theme: "maman" },
 ];
+
+const DEFAULT_TEST_CHILDREN = [
+  { id: "kid-1", name: "Kid 1", role: "child", theme: "child-a" },
+  { id: "kid-2", name: "Kid 2", role: "child", theme: "child-b" },
+];
+
+const DEFAULT_FAMILY = [...DEFAULT_PARENTS, ...DEFAULT_TEST_CHILDREN];
 
 function slugifyName(name, used = new Set()) {
   const base =
@@ -55,6 +62,8 @@ function childIds(people) {
 module.exports = {
   THEME_KEYS,
   DEFAULT_PARENTS,
+  DEFAULT_TEST_CHILDREN,
+  DEFAULT_FAMILY,
   slugifyName,
   peopleFromChildNames,
   personIds,

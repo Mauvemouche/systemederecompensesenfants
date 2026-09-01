@@ -12,7 +12,7 @@ import {
   serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-let PEOPLE = ["papa", "maman"];
+let PEOPLE = ["papa", "maman", "kid-1", "kid-2"];
 const ADMIN_PIN = "1571";
 
 let unlocked = false;
@@ -521,6 +521,11 @@ function bootManagePage() {
   if (!window.db) {
     alert("Firebase non initialisé (window.db). Vérifie firebase-config.js.");
     return;
+  }
+
+  const people = window.__replicaState?.people;
+  if (Array.isArray(people) && people.length) {
+    PEOPLE = people.map((p) => p.id);
   }
 
     // PIN (V3 HTML: pinForm + pinUnlockBtn)

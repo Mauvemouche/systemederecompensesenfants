@@ -12,7 +12,7 @@ const {
   encodeStripeParams,
 } = require("../lib/stripeCheckout");
 const { verifyStripeSignature } = require("../lib/stripeHttp");
-const { peopleFromChildNames } = require("../lib/family");
+const { peopleFromChildNames, DEFAULT_FAMILY } = require("../lib/family");
 
 describe("replica Stripe Checkout (sandbox)", () => {
   it("uses a 30-day trial, not a 0 EUR price", () => {
@@ -83,6 +83,20 @@ describe("replica Stripe Checkout (sandbox)", () => {
 });
 
 describe("replica family names", () => {
+  it("defaults the test instance to Kid 1 and Kid 2", () => {
+    assert.deepEqual(
+      DEFAULT_FAMILY.filter((p) => p.role === "child").map((p) => ({ id: p.id, name: p.name })),
+      [
+        { id: "kid-1", name: "Kid 1" },
+        { id: "kid-2", name: "Kid 2" },
+      ]
+    );
+    assert.equal(
+      DEFAULT_FAMILY.some((p) => p.id === "florent" || p.id === "harry"),
+      false
+    );
+  });
+
   it("lets a replica name its own children without Florent & Harry", () => {
     const people = peopleFromChildNames(["Léa", "Tom"]);
     assert.deepEqual(

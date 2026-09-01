@@ -3,7 +3,7 @@
 const admin = require("firebase-admin");
 const functions = require("firebase-functions/v1");
 const { hasAppAccess, needsCheckout, needsKidsSetup, billingFromSubscription } = require("./lib/access");
-const { peopleFromChildNames, DEFAULT_PARENTS } = require("./lib/family");
+const { peopleFromChildNames, DEFAULT_FAMILY } = require("./lib/family");
 const { buildCheckoutSessionParams, resolvePriceId, assertSandboxKey } = require("./lib/stripeCheckout");
 const { stripeRequest, verifyStripeSignature } = require("./lib/stripeHttp");
 
@@ -24,13 +24,13 @@ function instanceId() {
 
 function serializeState(billing, settings, uid) {
   const billingData = billing || { status: "incomplete" };
-  const settingsData = settings || { people: DEFAULT_PARENTS, kidsNamed: false };
+  const settingsData = settings || { people: DEFAULT_FAMILY, kidsNamed: true };
   return {
     instanceId: instanceId(),
     ownerUid: billingData.ownerUid || null,
     isOwner: !!(uid && billingData.ownerUid === uid),
     billing: billingData,
-    people: settingsData.people || DEFAULT_PARENTS,
+    people: settingsData.people || DEFAULT_FAMILY,
     kidsNamed: !!settingsData.kidsNamed,
     familyName: settingsData.name || "",
     hasAccess: hasAppAccess(billingData),
@@ -100,8 +100,8 @@ exports.bootstrapInstance = functions.region("europe-west1").https.onCall(async 
     if (!settingsSnap.exists) {
       tx.set(settingsRef, {
         name: "",
-        people: DEFAULT_PARENTS,
-        kidsNamed: false,
+        people: DEFAULT_FAMILY,
+        kidsNamed: true,
         createdAt: now,
         updatedAt: now,
       });

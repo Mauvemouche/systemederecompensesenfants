@@ -3,7 +3,7 @@
 const { describe, it } = require("node:test");
 const assert = require("node:assert/strict");
 const { hasAppAccess, needsCheckout, needsKidsSetup, billingFromSubscription } = require("../lib/access");
-const { peopleFromChildNames, DEFAULT_PARENTS } = require("../lib/family");
+const { peopleFromChildNames, DEFAULT_PARENTS, DEFAULT_FAMILY } = require("../lib/family");
 
 describe("replica billing access", () => {
   it("lets trialing, active and past_due families use the board", () => {
@@ -25,6 +25,7 @@ describe("replica billing access", () => {
   it("requires kids setup until children are named", () => {
     assert.equal(needsKidsSetup({ people: DEFAULT_PARENTS, kidsNamed: false }), true);
     assert.equal(needsKidsSetup({ people: peopleFromChildNames(["Léa"]), kidsNamed: true }), false);
+    assert.equal(needsKidsSetup({ people: DEFAULT_FAMILY, kidsNamed: true }), false);
   });
 
   it("maps a trialing subscription onto billing fields", () => {

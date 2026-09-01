@@ -13,3 +13,6 @@ export const firebaseConfig = {
 };
 
 export const FUNCTIONS_REGION = "europe-west1";
+
+/** Per-instance reset notification email (same role as EMAIL_TO). Set when provisioning. Never a personal default. */
+export const RESET_NOTIFICATION_EMAIL = "";

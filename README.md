@@ -20,7 +20,7 @@ Other parents get a **copy of the same product** on a **new Firebase project** (
 - Same kids/parent UX (tasks, bonus, penalties, screen-time)
 - Parent account + Stripe Checkout (sandbox only)
 - First month free (`subscription_data.trial_period_days = 30`), then **2.50 EUR/month** or **25 EUR/year**
-- Each replica names its own children on first setup
+- Test defaults: **Kid 1** and **Kid 2** (not Florent & Harry, not empty placeholders). A family can still rename children later.
 
 ### Stripe (sandbox / AnthonyRsca test mode only)
 
@@ -43,6 +43,7 @@ Never create live products, live prices, or live charges. Never commit `sk_live`
    - `STRIPE_SECRET_KEY` (`sk_test_…` only)
    - `STRIPE_WEBHOOK_SECRET` (`whsec_…`)
    - Optional: `EMAIL_USER`, `EMAIL_PASSWORD`, `EMAIL_TO` for the daily report
+   - Optional: `RESET_NOTIFICATION_EMAIL` in `replica/public/js/firebase-config.js` (same role as `EMAIL_TO`; no personal default)
 5. Stripe Customer Portal enabled in the **sandbox** Dashboard.
 6. Webhook endpoint on **that** project's function URL (see script output).
 
@@ -61,7 +62,7 @@ The script refuses Anthony's live/QA project IDs. Then follow the printed checkl
 1. Open the replica Hosting URL (not the live Florent & Harry site).
 2. Sign up as the parent (first account owns the instance).
 3. Choose monthly or yearly Checkout; complete a **test** card. Trial is 30 days, not a 0 EUR price.
-4. Name the children. The board should show those names, not Florent & Harry.
+4. The board should show **Kid 1** and **Kid 2**, not empty slots and not Florent & Harry.
 5. Add a task for a child; confirm it appears only on this instance's Firestore `tasks` collection.
 6. In another browser / another replica project, confirm you cannot see those tasks.
 

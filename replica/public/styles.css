@@ -4,8 +4,10 @@
 :root{
   --papa-color:#2196F3; --papa-bg:#e3f2fd;
   --maman-color:#E91E63; --maman-bg:#fce4ec;
-  --florent-color:#FF9800; --florent-bg:#fff3e0;
-  --harry-color:#7e57c2; --harry-bg:#ede7f6;
+  --child-a-color:#FF9800; --child-a-bg:#fff3e0;
+  --child-b-color:#7e57c2; --child-b-bg:#ede7f6;
+  --florent-color:var(--child-a-color); --florent-bg:var(--child-a-bg);
+  --harry-color:var(--child-b-color); --harry-bg:var(--child-b-bg);
 }
 
 body{
@@ -153,8 +155,8 @@ body{
 
 .person-section.papa{ border-color:var(--papa-color); background:var(--papa-bg); }
 .person-section.maman{ border-color:var(--maman-color); background:var(--maman-bg); }
-.person-section.florent{ border-color:var(--florent-color); background:var(--florent-bg); }
-.person-section.harry{ border-color:var(--harry-color); background:var(--harry-bg); }
+.person-section.florent,.person-section.child-a{ border-color:var(--child-a-color); background:var(--child-a-bg); }
+.person-section.harry,.person-section.child-b{ border-color:var(--child-b-color); background:var(--child-b-bg); }
 
 .person-section.hidden{ display:none; }
 
@@ -171,8 +173,8 @@ body{
 
 .papa .person-header{ border-color:var(--papa-color); }
 .maman .person-header{ border-color:var(--maman-color); }
-.florent .person-header{ border-color:var(--florent-color); }
-.harry .person-header{ border-color:var(--harry-color); }
+.florent .person-header,.child-a .person-header{ border-color:var(--child-a-color); }
+.harry .person-header,.child-b .person-header{ border-color:var(--child-b-color); }
 
 /* Ligne "Nom ... étoiles" */
 .person-title{
@@ -200,8 +202,8 @@ body{
 .person-name{ font-size:2rem; font-weight:900; }
 .papa .person-name{ color:var(--papa-color); }
 .maman .person-name{ color:var(--maman-color); }
-.florent .person-name{ color:var(--florent-color); }
-.harry .person-name{ color:var(--harry-color); }
+.florent .person-name,.child-a .person-name{ color:var(--child-a-color); }
+.harry .person-name,.child-b .person-name{ color:var(--child-b-color); }
 
 .stats{
   text-align:right;
@@ -236,8 +238,8 @@ body{
 
 .papa span[id^="percentage-"]{ color:var(--papa-color); }
 .maman span[id^="percentage-"]{ color:var(--maman-color); }
-.florent span[id^="percentage-"]{ color:var(--florent-color); }
-.harry span[id^="percentage-"]{ color:var(--harry-color); }
+.florent span[id^="percentage-"],.child-a span[id^="percentage-"]{ color:var(--child-a-color); }
+.harry span[id^="percentage-"],.child-b span[id^="percentage-"]{ color:var(--child-b-color); }
 
 /* ✅ FIX FINAL: Base/Total sur 2 lignes sous le titre, sans être coupés */
 .person-badges{
@@ -320,8 +322,8 @@ body{
 
 .papa .checkbox{ border-color:var(--papa-color); }
 .maman .checkbox{ border-color:var(--maman-color); }
-.florent .checkbox{ border-color:var(--florent-color); }
-.harry .checkbox{ border-color:var(--harry-color); }
+.florent .checkbox,.child-a .checkbox{ border-color:var(--child-a-color); }
+.harry .checkbox,.child-b .checkbox{ border-color:var(--child-b-color); }
 
 .checkbox.checked::after{
   content:'✓';
@@ -332,8 +334,8 @@ body{
 
 .papa .checkbox.checked{ background:var(--papa-color); border-color:var(--papa-color); }
 .maman .checkbox.checked{ background:var(--maman-color); border-color:var(--maman-color); }
-.florent .checkbox.checked{ background:var(--florent-color); border-color:var(--florent-color); }
-.harry .checkbox.checked{ background:var(--harry-color); border-color:var(--harry-color); }
+.florent .checkbox.checked,.child-a .checkbox.checked{ background:var(--child-a-color); border-color:var(--child-a-color); }
+.harry .checkbox.checked,.child-b .checkbox.checked{ background:var(--child-b-color); border-color:var(--child-b-color); }
 
 .task-content{ flex:1; display:flex; flex-direction:column; gap:6px; min-width:0; }
 .task-title{ font-size:1.08rem; font-weight:900; color:#222; }

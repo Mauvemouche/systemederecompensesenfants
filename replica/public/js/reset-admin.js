@@ -3,8 +3,17 @@
  */
 
 import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, query, orderBy, limit, getDocs, writeBatch, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+import { RESET_NOTIFICATION_EMAIL } from './firebase-config.js';
 
 const db = getFirestore();
+
+function configuredResetEmail() {
+    return String(RESET_NOTIFICATION_EMAIL || '').trim();
+}
+
+function resolveResetEmail(saved) {
+    return String(saved || '').trim() || configuredResetEmail();
+}
 
 // Éléments DOM
 let resetAdminBtn, resetAdminSection, closeResetAdminBtn;
@@ -226,7 +235,7 @@ async function openResetConfigModal() {
             // Email
             const emailConfig = config.notifications?.email || {};
             document.getElementById('emailEnabled').checked = emailConfig.enabled !== false;
-            document.getElementById('resetEmail').value = emailConfig.address || '';
+            document.getElementById('resetEmail').value = resolveResetEmail(emailConfig.address);
             document.getElementById('emailOnSuccess').checked = emailConfig.onSuccess !== false;
             document.getElementById('emailOnError').checked = emailConfig.onError !== false;
             document.getElementById('emailWeeklyStats').checked = emailConfig.weeklyStats || false;
@@ -261,6 +270,13 @@ async function saveResetConfig(e) {
             alert('⚠️ Vous devez sélectionner au moins un jour actif');
             return;
         }
+
+        const address = resolveResetEmail(document.getElementById('resetEmail').value);
+        if (!address) {
+            alert('Email de notification requis. Définis RESET_NOTIFICATION_EMAIL dans js/firebase-config.js (EMAIL_TO) ou saisis un email.');
+            return;
+        }
+        document.getElementById('resetEmail').value = address;
         
         const config = {
             enabled: document.getElementById('resetEnabled').checked,
@@ -361,23 +377,19 @@ async function saveCurrentStats() {
     try {
         const tasksSnap = await getDocs(collection(db, 'tasks'));
         
-        const stats = {
-            papa: { completed: 0, total: 0, stars: 0 },
-            maman: { completed: 0, total: 0, stars: 0 },
-            florent: { completed: 0, total: 0, stars: 0 },
-            harry: { completed: 0, total: 0, stars: 0 }
-        };
+        const stats = {};
         
         tasksSnap.forEach((taskDoc) => {
             const task = taskDoc.data();
             const person = task.assignedTo;
-            
-            if (stats[person]) {
-                stats[person].total++;
-                if (task.completed) {
-                    stats[person].completed++;
-                    stats[person].stars += (task.stars || 0);
-                }
+            if (!person) return;
+            if (!stats[person]) {
+                stats[person] = { completed: 0, total: 0, stars: 0 };
+            }
+            stats[person].total++;
+            if (task.completed) {
+                stats[person].completed++;
+                stats[person].stars += (task.stars || 0);
             }
         });
         

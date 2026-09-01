@@ -15,8 +15,8 @@ import {
 /* =========================================================
    CONFIG / GLOBAL
 ========================================================= */
-let PEOPLE = ["papa", "maman"];
-let CHILDREN = new Set();
+let PEOPLE = ["papa", "maman", "kid-1", "kid-2"];
+let CHILDREN = new Set(["kid-1", "kid-2"]);
 const ADMIN_PIN = "1571";
 
 let unsubscribe = null;

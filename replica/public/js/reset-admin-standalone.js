@@ -5,9 +5,18 @@
 
 import { getFirestore, doc, getDoc, updateDoc, collection, query, orderBy, limit, getDocs, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 import { httpsCallable } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-functions.js';
+import { RESET_NOTIFICATION_EMAIL } from './firebase-config.js';
 
 const db = getFirestore();
 const functions = window.functions;
+
+function configuredResetEmail() {
+    return String(RESET_NOTIFICATION_EMAIL || '').trim();
+}
+
+function resolveResetEmail(saved) {
+    return String(saved || '').trim() || configuredResetEmail();
+}
 
 // Éléments DOM
 let editResetConfigBtn, resetConfigModal, resetConfigForm, cancelResetConfigBtn;
@@ -197,7 +206,7 @@ async function openResetConfigModal() {
             // Email
             const emailConfig = config.notifications?.email || {};
             document.getElementById('emailEnabled').checked = emailConfig.enabled !== false;
-            document.getElementById('resetEmail').value = emailConfig.address || '';
+            document.getElementById('resetEmail').value = resolveResetEmail(emailConfig.address);
             document.getElementById('emailOnSuccess').checked = emailConfig.onSuccess !== false;
             document.getElementById('emailOnError').checked = emailConfig.onError !== false;
             document.getElementById('emailWeeklyStats').checked = emailConfig.weeklyStats || false;
@@ -232,6 +241,13 @@ async function saveResetConfig(e) {
             alert('⚠️ Vous devez sélectionner au moins un jour actif');
             return;
         }
+
+        const address = resolveResetEmail(document.getElementById('resetEmail').value);
+        if (!address) {
+            alert('Email de notification requis. Définis RESET_NOTIFICATION_EMAIL dans js/firebase-config.js (EMAIL_TO) ou saisis un email.');
+            return;
+        }
+        document.getElementById('resetEmail').value = address;
         
         const config = {
             enabled: document.getElementById('resetEnabled').checked,
