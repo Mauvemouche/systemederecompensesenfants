@@ -1,4 +1,3 @@
-@"
 node_modules/
 
 # Firebase / Google Cloud secrets
@@ -10,6 +9,14 @@ functions/systemederecompensesenfants-firebase-adminsdk-fbsvc-*.json
 **/*serviceAccount*.json
 **/serviceAccountKey*.json
 
+# Env / Stripe secrets (never commit)
+.env
+.env.*
+!.env.example
+replica/.firebaserc
+replica/functions/.env
+**/.env
+
 # Logs & temp
 *.log
 *.tmp
@@ -20,4 +27,3 @@ Thumbs.db
 # IDE
 .vscode/
 .idea/
-"@ | Set-Content -Encoding utf8 .gitignore

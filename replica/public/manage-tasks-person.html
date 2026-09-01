@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestion des Tâches - Vue Détaillée</title>
+    <link rel="stylesheet" href="css/styles.css?v=4.3">
+    <link rel="stylesheet" href="css/days.css?v=2.1">
+    <style>
+        .management-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .controls-row {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 30px;
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 12px;
+            align-items: center;
+        }
+
+        .control-group {
+            flex: 1;
+        }
+
+        .control-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #555;
+        }
+
+        .control-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+
+        .task-row {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            background: white;
+            border-bottom: 1px solid #eee;
+            gap: 15px;
+            transition: all 0.2s ease;
+        }
+
+        .task-row:hover {
+            background-color: #f8f9fa;
+        }
+
+        .task-row.dragging {
+            opacity: 0.5;
+            background: #e3f2fd;
+        }
+
+        .task-row.drag-over {
+            border-top: 2px solid #2196F3;
+        }
+
+        .row-handle {
+            cursor: grab;
+            color: #ccc;
+            padding: 5px;
+            font-size: 1.2rem;
+        }
+
+        .row-position {
+            width: 60px;
+        }
+
+        .row-position input {
+            width: 100%;
+            padding: 5px;
+            text-align: center;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .row-content {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .row-title {
+            font-weight: 600;
+            font-size: 1.1rem;
+            flex: 1;
+        }
+
+        .bonus-badge {
+            background: #ffeb3b;
+            color: #333;
+            padding: 2px 8px;
+            border-radius: 8px;
+            font-size: 0.8em;
+            margin-left: 8px;
+        }
+
+        .row-stars {
+            font-weight: bold;
+            color: #FFD700;
+            min-width: 80px;
+        }
+
+        .row-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-icon {
+            padding: 8px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-size: 1.2rem;
+            border-radius: 50%;
+            transition: background 0.2s;
+        }
+
+        .btn-icon:hover {
+            background-color: #eee;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+            font-style: italic;
+        }
+
+        .header-nav {
+            margin-bottom: 20px;
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            text-decoration: none;
+            color: #666;
+            font-weight: 500;
+            padding: 8px 15px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            transition: all 0.2s;
+        }
+
+        .back-link:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+        }
+    </style>
+</head>
+<body>
+    <div class="management-container">
+        <!-- Contenu existant inchangé (header, controls, liste drag-and-drop, etc.) -->
+        <!-- ... ton code original ... -->
+
+        <!-- Modale Édition de Tâche - MODIFIÉE -->
+        <div id="editTaskModal" class="modal hidden">
+            <div class="modal-content modal-large">
+                <h3>✏️ Modifier la Tâche</h3>
+
+                <form id="editTaskForm">
+                    <input type="hidden" id="editTaskId">
+
+                    <div class="form-group">
+                        <label for="editTaskTitle">Titre de la tâche *</label>
+                        <input type="text" id="editTaskTitle" required placeholder="Ex: Ranger sa chambre">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="editTaskDescription">Description</label>
+                        <textarea id="editTaskDescription" rows="3" placeholder="Détails de la tâche..."></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="editAssignedTo">Assignée à *</label>
+                        <select id="editAssignedTo" required>
+                            <option value="">Choisir une personne</option>
+                            <option value="papa">Papa</option>
+                            <option value="maman">Maman</option>
+                            <option value="florent">Florent</option>
+                            <option value="harry">Harry</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="editStars">Nombre d'étoiles ⭐</label>
+                        <select id="editStars">
+                            <option value="1">⭐ 1 étoile</option>
+                            <option value="2">⭐⭐ 2 étoiles</option>
+                            <option value="3">⭐⭐⭐ 3 étoiles</option>
+                            <option value="4">⭐⭐⭐⭐ 4 étoiles</option>
+                            <option value="5">⭐⭐⭐⭐⭐ 5 étoiles</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="editCategory">Catégorie</label>
+                        <select id="editCategory">
+                            <option value="quotidien">Quotidien</option>
+                            <option value="hebdomadaire">Hebdomadaire</option>
+                            <option value="mensuel">Mensuel</option>
+                        </select>
+                    </div>
+
+                    <!-- NOUVEAU CHAMP BONUS -->
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="editIsBonus">
+                            Tâche BONUS (étoiles comptées seulement si 100 % des tâches normales sont faites)
+                        </label>
+                    </div>
+
+                    <div class="modal-actions">
+                        <button type="button" id="cancelEditBtn" class="btn-secondary">Annuler</button>
+                        <button type="submit" class="btn-primary">Enregistrer</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Firebase SDK -->
+        <script type="module">
+            import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+            import { getFirestore } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+
+            const firebaseConfig = {
+                apiKey: "YOUR_REPLICA_API_KEY",
+                authDomain: "YOUR_REPLICA_PROJECT_ID.firebaseapp.com",
+                projectId: "YOUR_REPLICA_PROJECT_ID",
+                storageBucket: "YOUR_REPLICA_PROJECT_ID.firebasestorage.app",
+                messagingSenderId: "YOUR_REPLICA_SENDER_ID",
+                appId: "1:YOUR_REPLICA_SENDER_ID:web:8fbb6fb189a9d7be0fc5a7"
+            };
+
+            const app = initializeApp(firebaseConfig);
+            const db = getFirestore(app);
+            window.db = db;
+        </script>
+
+        <script type="module" src="js/manage-tasks.js?v=1.1"></script>
+    </div>
+</body>
+</html>

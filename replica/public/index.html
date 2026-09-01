@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Système de récompenses</title>
+
+  <!-- IMPORTANT: garde ton styles.css existant -->
+  <link rel="stylesheet" href="./styles.css?v=108" />
+</head>
+
+<body>
+  <div class="container">
+
+    <!-- ===== HEADER ===== -->
+    <header class="main-header">
+      <div class="header-row">
+        <div>
+          <h1>⭐ Système de récompenses</h1>
+          <p id="familySubtitle">Suivi des tâches et du temps d’écran</p>
+        </div>
+
+        <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+          <div id="accountBar" class="account-bar hidden">
+            <span id="accountEmail"></span>
+            <span id="accountBilling"></span>
+            <button id="portalBtn" class="btn-refresh" type="button">💳 Abonnement</button>
+            <button id="logoutBtn" class="btn-refresh" type="button">Déconnexion</button>
+          </div>
+          <button id="adminModeBtn" class="admin-mode-btn" title="Mode Admin" type="button">🔒</button>
+          <button class="btn-refresh" id="refreshBtn" type="button">🔄 Actualiser</button>
+        </div>
+      </div>
+    </header>
+
+    <!-- ===== NAVIGATION DES JOURS ===== -->
+    <section class="day-navigation">
+      <div class="day-nav-main">
+        <button class="day-nav-btn" type="button" onclick="previousDay()">⬅ <span id="prevDayName">Jour</span></button>
+        <h2 id="dayNavigationTitle" class="day-nav-title">📅 JOUR</h2>
+        <button class="day-nav-btn" type="button" onclick="nextDay()"><span id="nextDayName">Jour</span> ➡</button>
+      </div>
+
+      <div class="day-nav-quick">
+        <button id="dayBtn1" class="day-quick-btn" type="button" onclick="changeDay(1)">Lun</button>
+        <button id="dayBtn2" class="day-quick-btn" type="button" onclick="changeDay(2)">Mar</button>
+        <button id="dayBtn3" class="day-quick-btn" type="button" onclick="changeDay(3)">Mer</button>
+        <button id="dayBtn4" class="day-quick-btn" type="button" onclick="changeDay(4)">Jeu</button>
+        <button id="dayBtn5" class="day-quick-btn" type="button" onclick="changeDay(5)">Ven</button>
+        <button id="dayBtn6" class="day-quick-btn" type="button" onclick="changeDay(6)">Sam</button>
+        <button id="dayBtn0" class="day-quick-btn" type="button" onclick="changeDay(0)">Dim</button>
+      </div>
+    </section>
+
+    <!-- ===== WARNING BANNER ===== -->
+    <div id="dayWarningBanner" class="day-warning-banner hidden">
+      <div class="warning-content">
+        <div class="warning-icon">⚠️</div>
+        <div class="warning-text">
+          <strong>Tu regardes <span id="warningDayName">un autre jour</span></strong><br />
+          <small>Aujourd’hui : <span id="warningTodayName">—</span></small>
+        </div>
+        <button class="btn-today" type="button" onclick="goToToday()">↩ Retour à aujourd’hui</button>
+      </div>
+    </div>
+
+    <!-- ===== FILTERS ===== -->
+    <div class="filters">
+      <button class="filter-btn active" data-filter="all" type="button">Tous</button>
+    </div>
+
+    <!-- ===== ADD TASK ===== -->
+    <section class="add-task-section">
+      <div class="header-row add-task-toggle" id="toggleFormBtn" role="button" tabindex="0" aria-expanded="false">
+  <h2 style="margin:0; color:#222;">➕ Ajouter une tâche</h2>
+  </div>
+
+
+      <form id="taskForm" class="task-form hidden">
+        <h3>Nouvelle tâche</h3>
+
+        <div class="form-group">
+          <label for="taskTitle">Titre</label>
+          <input id="taskTitle" type="text" placeholder="Ex: Ranger la chambre" required />
+          <small class="hint">Astuce : si le titre contient “bonus”, ça devient automatiquement une tâche bonus.</small>
+        </div>
+
+        <div class="form-group">
+          <label for="taskDescription">Description (optionnel)</label>
+          <textarea id="taskDescription" rows="2" placeholder="Détails..."></textarea>
+        </div>
+
+        <div class="form-group">
+          <label for="assignedTo">Personne</label>
+          <select id="assignedTo" required>
+            <option value="">— Choisir —</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="stars">Étoiles</label>
+          <select id="stars">
+            <option value="1">1 ⭐</option>
+            <option value="2">2 ⭐</option>
+            <option value="3" selected>3 ⭐</option>
+            <option value="4">4 ⭐</option>
+            <option value="5">5 ⭐</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="category">Catégorie</label>
+          <select id="category">
+            <option value="quotidien" selected>quotidien</option>
+            <option value="hebdomadaire">hebdomadaire</option>
+            <option value="mensuel">mensuel</option>
+            <option value="ponctuel">ponctuel</option>
+          </select>
+          <small class="hint">Hebdo = dimanche. Mensuel = jour du mois. Ponctuel = date exacte.</small>
+        </div>
+
+        <div id="specificDateGroup" class="form-group" style="display:none;">
+          <label id="dateLabel" for="specificDate">Date</label>
+          <input id="specificDate" type="date" />
+        </div>
+
+        <div id="daysSelectionGroup" class="form-group">
+          <label>Jours (quotidien)</label>
+          <div class="days-checkboxes">
+            <label class="day-checkbox-label">
+              <input id="allDays" class="day-checkbox" type="checkbox" checked />
+              <span>Tous</span>
+            </label>
+            <label class="day-checkbox-label"><input id="day1" class="day-checkbox" type="checkbox" checked /><span>Lun</span></label>
+            <label class="day-checkbox-label"><input id="day2" class="day-checkbox" type="checkbox" checked /><span>Mar</span></label>
+            <label class="day-checkbox-label"><input id="day3" class="day-checkbox" type="checkbox" checked /><span>Mer</span></label>
+            <label class="day-checkbox-label"><input id="day4" class="day-checkbox" type="checkbox" checked /><span>Jeu</span></label>
+            <label class="day-checkbox-label"><input id="day5" class="day-checkbox" type="checkbox" checked /><span>Ven</span></label>
+            <label class="day-checkbox-label"><input id="day6" class="day-checkbox" type="checkbox" checked /><span>Sam</span></label>
+            <label class="day-checkbox-label"><input id="day0" class="day-checkbox" type="checkbox" checked /><span>Dim</span></label>
+          </div>
+        </div>
+
+        <div class="form-group" style="display:flex; gap:14px; flex-wrap:wrap;">
+          <label class="modal-check" style="flex:1;">
+            <input id="isBonus" type="checkbox" />
+            <span>🎁 Bonus</span>
+          </label>
+          <label class="modal-check" style="flex:1;">
+            <input id="isPenalty" type="checkbox" />
+            <span>⛔ Pénalité</span>
+          </label>
+          <label class="modal-check" style="flex:1;">
+            <input id="isSeriousFault" type="checkbox" />
+            <span>💀 Faute grave</span>
+          </label>
+        </div>
+
+        <div class="form-actions">
+          <button id="cancelFormBtn" class="btn-secondary" type="button">Annuler</button>
+          <button class="btn-primary" type="submit">Ajouter</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- ===== PERSONS GRID ===== -->
+    <section class="persons-container"></section>
+
+    <!-- ===== DEBUG PANEL ===== -->
+    <div id="debugPanel" class="debug-panel" style="display:none;">
+      <div class="debug-header">
+        <strong>DEBUG</strong>
+        <button class="btn-debug-clear" type="button" onclick="clearDebugLogs()">Clear</button>
+      </div>
+      <div id="debugLogs" class="debug-logs"></div>
+    </div>
+
+  </div><!-- /.container -->
+
+  <!-- ===== Admin PIN Modal ===== -->
+<div id="adminPinOverlay" class="modal-overlay hidden" aria-hidden="true">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="adminPinTitle">
+    <div class="modal-header">
+      <h3 id="adminPinTitle">🔒 Mode administrateur</h3>
+      <button id="adminPinCloseBtn" class="modal-close" type="button" aria-label="Fermer">✕</button>
+    </div>
+
+    <form id="adminPinForm" class="modal-body">
+      <label class="modal-label">Code PIN</label>
+      <input
+        id="adminPinInput"
+        class="modal-input"
+        type="password"
+        inputmode="numeric"
+        autocomplete="one-time-code"
+        placeholder="••••"
+        required
+      />
+
+      <div id="adminPinError" class="modal-hint" style="color:#d32f2f; display:none;">
+        Code incorrect
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" id="adminPinCancelBtn" class="btn btn-secondary">
+          Annuler
+        </button>
+        <button type="submit" class="btn btn-primary">
+          Valider
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+  <!-- ===== Edit Task Modal ===== -->
+  <div id="editModalOverlay" class="modal-overlay hidden" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="editModalTitle">
+      <div class="modal-header">
+        <h3 id="editModalTitle">Modifier la tâche</h3>
+        <button id="editModalCloseBtn" class="modal-close" type="button" aria-label="Fermer">✕</button>
+      </div>
+
+      <form id="editTaskForm" class="modal-body">
+        <input type="hidden" id="editTaskId" />
+
+        <label class="modal-label">Titre</label>
+        <input id="editTitle" class="modal-input" type="text" required />
+
+        <label class="modal-label">Description</label>
+        <textarea id="editDescription" class="modal-textarea" rows="3"></textarea>
+
+        <div class="modal-row">
+          <div class="modal-col">
+            <label class="modal-label">Étoiles</label>
+            <select id="editStars" class="modal-input">
+              <option value="1">1 ⭐</option>
+              <option value="2">2 ⭐</option>
+              <option value="3">3 ⭐</option>
+              <option value="4">4 ⭐</option>
+              <option value="5">5 ⭐</option>
+            </select>
+          </div>
+
+          <div class="modal-col">
+            <label class="modal-label">Catégorie</label>
+            <select id="editCategory" class="modal-input">
+              <option value="quotidien">quotidien</option>
+              <option value="hebdomadaire">hebdomadaire</option>
+              <option value="mensuel">mensuel</option>
+              <option value="ponctuel">ponctuel</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="modal-row">
+          <label class="modal-check">
+            <input id="editIsBonus" type="checkbox" />
+            <span>🎁 Bonus</span>
+          </label>
+
+          <label class="modal-check">
+            <input id="editIsPenalty" type="checkbox" />
+            <span>⛔ Pénalité</span>
+          </label>
+
+          <label class="modal-check">
+            <input id="editIsSeriousFault" type="checkbox" />
+            <span>💀 Faute grave</span>
+          </label>
+        </div>
+
+        <div id="editDateBlock" class="modal-row hidden">
+          <div class="modal-col" style="flex:1;">
+            <label id="editDateLabel" class="modal-label">Date</label>
+            <input id="editSpecificDate" class="modal-input" type="date" />
+            <div class="modal-hint">Ponctuel = date exacte. Mensuel = jour du mois.</div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button id="editCancelBtn" class="btn btn-secondary" type="button">Annuler</button>
+          <button class="btn btn-primary" type="submit">Enregistrer</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ===== Replica gate (auth / Stripe / kids) ===== -->
+  <div id="authGate" class="auth-gate" aria-hidden="false">
+    <div class="auth-card">
+      <p id="gateError" class="gate-error" style="display:none;"></p>
+
+      <section id="gate-auth">
+        <h2 id="authTitle">Connexion parent</h2>
+        <p class="gate-lead">Cette copie est réservée à votre famille. 1er mois offert, puis 2,50 €/mois ou 25 €/an.</p>
+        <form id="authForm" data-mode="login">
+          <label class="modal-label" for="authEmail">Email</label>
+          <input id="authEmail" class="modal-input" type="email" autocomplete="email" required />
+          <label class="modal-label" for="authPassword">Mot de passe</label>
+          <input id="authPassword" class="modal-input" type="password" autocomplete="current-password" required minlength="6" />
+          <div class="modal-footer" style="margin-top:14px;">
+            <button id="authSubmit" class="btn btn-primary" type="submit">Se connecter</button>
+          </div>
+        </form>
+        <p><a href="#" id="toggleAuthMode">Créer un compte</a></p>
+      </section>
+
+      <section id="gate-checkout" class="hidden">
+        <h2>Choisir l’abonnement</h2>
+        <p class="gate-lead">Essai de 30 jours, carte enregistrée. Ensuite 2,50 € / mois ou 25 € / an (Stripe sandbox).</p>
+        <div class="plan-row">
+          <button id="checkoutMonthlyBtn" class="plan-card" type="button">
+            <strong>Mensuel</strong>
+            <span>2,50 € / mois</span>
+            <small>après 30 jours</small>
+          </button>
+          <button id="checkoutYearlyBtn" class="plan-card" type="button">
+            <strong>Annuel</strong>
+            <span>25 € / an</span>
+            <small>après 30 jours</small>
+          </button>
+        </div>
+      </section>
+
+      <section id="gate-kids" class="hidden">
+        <h2>Prénoms des enfants</h2>
+        <p class="gate-lead">Chaque famille nomme ses propres enfants. Papa et Maman restent disponibles pour les tâches.</p>
+        <form id="kidsForm">
+          <input id="childName1" class="modal-input" type="text" placeholder="Enfant 1" required />
+          <input id="childName2" class="modal-input" type="text" placeholder="Enfant 2 (optionnel)" />
+          <input id="childName3" class="modal-input" type="text" placeholder="Enfant 3 (optionnel)" />
+          <input id="childName4" class="modal-input" type="text" placeholder="Enfant 4 (optionnel)" />
+          <div class="modal-footer" style="margin-top:14px;">
+            <button class="btn btn-primary" type="submit">Enregistrer</button>
+          </div>
+        </form>
+      </section>
+
+      <section id="gate-blocked" class="hidden">
+        <h2>Instance déjà prise</h2>
+        <p id="blockedText" class="gate-lead"></p>
+      </section>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getFirestore } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { getAuth } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+    import { getFunctions } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-functions.js";
+    import { firebaseConfig, FUNCTIONS_REGION } from "./js/firebase-config.js";
+    import { startReplicaGate } from "./js/family-gate.js";
+
+    const app = initializeApp(firebaseConfig);
+    window.db = getFirestore(app);
+    window.auth = getAuth(app);
+    window.functions = getFunctions(app, FUNCTIONS_REGION);
+    startReplicaGate();
+  </script>
+
+  <script type="module" src="./js/app.js?v=109"></script>
+</body>
+</html>

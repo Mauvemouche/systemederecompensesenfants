@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Migration Tâches par Jour</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .warning {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .info {
+            background: #d1ecf1;
+            border-left: 4px solid #17a2b8;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .success {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .error {
+            background: #f8d7da;
+            border-left: 4px solid #dc3545;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .danger {
+            background: #dc3545;
+        }
+        .danger:hover {
+            background: #c82333;
+        }
+        #log {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 20px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            max-height: 400px;
+            overflow-y: auto;
+            margin: 20px 0;
+            white-space: pre-wrap;
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .stat-card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .stat-number {
+            font-size: 32px;
+            font-weight: bold;
+            color: #007bff;
+        }
+        .stat-label {
+            color: #666;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔄 Migration: Tâches par Jour de la Semaine</h1>
+        
+        <div class="warning">
+            <strong>⚠️ ATTENTION</strong><br>
+            Cette opération est <strong>IRRÉVERSIBLE</strong>. Chaque tâche existante sera dupliquée 7 fois (une par jour) et l'ancienne version sera supprimée.
+        </div>
+
+        <div class="info">
+            <strong>📦 Environnement:</strong> <span id="env">Chargement...</span><br>
+            <strong>🔐 Utilisateur:</strong> <span id="user">Non connecté</span>
+        </div>
+
+        <div id="stats" class="stats" style="display:none;">
+            <div class="stat-card">
+                <div class="stat-number" id="totalTasks">0</div>
+                <div class="stat-label">Tâches actuelles</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="toMigrate">0</div>
+                <div class="stat-label">À migrer</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="afterMigration">0</div>
+                <div class="stat-label">Après migration</div>
+            </div>
+        </div>
+
+        <div id="actions">
+            <button id="scanBtn" onclick="scanTasks()">📊 Analyser les tâches</button>
+            <button id="migrateBtn" onclick="migrateTasks()" class="danger" disabled>🚀 MIGRER (×7)</button>
+        </div>
+
+        <div id="log"></div>
+    </div>
+
+    <!-- Firebase SDK (sans Auth) -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+    <!-- Config Firebase AUTO-DÉTECTION -->
+    <script>
+        // Détecter l'environnement basé sur l'URL
+        const isTestEnvironment = window.location.hostname.includes('activity-day-to-day-test');
+        
+        // Configuration Firebase TEST
+        const testConfig = {
+            apiKey: "AIzaSyAcofDWIySvjHcW0TQYmF7gIdE4oY8B6hE",
+            authDomain: "activity-day-to-day-test.firebaseapp.com",
+            projectId: "activity-day-to-day-test",
+            storageBucket: "activity-day-to-day-test.firebasestorage.app",
+            messagingSenderId: "880195046237",
+            appId: "1:880195046237:web:b22ea3bf2c28e4f3d54c42"
+        };
+        
+        // Configuration Firebase PRODUCTION
+        const firebaseConfig = {
+            apiKey: "YOUR_REPLICA_API_KEY",
+            authDomain: "YOUR_REPLICA_PROJECT_ID.firebaseapp.com",
+            projectId: "YOUR_REPLICA_PROJECT_ID",
+            storageBucket: "YOUR_REPLICA_PROJECT_ID.firebasestorage.app",
+            messagingSenderId: "YOUR_REPLICA_SENDER_ID",
+            appId: "1:YOUR_REPLICA_SENDER_ID:web:8fbb6fb189a9d7be0fc5a7"
+        };
+        
+        // Choisir la bonne configuration
+        const firebaseConfig = isTestEnvironment ? testConfig : prodConfig;
+
+        // Initialiser Firebase (Firestore uniquement)
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // Logger
+        function log(message, type = 'info') {
+            const logDiv = document.getElementById('log');
+            const timestamp = new Date().toLocaleTimeString();
+            const prefix = type === 'error' ? '❌' : type === 'success' ? '✅' : type === 'warning' ? '⚠️' : 'ℹ️';
+            logDiv.textContent += `[${timestamp}] ${prefix} ${message}\n`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        // Afficher l'environnement
+        document.getElementById('env').textContent = firebaseConfig.projectId;
+
+        // Pas d'authentification nécessaire - accès direct à Firestore
+        log('✅ Connecté à Firestore', 'success');
+        document.getElementById('user').textContent = 'Accès direct (sans auth)';
+
+        let tasksData = null;
+
+        // Analyser les tâches
+        async function scanTasks() {
+            const scanBtn = document.getElementById('scanBtn');
+            const migrateBtn = document.getElementById('migrateBtn');
+            
+            scanBtn.disabled = true;
+            scanBtn.textContent = '🔄 Analyse en cours...';
+            log('Début de l\'analyse...');
+
+            try {
+                // Récupérer toutes les tâches
+                const snapshot = await db.collection('tasks').get();
+                
+                if (snapshot.empty) {
+                    log('Aucune tâche trouvée', 'warning');
+                    document.getElementById('stats').style.display = 'none';
+                    scanBtn.disabled = false;
+                    scanBtn.textContent = '📊 Analyser les tâches';
+                    return;
+                }
+
+                const tasks = [];
+                snapshot.forEach(doc => {
+                    tasks.push({ id: doc.id, ...doc.data() });
+                });
+
+                // Séparer les tâches à migrer et déjà migrées
+                const toMigrate = tasks.filter(t => t.dayOfWeek === undefined || t.dayOfWeek === null);
+                const alreadyMigrated = tasks.filter(t => t.dayOfWeek !== undefined && t.dayOfWeek !== null);
+
+                tasksData = { toMigrate, alreadyMigrated };
+
+                log(`Total: ${tasks.length} tâche(s)`);
+                log(`À migrer: ${toMigrate.length} tâche(s)`);
+                log(`Déjà migrées: ${alreadyMigrated.length} tâche(s)`);
+
+                if (toMigrate.length > 0) {
+                    // Statistiques par personne
+                    const byPerson = {};
+                    toMigrate.forEach(t => {
+                        const person = t.assignedTo || 'inconnu';
+                        byPerson[person] = (byPerson[person] || 0) + 1;
+                    });
+
+                    log(''); // Ligne vide
+                    log('Répartition par personne:');
+                    Object.entries(byPerson).forEach(([person, count]) => {
+                        log(`  ${person}: ${count} → ${count * 7} tâches`);
+                    });
+
+                    // Afficher les stats
+                    document.getElementById('totalTasks').textContent = tasks.length;
+                    document.getElementById('toMigrate').textContent = toMigrate.length;
+                    document.getElementById('afterMigration').textContent = alreadyMigrated.length + (toMigrate.length * 7);
+                    document.getElementById('stats').style.display = 'grid';
+
+                    // Activer le bouton de migration
+                    migrateBtn.disabled = false;
+                    log('', 'success');
+                    log('✅ Analyse terminée. Vous pouvez maintenant migrer.', 'success');
+                } else {
+                    log('✨ Toutes les tâches sont déjà migrées !', 'success');
+                    document.getElementById('stats').style.display = 'none';
+                }
+
+            } catch (error) {
+                log(`Erreur: ${error.message}`, 'error');
+                console.error(error);
+            } finally {
+                scanBtn.disabled = false;
+                scanBtn.textContent = '📊 Analyser les tâches';
+            }
+        }
+
+        // Migrer les tâches
+        async function migrateTasks() {
+            if (!tasksData || tasksData.toMigrate.length === 0) {
+                log('Aucune tâche à migrer. Lancez d\'abord l\'analyse.', 'warning');
+                return;
+            }
+
+            // Confirmation
+            const confirmed = confirm(
+                `⚠️ ATTENTION ⚠️\n\n` +
+                `Vous allez migrer ${tasksData.toMigrate.length} tâche(s).\n` +
+                `Cela créera ${tasksData.toMigrate.length * 7} nouvelles tâches.\n\n` +
+                `Cette opération est IRRÉVERSIBLE !\n\n` +
+                `Voulez-vous vraiment continuer ?`
+            );
+
+            if (!confirmed) {
+                log('Migration annulée par l\'utilisateur', 'warning');
+                return;
+            }
+
+            const migrateBtn = document.getElementById('migrateBtn');
+            const scanBtn = document.getElementById('scanBtn');
+            
+            migrateBtn.disabled = true;
+            scanBtn.disabled = true;
+            migrateBtn.textContent = '🔄 Migration en cours...';
+
+            log('');
+            log('🚀 Début de la migration...');
+            log('');
+
+            let processed = 0;
+            let created = 0;
+            let deleted = 0;
+
+            try {
+                // Traiter chaque tâche
+                for (const task of tasksData.toMigrate) {
+                    processed++;
+                    log(`[${processed}/${tasksData.toMigrate.length}] Migration: "${task.title}" (${task.assignedTo})`);
+
+                    // Créer 7 copies
+                    const batch = db.batch();
+                    
+                    for (let dayOfWeek = 0; dayOfWeek <= 6; dayOfWeek++) {
+                        const newTaskRef = db.collection('tasks').doc();
+                        const newTaskData = {
+                            ...task,
+                            dayOfWeek: dayOfWeek,
+                            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                        };
+                        
+                        // Supprimer l'ancien ID
+                        delete newTaskData.id;
+                        
+                        batch.set(newTaskRef, newTaskData);
+                        created++;
+                    }
+
+                    // Supprimer l'ancienne tâche
+                    batch.delete(db.collection('tasks').doc(task.id));
+                    deleted++;
+
+                    // Exécuter le batch
+                    await batch.commit();
+                }
+
+                log('');
+                log('✅ Migration terminée avec succès !', 'success');
+                log('');
+                log('📊 Résultat:');
+                log(`  Tâches traitées: ${processed}`);
+                log(`  Nouvelles tâches créées: ${created}`);
+                log(`  Anciennes tâches supprimées: ${deleted}`);
+                log('');
+                log('💡 Rechargez l\'application pour voir les changements !', 'success');
+
+                // Réinitialiser
+                tasksData = null;
+                migrateBtn.disabled = true;
+                migrateBtn.textContent = '✅ Migration terminée';
+
+            } catch (error) {
+                log(`❌ Erreur lors de la migration: ${error.message}`, 'error');
+                console.error(error);
+            } finally {
+                scanBtn.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>
