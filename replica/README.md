@@ -60,6 +60,16 @@ Create the secret **resource** once even if the value is still empty/placeholder
 
 After this one-time set, later `firebase deploy --only functions` remounts the same secrets. No `gcloud run services update --update-env-vars` after each deploy.
 
+If deploy **400s** with `Secret environment variable overlaps non secret environment variable: EMAIL_USER` (or `OPERATOR_LEGAL_NAME` on `getOperatorLegalIdentity`), leftover plain Cloud Run env vars from the old `--update-env-vars` workaround are still on the service. Remove those env vars first, then `firebase deploy --only functions` again. Do not paste secret values into these commands.
+
+```bat
+gcloud run services update requestsignup --project=recompenses-test --region=europe-west1 --remove-env-vars=EMAIL_USER,EMAIL_PASSWORD,EMAIL_FROM,EMAIL_REPLY_TO,EMAIL_SMTP_HOST
+gcloud run services update recoveradminpin --project=recompenses-test --region=europe-west1 --remove-env-vars=EMAIL_USER,EMAIL_PASSWORD,EMAIL_FROM,EMAIL_REPLY_TO,EMAIL_SMTP_HOST
+gcloud run services update requestpasswordreset --project=recompenses-test --region=europe-west1 --remove-env-vars=EMAIL_USER,EMAIL_PASSWORD,EMAIL_FROM,EMAIL_REPLY_TO,EMAIL_SMTP_HOST
+gcloud run services update getoperatorlegalidentity --project=recompenses-test --region=europe-west1 --remove-env-vars=OPERATOR_LEGAL_NAME,OPERATOR_STREET_ADDRESS
+firebase deploy --only functions --project recompenses-test
+```
+
 ```bat
 npm --prefix functions install
 node scripts/deploy.js
