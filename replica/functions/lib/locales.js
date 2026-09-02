@@ -58,6 +58,7 @@ const fr = {
   "email.welcome.identityNote":
     "(mon nom vous sera dévoilé aux utilisateurs payants après la période d’essai, pour éviter les spams et vol d’identité)",
   "email.welcome.codeIntro": "Voici ton code de vérification (valable 15 minutes) :",
+  "email.welcome.codeExpiry": "Ce code expire après 15 minutes.",
   "email.welcome.afterCode":
     "Entre-le dans l’appli <b>avant</b> de te connecter. Tant que ce n’est pas validé, le compte reste fermé.",
   "email.welcome.afterCodeText": "Entre-le dans l’appli avant de te connecter.",
@@ -159,6 +160,7 @@ const nl = {
   "email.welcome.identityNote":
     "(mijn naam wordt na de proefperiode onthuld aan betalende gebruikers, om spam en identiteitsdiefstal te vermijden)",
   "email.welcome.codeIntro": "Hier is je verificatiecode (15 minuten geldig):",
+  "email.welcome.codeExpiry": "Deze code vervalt na 15 minuten.",
   "email.welcome.afterCode":
     "Vul hem in de app in <b>vóór</b> je inlogt. Tot die tijd blijft het account gesloten.",
   "email.welcome.afterCodeText": "Vul hem in de app in vóór je inlogt.",
@@ -260,6 +262,7 @@ const de = {
   "email.welcome.identityNote":
     "(mein Name wird zahlenden Nutzerinnen und Nutzern nach der Testphase genannt, um Spam und Identitätsdiebstahl zu vermeiden)",
   "email.welcome.codeIntro": "Hier ist dein Bestätigungscode (15 Minuten gültig):",
+  "email.welcome.codeExpiry": "Dieser Code läuft nach 15 Minuten ab.",
   "email.welcome.afterCode":
     "Gib ihn in der App ein, <b>bevor</b> du dich anmeldest. Bis dahin bleibt das Konto gesperrt.",
   "email.welcome.afterCodeText": "Gib ihn in der App ein, bevor du dich anmeldest.",
@@ -361,6 +364,7 @@ const en = {
   "email.welcome.identityNote":
     "(my name will be revealed to paying users after the trial, to avoid spam and identity theft)",
   "email.welcome.codeIntro": "Here’s your verification code (valid for 15 minutes):",
+  "email.welcome.codeExpiry": "This code expires after 15 minutes.",
   "email.welcome.afterCode":
     "Enter it in the app <b>before</b> you sign in. Until then, the account stays locked.",
   "email.welcome.afterCodeText": "Enter it in the app before you sign in.",

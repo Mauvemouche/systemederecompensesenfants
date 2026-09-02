@@ -158,9 +158,10 @@ function welcomeVerifyEmailHtml(code, locale) {
     <p style="margin:0 0 12px;color:#333;line-height:1.5;">${t(loc, "email.welcome.body")}</p>
     <p style="margin:0 0 12px;color:#555;line-height:1.5;font-size:14px;">${t(loc, "email.welcome.identityNote")}</p>
     <p style="margin:0 0 8px;color:#333;font-weight:700;">${t(loc, "email.welcome.codeIntro")}</p>
-    <div style="font-size:32px;letter-spacing:8px;font-weight:800;text-align:center;padding:14px 0 18px;font-family:Arial,Helvetica,sans-serif;">
+    <div style="font-size:32px;letter-spacing:8px;font-weight:800;text-align:center;padding:14px 0 8px;font-family:Arial,Helvetica,sans-serif;">
       ${digits}
     </div>
+    <p style="margin:0 0 14px;color:#333;line-height:1.5;font-weight:700;text-align:center;">${t(loc, "email.welcome.codeExpiry")}</p>
     <p style="margin:0 0 14px;color:#333;line-height:1.5;">${t(loc, "email.welcome.afterCode")}</p>
     <h3 style="margin:16px 0 8px;font-size:16px;">${t(loc, "email.welcome.adminTitle")}</h3>
     <ul style="margin:0 0 14px;padding-left:18px;color:#333;line-height:1.55;">
@@ -186,6 +187,8 @@ ${t(loc, "email.welcome.bodyText")}
 ${t(loc, "email.welcome.identityNote")}
 
 ${t(loc, "email.welcome.codeIntro")} ${code}
+
+${t(loc, "email.welcome.codeExpiry")}
 
 ${t(loc, "email.welcome.afterCodeText")}
 

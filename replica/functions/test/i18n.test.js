@@ -67,9 +67,11 @@ describe("recovery and welcome emails follow the requested locale", () => {
         assert.match(body, /kidsrewardsystem@proton\.me/);
         assert.match(body, /daily summary|samenvatting|résumé quotidien|tägliche Zusammenfassung/i);
         assert.match(body, /card on file|carte enregistrée|geregistreerde kaart|hinterlegter Karte/i);
+        assert.match(body, /Ce code expire après 15 minutes|Deze code vervalt na 15 minuten|Dieser Code läuft nach 15 Minuten ab|This code expires after 15 minutes/);
       }
       assert.match(html, /identity theft|identiteitsdiefstal|Identitätsdiebstahl|vol d/i);
       assert.match(text, /identity theft|identiteitsdiefstal|Identitätsdiebstahl|vol d/i);
+      assert.match(text, /482910\s+This code expires after 15 minutes|482910\s+Ce code expire après 15 minutes|482910\s+Deze code vervalt na 15 minuten|482910\s+Dieser Code läuft nach 15 Minuten ab/);
       assert.match(html, /À très vite !|Tot gauw!|Bis gleich!|See you soon!/);
       const signoff = t(loc, "email.signoff");
       const dad = t(loc, "email.dad");
