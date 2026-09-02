@@ -1,6 +1,6 @@
 const STORAGE_KEY = "replica.locale";
-const SUPPORTED = ["fr", "nl", "de", "en"];
-const DEFAULT_LOCALE = "fr";
+const SUPPORTED = ["nl", "fr", "de", "en"];
+const DEFAULT_LOCALE = "nl";
 
 let current = DEFAULT_LOCALE;
 let dicts = {};
@@ -117,8 +117,8 @@ function mountLangSwitcher() {
   bar.innerHTML = `
     <label for="langSelect" data-i18n="lang.label"></label>
     <select id="langSelect" data-i18n-aria="lang.label">
-      <option value="fr">FR</option>
       <option value="nl">NL</option>
+      <option value="fr">FR</option>
       <option value="de">DE</option>
       <option value="en">EN</option>
     </select>

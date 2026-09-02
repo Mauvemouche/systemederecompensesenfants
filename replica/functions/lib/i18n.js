@@ -2,7 +2,7 @@
 
 const { LOCALES, DEFAULT_LOCALE } = require("./locales");
 
-const SUPPORTED = new Set(["fr", "nl", "de", "en"]);
+const SUPPORTED = new Set(["nl", "fr", "de", "en"]);
 
 function normalizeLocale(value) {
   const raw = String(value || "")
@@ -35,7 +35,7 @@ function localeFromRequest(request, stored) {
 
 function stripeCheckoutLocale(locale) {
   const loc = normalizeLocale(locale);
-  return loc === "nl" || loc === "de" || loc === "en" || loc === "fr" ? loc : "fr";
+  return loc === "fr" || loc === "de" || loc === "en" || loc === "nl" ? loc : "nl";
 }
 
 function bcp47(locale) {

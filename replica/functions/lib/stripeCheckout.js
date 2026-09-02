@@ -38,7 +38,7 @@ function buildCheckoutSessionParams({ instanceId, familyId, uid, email, plan, or
     client_reference_id: familyId,
     payment_method_collection: "if_required",
     allow_promotion_codes: "true",
-    locale: locale === "nl" || locale === "de" || locale === "en" ? locale : "fr",
+    locale: locale === "fr" || locale === "de" || locale === "en" ? locale : "nl",
     line_items: [{ price: priceId, quantity: 1 }],
     subscription_data: {
       trial_period_days: TRIAL_DAYS,

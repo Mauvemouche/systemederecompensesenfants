@@ -20,14 +20,15 @@ function loadUi(code) {
 }
 
 describe("locale fallback", () => {
-  it("normalizes unknown and mixed-case locales to supported codes, default fr", () => {
-    assert.equal(normalizeLocale("xx"), "fr");
-    assert.equal(normalizeLocale(""), "fr");
-    assert.equal(normalizeLocale(null), "fr");
+  it("normalizes unknown and mixed-case locales to supported codes, default nl", () => {
+    assert.equal(normalizeLocale("xx"), "nl");
+    assert.equal(normalizeLocale(""), "nl");
+    assert.equal(normalizeLocale(null), "nl");
     assert.equal(normalizeLocale("DE"), "de");
     assert.equal(normalizeLocale("nl-BE"), "nl");
     assert.equal(normalizeLocale("en_GB"), "en");
-    assert.equal(t("zz", "err.unauthenticated"), t("fr", "err.unauthenticated"));
+    assert.equal(normalizeLocale("FR"), "fr");
+    assert.equal(t("zz", "err.unauthenticated"), t("nl", "err.unauthenticated"));
   });
 });
 
@@ -45,10 +46,15 @@ describe("recovery and welcome emails follow the requested locale", () => {
     assert.match(fr, /Nouveau code Admin/);
     assert.match(recoverPinEmailHtml("1234", "en"), /lang="en"/);
     assert.match(recoverPinEmailHtml("9999", "nl"), /lang="nl"/);
+    const defaultRecover = recoverPinEmailHtml("1234");
+    assert.match(defaultRecover, /lang="nl"/);
+    const defaultWelcome = welcomeVerifyEmailHtml("482910");
+    assert.match(defaultWelcome, /lang="nl"/);
+    assert.match(defaultWelcome, /Welkom/);
   });
 
   it("includes beer/coffee pricing and kidsrewardsystem@proton.me in all four welcome emails", () => {
-    for (const loc of ["fr", "nl", "de", "en"]) {
+    for (const loc of ["nl", "fr", "de", "en"]) {
       const html = welcomeVerifyEmailHtml("482910", loc);
       const text = welcomeVerifyEmailText("482910", loc);
       for (const body of [html, text]) {
@@ -74,19 +80,25 @@ describe("replica client uses one HTML file plus locale dicts", () => {
     assert.match(i18n, /lang-switcher/);
     assert.match(i18n, /replica\.locale/);
     assert.match(i18n, /setFamilyLocale/);
+    assert.match(i18n, /SUPPORTED = \["nl", "fr", "de", "en"\]/);
+    assert.match(i18n, /DEFAULT_LOCALE = "nl"/);
+    assert.match(
+      i18n,
+      /<option value="nl">NL<\/option>\s*<option value="fr">FR<\/option>\s*<option value="de">DE<\/option>\s*<option value="en">EN<\/option>/
+    );
   });
 });
 
 describe("UI locale files share the same keys", () => {
-  it("keeps fr/nl/de/en dictionaries aligned and includes a sample of board/gate/admin keys", () => {
-    const fr = loadUi("fr");
+  it("keeps nl/fr/de/en dictionaries aligned and includes a sample of board/gate/admin keys", () => {
     const nl = loadUi("nl");
+    const fr = loadUi("fr");
     const de = loadUi("de");
     const en = loadUi("en");
-    const frKeys = Object.keys(fr).sort();
-    assert.deepEqual(Object.keys(nl).sort(), frKeys);
-    assert.deepEqual(Object.keys(de).sort(), frKeys);
-    assert.deepEqual(Object.keys(en).sort(), frKeys);
+    const nlKeys = Object.keys(nl).sort();
+    assert.deepEqual(Object.keys(fr).sort(), nlKeys);
+    assert.deepEqual(Object.keys(de).sort(), nlKeys);
+    assert.deepEqual(Object.keys(en).sort(), nlKeys);
     for (const key of [
       "lang.label",
       "gate.loginTitle",

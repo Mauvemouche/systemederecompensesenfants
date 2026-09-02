@@ -1,6 +1,6 @@
 "use strict";
 
-const DEFAULT_LOCALE = "fr";
+const DEFAULT_LOCALE = "nl";
 
 const fr = {
   "err.unauthenticated": "Connecte-toi pour continuer.",
@@ -311,19 +311,19 @@ const en = {
 };
 
 function assertSameKeys() {
-  const keys = Object.keys(fr).sort();
+  const keys = Object.keys(nl).sort();
   for (const [name, dict] of [
-    ["nl", nl],
+    ["fr", fr],
     ["de", de],
     ["en", en],
   ]) {
     const other = Object.keys(dict).sort();
     if (keys.join("\n") !== other.join("\n")) {
-      throw new Error(`locale ${name} keys do not match fr`);
+      throw new Error(`locale ${name} keys do not match nl`);
     }
   }
 }
 
 assertSameKeys();
 
-module.exports = { DEFAULT_LOCALE, LOCALES: { fr, nl, de, en } };
+module.exports = { DEFAULT_LOCALE, LOCALES: { nl, fr, de, en } };
