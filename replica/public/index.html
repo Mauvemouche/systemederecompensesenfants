@@ -6,7 +6,7 @@
   <title>Système de récompenses</title>
 
   <!-- IMPORTANT: garde ton styles.css existant -->
-  <link rel="stylesheet" href="./styles.css?v=108" />
+  <link rel="stylesheet" href="./styles.css?v=109" />
 </head>
 
 <body>
@@ -25,6 +25,7 @@
             <span id="accountEmail"></span>
             <span id="accountBilling"></span>
             <button id="portalBtn" class="btn-refresh" type="button">💳 Abonnement</button>
+            <button id="changeAdminPinBtn" class="btn-refresh change-admin-pin-btn" type="button">Changer le code Admin</button>
             <button id="logoutBtn" class="btn-refresh" type="button">Déconnexion</button>
           </div>
           <button id="adminModeBtn" class="admin-mode-btn" title="Mode Admin" type="button">🔒</button>
@@ -204,6 +205,10 @@
       <div id="adminPinError" class="modal-hint" style="color:#d32f2f; display:none;">
         Code incorrect
       </div>
+      <p class="modal-hint" style="margin-top:10px;">
+        <a href="#" id="recoverAdminPinLink">Récupérer le code Admin</a>
+      </p>
+      <p id="recoverAdminPinHint" class="modal-hint" style="display:none; color:#2e7d32;"></p>
 
       <div class="modal-footer">
         <button type="button" id="adminPinCancelBtn" class="btn btn-secondary">
@@ -217,7 +222,30 @@
   </div>
 </div>
 
-  <!-- ===== Edit Task Modal ===== -->
+  <!-- ===== Change Admin PIN ===== -->
+<div id="changeAdminPinOverlay" class="modal-overlay hidden" aria-hidden="true">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="changeAdminPinTitle">
+    <div class="modal-header">
+      <h3 id="changeAdminPinTitle">Changer le code Admin</h3>
+      <button id="changeAdminPinCloseBtn" class="modal-close" type="button" aria-label="Fermer">✕</button>
+    </div>
+    <form id="changeAdminPinForm" class="modal-body">
+      <div id="changeAdminPinCurrentWrap">
+        <label class="modal-label" for="changeAdminPinCurrent">Code actuel</label>
+        <input id="changeAdminPinCurrent" class="modal-input" type="password" inputmode="numeric" maxlength="4" autocomplete="off" placeholder="••••" />
+      </div>
+      <label class="modal-label" for="changeAdminPinNew">Nouveau code (4 chiffres)</label>
+      <input id="changeAdminPinNew" class="modal-input" type="password" inputmode="numeric" maxlength="4" autocomplete="off" placeholder="••••" required />
+      <label class="modal-label" for="changeAdminPinNew2">Confirmer</label>
+      <input id="changeAdminPinNew2" class="modal-input" type="password" inputmode="numeric" maxlength="4" autocomplete="off" placeholder="••••" required />
+      <div id="changeAdminPinError" class="modal-hint" style="color:#d32f2f; display:none;"></div>
+      <div class="modal-footer">
+        <button type="button" id="changeAdminPinCancelBtn" class="btn btn-secondary">Annuler</button>
+        <button type="submit" class="btn btn-primary">Enregistrer</button>
+      </div>
+    </form>
+  </div>
+</div>
   <div id="editModalOverlay" class="modal-overlay hidden" aria-hidden="true">
     <div class="modal" role="dialog" aria-modal="true" aria-labelledby="editModalTitle">
       <div class="modal-header">
@@ -309,6 +337,24 @@
         <p><a href="#" id="toggleAuthMode">Créer un compte</a></p>
       </section>
 
+      <section id="gate-verify" class="hidden">
+        <h2>Vérifie ton email</h2>
+        <p class="gate-lead">
+          On a envoyé un code à 6 chiffres à <span id="verifyEmailHint"></span>.
+          Il expire dans 15 minutes. Entre-le avant de te connecter.
+        </p>
+        <form id="verifyForm">
+          <label class="modal-label" for="verifyCode">Code à 6 chiffres</label>
+          <input id="verifyCode" class="modal-input" type="text" inputmode="numeric" pattern="\d{6}" maxlength="6" autocomplete="one-time-code" required />
+          <p class="gate-error" role="alert" style="display:none;"></p>
+          <p id="verifyResent" class="modal-hint" style="display:none; color:#2e7d32;"></p>
+          <div class="modal-footer" style="margin-top:14px;">
+            <button id="verifySubmit" class="btn btn-primary" type="submit">Valider le code</button>
+          </div>
+        </form>
+        <p><a href="#" id="resendCodeBtn">Renvoyer le code</a> · <a href="#" id="backToAuthBtn">Retour</a></p>
+      </section>
+
       <section id="gate-checkout" class="hidden">
         <h2>Choisir l’abonnement</h2>
         <p class="gate-lead">Essai de 30 jours, carte enregistrée. Ensuite 2,50 € / mois ou 25 € / an (Stripe sandbox).</p>
@@ -325,6 +371,36 @@
             <small>après 30 jours</small>
           </button>
         </div>
+      </section>
+
+      <section id="gate-gift" class="hidden">
+        <h2>Cette famille est invitée</h2>
+        <p class="gate-lead">
+          Les tarifs habituels restent 2,50 €/mois ou 25 €/an. Grâce au code, votre famille
+          profite de l’appli <b>gratuitement, pour toujours</b> — y compris les améliorations à venir.
+        </p>
+        <p class="gate-error" role="alert" style="display:none;"></p>
+        <div class="modal-footer" style="margin-top:14px;">
+          <button id="giftContinueBtn" class="btn btn-primary" type="button">Continuer</button>
+        </div>
+      </section>
+
+      <section id="gate-pin" class="hidden">
+        <h2>Choisis ton code Admin</h2>
+        <p class="gate-lead">
+          4 chiffres, à retenir. On ne l’envoie pas par email maintenant.
+          Plus tard, en mode Admin tu pourras le changer ; sinon « Récupérer le code Admin » enverra un nouveau code.
+        </p>
+        <form id="setupPinForm">
+          <label class="modal-label" for="setupPin">Code à 4 chiffres</label>
+          <input id="setupPin" class="modal-input" type="password" inputmode="numeric" pattern="\d{4}" maxlength="4" autocomplete="new-password" required />
+          <label class="modal-label" for="setupPinConfirm">Confirmer</label>
+          <input id="setupPinConfirm" class="modal-input" type="password" inputmode="numeric" pattern="\d{4}" maxlength="4" autocomplete="new-password" required />
+          <p class="gate-error" role="alert" style="display:none;"></p>
+          <div class="modal-footer" style="margin-top:14px;">
+            <button id="setupPinSubmit" class="btn btn-primary" type="submit">Enregistrer</button>
+          </div>
+        </form>
       </section>
 
       <section id="gate-kids" class="hidden">
@@ -364,6 +440,6 @@
     startReplicaGate();
   </script>
 
-  <script type="module" src="./js/app.js?v=110"></script>
+  <script type="module" src="./js/app.js?v=111"></script>
 </body>
 </html>

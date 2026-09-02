@@ -92,6 +92,22 @@ describe("replica Stripe Checkout (sandbox)", () => {
     assert.equal(params.subscription_data.trial_period_days, 30);
   });
 
+  it("lets the customer type a promotion code and skips the card when the total is 0", () => {
+    const params = buildCheckoutSessionParams({
+      instanceId: "recompenses-test",
+      familyId: "fam_dupont",
+      uid: "uid_1",
+      email: "parent@example.com",
+      plan: "monthly",
+      origin: "https://example.com",
+    });
+    assert.equal(params.allow_promotion_codes, "true");
+    assert.equal(params.payment_method_collection, "if_required");
+    const body = encodeStripeParams(params);
+    assert.ok(body.includes("allow_promotion_codes=true"));
+    assert.ok(body.includes("payment_method_collection=if_required"));
+  });
+
   it("passes an existing Stripe customer so customer metadata can carry familyId", () => {
     const params = buildCheckoutSessionParams({
       instanceId: "recompenses-test",

@@ -30,3 +30,22 @@ Deploy **functions + hosting + firestore:rules**. Claims and per-family paths ne
 `scripts/deploy.js` and `scripts/deploy.cmd` set `FUNCTIONS_DISCOVERY_TIMEOUT=60` so the Firebase CLI does not die after 10s while loading functions (`User code failed to load. Cannot determine backend specification. Timeout after 10000`).
 
 Runtime: Node **22**, region **europe-west1**. After deploy, register the Stripe sandbox webhook on the printed `stripeWebhook` URL (Cloud Functions URL or Cloud Run URL).
+
+Signup verification and Admin PIN recovery also use `EMAIL_USER` / `EMAIL_PASSWORD` at runtime. They are **not** bound with `defineSecret`, so deploy still works if they are missing. If they are unset, the callables return a clear French error instead of sending mail. To actually send mail, set those env vars (or mount the existing secrets) on the Cloud Run services for `requestSignup`, `verifyEmailCode`, and `recoverAdminPin`.
+
+## Stripe promo / founder codes (sandbox only)
+
+Do **not** invent live coupons. Anthony creates them in the **AnthonyRsca Stripe sandbox** Dashboard:
+
+1. **Coupons** — percent or amount off, and a duration.
+2. **Promotion codes** — the customer-facing code typed on the Stripe Checkout page.
+
+Checkout Sessions set `allow_promotion_codes` and `payment_method_collection: if_required`, so a 100% forever coupon does not demand a card.
+
+| Coupon | Meaning |
+| --- | --- |
+| 100% off, duration **forever** | Founder gift: that family uses the app free forever (including future improvements). After checkout they see a French success message. |
+| Percent or amount off, duration **repeating** or **once** | Later promos (launch, seasonal, etc.). |
+
+Usual prices stay 2,50 €/mois or 25 €/an. Stripe customer/subscription metadata still includes `familyId`.
+

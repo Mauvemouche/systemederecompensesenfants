@@ -12,13 +12,31 @@ import {
   serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { familyTasksCol, familyTaskDoc } from "./family-path.js";
+import { httpsCallable } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-functions.js";
 
 /* =========================================================
    CONFIG / GLOBAL
 ========================================================= */
 let PEOPLE = ["papa", "maman", "kid-1", "kid-2"];
 let CHILDREN = new Set(["kid-1", "kid-2"]);
-const ADMIN_PIN = "1571";
+
+function callFn(name, payload) {
+  if (!window.functions) throw new Error("Firebase Functions non initialisé");
+  return httpsCallable(window.functions, name)(payload);
+}
+
+function storeAdminToken(token) {
+  if (token) sessionStorage.setItem("adminToken", token);
+}
+
+function readAdminToken() {
+  return sessionStorage.getItem("adminToken") || "";
+}
+
+function clearAdminSession() {
+  sessionStorage.removeItem("isAdminMode");
+  sessionStorage.removeItem("adminToken");
+}
 
 let unsubscribe = null;
 let currentFilter = "all";
@@ -187,16 +205,79 @@ function setupEvents() {
     if (e.target === pinOverlay) closeAdminPinModal();
   });
 
-  pinForm?.addEventListener("submit", (e) => {
+  pinForm?.addEventListener("submit", async (e) => {
     e.preventDefault();
-
     const value = document.getElementById("adminPinInput")?.value?.trim() || "";
-    if (value === ADMIN_PIN) {
+    const submitBtn = pinForm.querySelector('button[type="submit"]');
+    if (submitBtn) submitBtn.disabled = true;
+    try {
+      const res = await callFn("verifyAdminPin", { pin: value });
       if (pinError) pinError.style.display = "none";
+      storeAdminToken(res.data?.adminToken);
       closeAdminPinModal();
       enableAdmin(true);
-    } else {
-      if (pinError) pinError.style.display = "block";
+    } catch (err) {
+      if (pinError) {
+        pinError.textContent = err.message || "Code incorrect";
+        pinError.style.display = "block";
+      }
+    } finally {
+      if (submitBtn) submitBtn.disabled = false;
+    }
+  });
+
+  document.getElementById("recoverAdminPinLink")?.addEventListener("click", async (e) => {
+    e.preventDefault();
+    const hint = document.getElementById("recoverAdminPinHint");
+    if (pinError) pinError.style.display = "none";
+    try {
+      await callFn("recoverAdminPin", {});
+      if (hint) {
+        hint.textContent = "Nouveau code envoyé à l’email du parent titulaire. L’ancien ne fonctionne plus.";
+        hint.style.display = "block";
+      }
+    } catch (err) {
+      if (pinError) {
+        pinError.textContent = err.message || "Impossible d’envoyer le code.";
+        pinError.style.display = "block";
+      }
+    }
+  });
+
+  const changeBtn = document.getElementById("changeAdminPinBtn");
+  changeBtn?.addEventListener("click", () => openChangeAdminPinModal(true));
+  document.getElementById("changeAdminPinCloseBtn")?.addEventListener("click", closeChangeAdminPinModal);
+  document.getElementById("changeAdminPinCancelBtn")?.addEventListener("click", closeChangeAdminPinModal);
+  document.getElementById("changeAdminPinOverlay")?.addEventListener("click", (e) => {
+    if (e.target.id === "changeAdminPinOverlay") closeChangeAdminPinModal();
+  });
+  document.getElementById("changeAdminPinForm")?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const errEl = document.getElementById("changeAdminPinError");
+    const newPin = document.getElementById("changeAdminPinNew")?.value?.trim() || "";
+    const newPin2 = document.getElementById("changeAdminPinNew2")?.value?.trim() || "";
+    const currentPin = document.getElementById("changeAdminPinCurrent")?.value?.trim() || "";
+    if (!/^\d{4}$/.test(newPin) || newPin !== newPin2) {
+      if (errEl) {
+        errEl.textContent = newPin !== newPin2 ? "Les deux codes ne correspondent pas." : "Le code doit contenir 4 chiffres.";
+        errEl.style.display = "block";
+      }
+      return;
+    }
+    try {
+      const res = await callFn("changeAdminPin", {
+        newPin,
+        currentPin: currentPin || undefined,
+        adminToken: readAdminToken(),
+      });
+      storeAdminToken(res.data?.adminToken);
+      closeChangeAdminPinModal();
+      showNotification("✅ Code Admin modifié", "success");
+    } catch (err) {
+      if (errEl) {
+        errEl.textContent = err.message || "Impossible de changer le code.";
+        errEl.style.display = "block";
+      }
     }
   });
 }
@@ -294,7 +375,7 @@ function enableAdmin(toast = true) {
 
 function disableAdmin() {
   isAdminMode = false;
-  sessionStorage.removeItem("isAdminMode");
+  clearAdminSession();
   document.querySelector(".container")?.classList.remove("admin-mode-active");
 
   const btn = document.getElementById("adminModeBtn");
@@ -1298,6 +1379,8 @@ function openAdminPinModal() {
 
   error.style.display = "none";
   input.value = "";
+  const recoverHint = document.getElementById("recoverAdminPinHint");
+  if (recoverHint) recoverHint.style.display = "none";
 
   overlay.classList.remove("hidden");
   overlay.setAttribute("aria-hidden", "false");
@@ -1309,6 +1392,26 @@ function closeAdminPinModal() {
   const overlay = document.getElementById("adminPinOverlay");
   overlay.classList.add("hidden");
   overlay.setAttribute("aria-hidden", "true");
+}
+
+function openChangeAdminPinModal(alreadyAdmin) {
+  const overlay = document.getElementById("changeAdminPinOverlay");
+  const currentWrap = document.getElementById("changeAdminPinCurrentWrap");
+  const errEl = document.getElementById("changeAdminPinError");
+  if (currentWrap) currentWrap.style.display = alreadyAdmin && readAdminToken() ? "none" : "block";
+  if (errEl) errEl.style.display = "none";
+  ["changeAdminPinCurrent", "changeAdminPinNew", "changeAdminPinNew2"].forEach((id) => {
+    const el = document.getElementById(id);
+    if (el) el.value = "";
+  });
+  overlay?.classList.remove("hidden");
+  overlay?.setAttribute("aria-hidden", "false");
+}
+
+function closeChangeAdminPinModal() {
+  const overlay = document.getElementById("changeAdminPinOverlay");
+  overlay?.classList.add("hidden");
+  overlay?.setAttribute("aria-hidden", "true");
 }
 /* =========================================================
    CONFETTI (no library)

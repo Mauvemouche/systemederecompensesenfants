@@ -123,6 +123,7 @@
             <button type="submit" class="btn-primary" style="margin-top: 20px;">
                 Valider
             </button>
+            <p style="margin-top: 14px;"><a href="#" id="recoverAdminPinLink">Récupérer le code Admin</a></p>
         </form>
         <div style="margin-top: 20px;">
             <a href="index.html" class="btn-back">← Retour à l'application</a>
@@ -291,8 +292,7 @@
             }
         });
 
-        // Vérification PIN
-        const ADMIN_PIN = '1571';
+        // Vérification PIN via callable (jamais de PIN partagé dans le client)
         const pinForm = document.getElementById('pinForm');
         const pinInput = document.getElementById('adminPinInput');
         const pinError = document.getElementById('pinError');
@@ -304,18 +304,35 @@
             showAdminContent();
         }
 
-        pinForm.addEventListener('submit', (e) => {
+        pinForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const enteredPin = pinInput.value;
-            
-            if (enteredPin === ADMIN_PIN) {
+            pinError.style.display = 'none';
+            try {
+                await httpsCallable(window.functions, 'verifyAdminPin')({ pin: enteredPin });
                 sessionStorage.setItem('adminAuth', 'true');
                 showAdminContent();
-            } else {
+            } catch (err) {
+                pinError.textContent = err.message || '❌ Code incorrect';
                 pinError.style.display = 'block';
                 pinInput.value = '';
                 pinInput.classList.add('shake');
                 setTimeout(() => pinInput.classList.remove('shake'), 500);
+            }
+        });
+
+        document.getElementById('recoverAdminPinLink')?.addEventListener('click', async (e) => {
+            e.preventDefault();
+            pinError.style.display = 'none';
+            try {
+                await httpsCallable(window.functions, 'recoverAdminPin')({});
+                pinError.style.color = '#2e7d32';
+                pinError.textContent = 'Nouveau code envoyé à l’email du parent titulaire.';
+                pinError.style.display = 'block';
+            } catch (err) {
+                pinError.style.color = '';
+                pinError.textContent = err.message || 'Impossible d’envoyer le code.';
+                pinError.style.display = 'block';
             }
         });
 

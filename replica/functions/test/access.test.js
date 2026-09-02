@@ -38,5 +38,6 @@ describe("replica billing access", () => {
     });
     assert.equal(billing.status, "trialing");
     assert.equal(billing.stripeSubscriptionId, "sub_123");
+    assert.equal(!!billing.complimentaryForever, false);
   });
 });

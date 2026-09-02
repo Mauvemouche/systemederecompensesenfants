@@ -1,7 +1,8 @@
 "use strict";
 
 const { ensureApp, serverTimestamp } = require("./lib/adminApp");
-const { hasAppAccess, needsCheckout, needsKidsSetup, billingFromSubscription } = require("./lib/access");
+const { hasAppAccess, needsCheckout, billingFromSubscription } = require("./lib/access");
+const { serializeState } = require("./lib/replicaState");
 const { peopleFromChildNames, DEFAULT_FAMILY, renamePersonInList } = require("./lib/family");
 const {
   familyRef,
@@ -34,26 +35,10 @@ function instanceId() {
   return process.env.GCLOUD_PROJECT || ensureApp().options.projectId || "replica";
 }
 
-function serializeState(familyId, billing, settings, uid) {
-  const billingData = billing || { status: "incomplete" };
-  const settingsData = settings || { people: DEFAULT_FAMILY, kidsNamed: true };
-  return {
-    instanceId: instanceId(),
-    familyId: familyId || null,
-    ownerUid: billingData.ownerUid || null,
-    isOwner: !!(uid && billingData.ownerUid === uid),
-    billing: billingData,
-    people: settingsData.people || DEFAULT_FAMILY,
-    kidsNamed: !!settingsData.kidsNamed,
-    familyName: settingsData.name || "",
-    hasAccess: hasAppAccess(billingData),
-    needsCheckout: needsCheckout(billingData),
-    needsKids: needsKidsSetup(settingsData),
-  };
-}
-
 async function loadState(familyId, uid) {
-  return serializeState(familyId, await readFamilyBilling(familyId), await readFamilySettings(familyId), uid);
+  return serializeState(familyId, await readFamilyBilling(familyId), await readFamilySettings(familyId), uid, {
+    instanceId: instanceId(),
+  });
 }
 
 async function requireFamilyOwner(uid) {
@@ -268,7 +253,7 @@ exports.confirmCheckoutSession = onCall(
     const session = await stripeRequest(
       "GET",
       `/checkout/sessions/${sessionId}`,
-      { expand: ["subscription"] },
+      { expand: ["subscription", "subscription.latest_invoice", "subscription.discount"] },
       secret
     );
 
@@ -287,7 +272,10 @@ exports.confirmCheckoutSession = onCall(
     }
 
     if (sub && sub.id) {
-      await applyFamilyBilling(familyId, billingFromSubscription(sub, { customerId: session.customer }));
+      await applyFamilyBilling(
+        familyId,
+        billingFromSubscription(sub, { customerId: session.customer, session })
+      );
       await tagStripeSubscription(secret, sub.id, familyId, uid);
       const customerId = typeof session.customer === "string" ? session.customer : session.customer?.id;
       await tagStripeCustomer(secret, customerId, familyId, uid);
@@ -419,7 +407,12 @@ exports.stripeWebhook = onRequest(
           const session = event.data.object;
           let sub = session.subscription;
           if (typeof sub === "string" && process.env.STRIPE_SECRET_KEY) {
-            sub = await stripeRequest("GET", `/subscriptions/${sub}`, {}, process.env.STRIPE_SECRET_KEY);
+            sub = await stripeRequest(
+              "GET",
+              `/subscriptions/${sub}`,
+              { expand: ["latest_invoice", "discount"] },
+              process.env.STRIPE_SECRET_KEY
+            );
           }
           const familyId = await resolveFamilyIdFromStripe(session, typeof sub === "object" ? sub : null);
           if (!familyId) {
@@ -427,7 +420,7 @@ exports.stripeWebhook = onRequest(
             break;
           }
           if (sub && typeof sub === "object") {
-            await applyFamilyBilling(familyId, billingFromSubscription(sub, { customerId: session.customer }));
+            await applyFamilyBilling(familyId, billingFromSubscription(sub, { customerId: session.customer, session }));
             const uid = session.metadata?.firebaseUid || sub.metadata?.firebaseUid;
             if (uid) await setFamilyClaim(uid, familyId);
             const customerId = typeof session.customer === "string" ? session.customer : session.customer?.id;
@@ -453,7 +446,12 @@ exports.stripeWebhook = onRequest(
           const invoice = event.data.object;
           const subId = typeof invoice.subscription === "string" ? invoice.subscription : invoice.subscription?.id;
           if (subId && process.env.STRIPE_SECRET_KEY) {
-            const sub = await stripeRequest("GET", `/subscriptions/${subId}`, {}, process.env.STRIPE_SECRET_KEY);
+            const sub = await stripeRequest(
+              "GET",
+              `/subscriptions/${subId}`,
+              { expand: ["latest_invoice", "discount"] },
+              process.env.STRIPE_SECRET_KEY
+            );
             const familyId = await resolveFamilyIdFromStripe(invoice, sub);
             if (!familyId) {
               console.error("Webhook invoice event missing familyId", invoice.id);

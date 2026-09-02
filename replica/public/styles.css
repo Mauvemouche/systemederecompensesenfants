@@ -833,7 +833,10 @@ body{
 }
 .account-bar.hidden{ display:none; }
 .account-bar #portalBtn,
-.account-bar #logoutBtn{ padding:8px 12px; font-size:13px; }
+.account-bar #logoutBtn,
+.account-bar #changeAdminPinBtn{ padding:8px 12px; font-size:13px; }
+.change-admin-pin-btn{ display:none; }
+.admin-mode-active .change-admin-pin-btn{ display:inline-flex; }
 
 .auth-gate{
   position:fixed;

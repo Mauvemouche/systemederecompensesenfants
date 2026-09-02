@@ -135,6 +135,12 @@ describe("replica functions deploy without optional email secrets", () => {
     assert.equal(typeof fns.stripeWebhook, "function");
     assert.equal(typeof fns.renamePerson, "function");
     assert.equal(typeof fns.saveChildren, "function");
+    assert.equal(typeof fns.requestSignup, "function");
+    assert.equal(typeof fns.verifyEmailCode, "function");
+    assert.equal(typeof fns.setAdminPin, "function");
+    assert.equal(typeof fns.verifyAdminPin, "function");
+    assert.equal(typeof fns.changeAdminPin, "function");
+    assert.equal(typeof fns.recoverAdminPin, "function");
     const platform = fns.stripeWebhook.__endpoint?.platform || fns.bootstrapInstance.__endpoint?.platform;
     assert.equal(platform, "gcfv2");
     assert.equal(getApps().length, before);
@@ -210,5 +216,40 @@ describe("replica parent gate UX", () => {
     assert.match(js, /Création…/);
     assert.match(js, /const state = await refreshState\(\);\s*await routeState\(state\);/);
     assert.equal(js.includes("setError(err.message || \"Connexion impossible\")"), false);
+    assert.match(js, /requestSignup/);
+    assert.match(js, /verifyEmailCode/);
+    assert.equal(js.includes("createUserWithEmailAndPassword"), false);
+  });
+});
+
+describe("replica Admin PIN is per-family, live app keeps the hardcoded PIN", () => {
+  it("removes the shared PIN from the replica client", () => {
+    const files = [
+      "replica/public/js/app.js",
+      "replica/public/js/gestion-taches.js",
+      "replica/public/admin.html",
+      "replica/public/js/family-gate.js",
+      "replica/public/index.html",
+    ];
+    for (const rel of files) {
+      const text = fs.readFileSync(path.join(repoRoot, rel), "utf8");
+      assert.equal(text.includes("ADMIN_PIN"), false, rel);
+      assert.equal(text.includes("1571"), false, rel);
+    }
+    const app = fs.readFileSync(path.join(repoRoot, "replica/public/js/app.js"), "utf8");
+    assert.equal(app.includes("value === ADMIN_PIN"), false);
+    assert.match(app, /verifyAdminPin/);
+    assert.match(app, /recoverAdminPin/);
+    assert.match(app, /changeAdminPin/);
+    const gate = fs.readFileSync(path.join(repoRoot, "replica/public/js/family-gate.js"), "utf8");
+    assert.match(gate, /setAdminPin/);
+  });
+
+  it("does not change Anthony's live family PIN check", () => {
+    const app = fs.readFileSync(path.join(repoRoot, "public/js/app.js"), "utf8");
+    assert.match(app, /const ADMIN_PIN = "1571"/);
+    assert.match(app, /value === ADMIN_PIN/);
+    const gestion = fs.readFileSync(path.join(repoRoot, "public/js/gestion-taches.js"), "utf8");
+    assert.match(gestion, /const ADMIN_PIN = "1571"/);
   });
 });

@@ -12,9 +12,9 @@ import {
   serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { familyTasksCol, familyTaskDoc } from "./family-path.js";
+import { httpsCallable } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-functions.js";
 
 let PEOPLE = ["papa", "maman", "kid-1", "kid-2"];
-const ADMIN_PIN = "1571";
 
 let unlocked = false;
 let unsubscribe = null;
@@ -530,21 +530,31 @@ function bootManagePage() {
   }
 
     // PIN (V3 HTML: pinForm + pinUnlockBtn)
-  $("pinForm")?.addEventListener("submit", (e) => {
+  $("pinForm")?.addEventListener("submit", async (e) => {
     e.preventDefault();
-    const ok = $("pinInput").value.trim() === ADMIN_PIN;
-    if (!ok) {
-      // si tu n'as plus pinErr, tu peux juste faire un toast/alert
-      showToast?.("Code incorrect");
-      return;
+    const pin = $("pinInput").value.trim();
+    try {
+      await httpsCallable(window.functions, "verifyAdminPin")({ pin });
+      unlock();
+    } catch (err) {
+      showToast?.(err.message || "Code incorrect");
     }
-    unlock();
   });
 
   $("pinUnlockBtn")?.addEventListener("click", (e) => {
     // au cas où (si jamais le bouton n'est pas submit)
     e.preventDefault();
     $("pinForm")?.requestSubmit?.();
+  });
+
+  $("recoverAdminPinLink")?.addEventListener("click", async (e) => {
+    e.preventDefault();
+    try {
+      await httpsCallable(window.functions, "recoverAdminPin")({});
+      showToast?.("Nouveau code envoyé à l’email du parent titulaire.");
+    } catch (err) {
+      showToast?.(err.message || "Impossible d’envoyer le code.");
+    }
   });
 
   $("pinCancelBtn")?.addEventListener("click", (e) => {

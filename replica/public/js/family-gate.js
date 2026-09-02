@@ -2,7 +2,7 @@ import { httpsCallable } from "https://www.gstatic.com/firebasejs/10.7.1/firebas
 import {
   onAuthStateChanged,
   signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
+  signInWithCustomToken,
   signOut,
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { renderFamilyShell } from "./family-ui.js";
@@ -11,13 +11,16 @@ import { syncFamilyClaim } from "./family-path.js";
 
 const $ = (id) => document.getElementById(id);
 
+let pendingSignup = null;
+let pendingGiftMessage = false;
+
 function callFn(name, payload) {
   if (!window.functions) throw new Error("Firebase Functions non initialisé");
   return httpsCallable(window.functions, name)(payload);
 }
 
 function showPanel(name) {
-  ["auth", "checkout", "kids", "blocked"].forEach((key) => {
+  ["auth", "verify", "checkout", "gift", "pin", "kids", "blocked"].forEach((key) => {
     const el = $(`gate-${key}`);
     if (el) el.classList.toggle("hidden", key !== name);
   });
@@ -38,6 +41,7 @@ const AUTH_ERROR_FR = {
   "weak-password": "Mot de passe trop faible (6 caractères min.).",
   "invalid-email": "Email invalide.",
   "too-many-requests": "Trop d’essais. Réessaie plus tard.",
+  "user-disabled": "Compte pas encore vérifié. Utilise « Créer un compte » avec le même email pour renvoyer le code.",
 };
 
 function authErrorCode(err) {
@@ -46,6 +50,10 @@ function authErrorCode(err) {
 
 function authErrorMessage(err) {
   return AUTH_ERROR_FR[authErrorCode(err)] || "Connexion impossible.";
+}
+
+function callableErrorMessage(err) {
+  return err?.message || "Une erreur est survenue.";
 }
 
 function setError(msg) {
@@ -87,15 +95,19 @@ function accountBar(state, user) {
   if (emailEl) emailEl.textContent = user.email || "";
   const billEl = $("accountBilling");
   if (billEl) {
-    const status = state?.billing?.status || "";
-    const labels = {
-      trialing: `Essai (${TRIAL_DAYS} j.)`,
-      active: "Abonnement actif",
-      past_due: "Paiement en retard",
-      incomplete: "Paiement requis",
-      canceled: "Annulé",
-    };
-    billEl.textContent = labels[status] || "";
+    if (state?.complimentaryForever) {
+      billEl.textContent = "Offert pour toujours";
+    } else {
+      const status = state?.billing?.status || "";
+      const labels = {
+        trialing: `Essai (${TRIAL_DAYS} j.)`,
+        active: "Abonnement actif",
+        past_due: "Paiement en retard",
+        incomplete: "Paiement requis",
+        canceled: "Annulé",
+      };
+      billEl.textContent = labels[status] || "";
+    }
   }
 }
 
@@ -116,7 +128,7 @@ async function refreshState(plan) {
 }
 
 function startBoardIfReady(state) {
-  if (state?.hasAccess && !state?.needsKids) {
+  if (state?.hasAccess && !state?.needsKids && !state?.needsAdminPin) {
     setGate(false);
     window.startFamilyBoard?.();
     return true;
@@ -128,12 +140,22 @@ async function routeState(state) {
   await applyState(state);
   if (!window.auth?.currentUser) {
     setGate(true);
-    showPanel("auth");
+    showPanel(pendingSignup ? "verify" : "auth");
     return;
   }
   if (state.needsCheckout) {
     setGate(true);
     showPanel("checkout");
+    return;
+  }
+  if (pendingGiftMessage && state.complimentaryForever) {
+    setGate(true);
+    showPanel("gift");
+    return;
+  }
+  if (state.needsAdminPin) {
+    setGate(true);
+    showPanel("pin");
     return;
   }
   if (state.needsKids) {
@@ -142,6 +164,17 @@ async function routeState(state) {
     return;
   }
   startBoardIfReady(state);
+}
+
+async function finishVerifiedLogin(email, password, token) {
+  if (token) {
+    await signInWithCustomToken(window.auth, token);
+  } else {
+    await signInWithEmailAndPassword(window.auth, email, password);
+  }
+  pendingSignup = null;
+  const state = await refreshState();
+  await routeState(state);
 }
 
 function bindUi() {
@@ -154,14 +187,20 @@ function bindUi() {
     setAuthBusy(true);
     try {
       if (mode === "signup") {
-        await createUserWithEmailAndPassword(window.auth, email, password);
-      } else {
-        await signInWithEmailAndPassword(window.auth, email, password);
+        await callFn("requestSignup", { email, password });
+        pendingSignup = { email, password };
+        if ($("verifyEmailHint")) $("verifyEmailHint").textContent = email;
+        setGate(true);
+        showPanel("verify");
+        $("verifyCode")?.focus();
+        return;
       }
+      await signInWithEmailAndPassword(window.auth, email, password);
       const state = await refreshState();
       await routeState(state);
     } catch (err) {
-      setError(authErrorMessage(err));
+      if (mode === "signup") setError(callableErrorMessage(err));
+      else setError(authErrorMessage(err));
     } finally {
       setAuthBusy(false);
     }
@@ -177,6 +216,86 @@ function bindUi() {
     }
     $("toggleAuthMode").textContent = signup ? "J’ai déjà un compte" : "Créer un compte";
     $("authTitle").textContent = signup ? "Créer le compte parent" : "Connexion parent";
+    pendingSignup = null;
+    showPanel("auth");
+  });
+
+  $("verifyForm")?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    setError("");
+    const email = pendingSignup?.email || $("authEmail")?.value.trim();
+    const password = pendingSignup?.password || $("authPassword")?.value;
+    const code = $("verifyCode")?.value.trim() || "";
+    const submit = $("verifySubmit");
+    if (submit) submit.disabled = true;
+    try {
+      const res = await callFn("verifyEmailCode", { email, code });
+      await finishVerifiedLogin(email, password, res.data?.token);
+    } catch (err) {
+      setError(callableErrorMessage(err));
+    } finally {
+      if (submit) submit.disabled = false;
+    }
+  });
+
+  $("resendCodeBtn")?.addEventListener("click", async (e) => {
+    e.preventDefault();
+    setError("");
+    const email = pendingSignup?.email || $("authEmail")?.value.trim();
+    const password = pendingSignup?.password || $("authPassword")?.value;
+    if (!email || !password) {
+      setError("Repars de « Créer un compte » avec le même email pour renvoyer le code.");
+      showPanel("auth");
+      return;
+    }
+    try {
+      await callFn("requestSignup", { email, password });
+      pendingSignup = { email, password };
+      setError("");
+      const hint = $("verifyResent");
+      if (hint) {
+        hint.style.display = "block";
+        hint.textContent = "Nouveau code envoyé. Vérifie ta boîte mail.";
+      }
+    } catch (err) {
+      setError(callableErrorMessage(err));
+    }
+  });
+
+  $("backToAuthBtn")?.addEventListener("click", (e) => {
+    e.preventDefault();
+    showPanel("auth");
+  });
+
+  $("setupPinForm")?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    setError("");
+    const pin = $("setupPin")?.value.trim() || "";
+    const confirm = $("setupPinConfirm")?.value.trim() || "";
+    if (!/^\d{4}$/.test(pin)) {
+      setError("Le code Admin doit contenir 4 chiffres.");
+      return;
+    }
+    if (pin !== confirm) {
+      setError("Les deux codes ne correspondent pas.");
+      return;
+    }
+    const submit = $("setupPinSubmit");
+    if (submit) submit.disabled = true;
+    try {
+      const res = await callFn("setAdminPin", { pin });
+      await routeState(res.data);
+    } catch (err) {
+      setError(callableErrorMessage(err));
+    } finally {
+      if (submit) submit.disabled = false;
+    }
+  });
+
+  $("giftContinueBtn")?.addEventListener("click", async () => {
+    pendingGiftMessage = false;
+    const state = window.__replicaState || (await refreshState());
+    await routeState(state);
   });
 
   $("checkoutMonthlyBtn")?.addEventListener("click", () => startCheckout("monthly"));
@@ -256,13 +375,16 @@ async function handleCheckoutReturn(user) {
     try {
       const res = await callFn("confirmCheckoutSession", { sessionId });
       history.replaceState({}, "", location.pathname);
+      if (res.data?.complimentaryForever) pendingGiftMessage = true;
       return res.data;
     } catch (err) {
       console.warn("confirmCheckoutSession", err);
     }
   }
   history.replaceState({}, "", location.pathname);
-  return refreshState();
+  const state = await refreshState();
+  if (state?.complimentaryForever) pendingGiftMessage = true;
+  return state;
 }
 
 export function startReplicaGate() {
@@ -280,7 +402,7 @@ export function startReplicaGate() {
       window.__replicaState = null;
       accountBar(null, null);
       setGate(true);
-      showPanel("auth");
+      showPanel(pendingSignup ? "verify" : "auth");
       return;
     }
     try {

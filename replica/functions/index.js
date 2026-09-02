@@ -10,6 +10,8 @@ setGlobalOptions({ region: "europe-west1" });
 
 const billingFns = require("./billing");
 Object.assign(exports, billingFns);
+Object.assign(exports, require("./signup"));
+Object.assign(exports, require("./adminPin"));
 
 /* =========================================================
    CONFIG
@@ -59,12 +61,10 @@ function shouldAppearForDate(task, dateObj) {
 
 /* =========================================================
    EMAIL
-   (On garde ton modèle EMAIL_USER/EMAIL_PASSWORD)
+   EMAIL_USER / EMAIL_PASSWORD optional at runtime (never defineSecret)
 ========================================================= */
 
-function emailConfigured() {
-  return !!(String(process.env.EMAIL_USER || "").trim() && String(process.env.EMAIL_PASSWORD || "").trim());
-}
+const { emailConfigured, sendMail } = require("./lib/mailer");
 
 async function sendEmail(subject, htmlContent, toAddress) {
   if (!emailConfigured()) {
@@ -72,18 +72,8 @@ async function sendEmail(subject, htmlContent, toAddress) {
     return;
   }
 
-  const nodemailer = require("nodemailer");
-  const user = process.env.EMAIL_USER;
-  const pass = process.env.EMAIL_PASSWORD;
-
-  const transporter = nodemailer.createTransport({
-    service: "gmail",
-    auth: { user, pass },
-  });
-
-  await transporter.sendMail({
-    from: `"Système Récompenses" <${user}>`,
-    to: toAddress || process.env.EMAIL_TO || user,
+  await sendMail({
+    to: toAddress || process.env.EMAIL_TO || process.env.EMAIL_USER,
     subject,
     html: htmlContent,
   });

@@ -1,5 +1,7 @@
 "use strict";
 
+const { isComplimentaryForever } = require("./founderGift");
+
 const ACCESS_STATUSES = new Set(["trialing", "active", "past_due"]);
 
 function hasAppAccess(billing) {
@@ -20,6 +22,10 @@ function needsKidsSetup(settings) {
   if (settings.kidsNamed) return false;
   const children = (settings.people || []).filter((p) => p.role === "child");
   return children.length === 0;
+}
+
+function needsAdminPin(settings) {
+  return !settings || !settings.adminPinHash;
 }
 
 function mapStripeStatus(stripeStatus) {
@@ -45,6 +51,7 @@ function mapStripeStatus(stripeStatus) {
 function billingFromSubscription(sub, extras = {}) {
   const customer = sub.customer;
   const price = sub.items?.data?.[0]?.price;
+  const complimentaryForever = isComplimentaryForever(sub, extras);
   return {
     status: mapStripeStatus(sub.status),
     stripeCustomerId: typeof customer === "string" ? customer : customer?.id || extras.customerId || null,
@@ -53,6 +60,7 @@ function billingFromSubscription(sub, extras = {}) {
     trialEnd: sub.trial_end || null,
     currentPeriodEnd: sub.current_period_end || null,
     cancelAtPeriodEnd: !!sub.cancel_at_period_end,
+    ...(complimentaryForever ? { complimentaryForever: true } : {}),
   };
 }
 
@@ -61,6 +69,7 @@ module.exports = {
   hasAppAccess,
   needsCheckout,
   needsKidsSetup,
+  needsAdminPin,
   mapStripeStatus,
   billingFromSubscription,
 };

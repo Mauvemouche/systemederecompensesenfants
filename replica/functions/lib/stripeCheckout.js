@@ -36,7 +36,7 @@ function buildCheckoutSessionParams({ instanceId, familyId, uid, email, plan, or
   const params = {
     mode: "subscription",
     client_reference_id: familyId,
-    payment_method_collection: "always",
+    payment_method_collection: "if_required",
     allow_promotion_codes: "true",
     locale: "fr",
     line_items: [{ price: priceId, quantity: 1 }],

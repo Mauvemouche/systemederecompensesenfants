@@ -20,8 +20,7 @@ service cloud.firestore {
       }
 
       match /settings/{docId} {
-        allow read: if inFamily(familyId);
-        allow write: if false;
+        allow read, write: if false;
       }
 
       match /users/{uid} {
@@ -60,6 +59,10 @@ service cloud.firestore {
     }
 
     match /stripe_customers/{customerId} {
+      allow read, write: if false;
+    }
+
+    match /signup_codes/{id} {
       allow read, write: if false;
     }
 
