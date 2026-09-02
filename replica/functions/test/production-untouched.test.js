@@ -20,6 +20,11 @@ describe("Anthony's live family app stays a separate instance", () => {
     assert.match(rules, /assignedTo in \['papa', 'maman', 'bastien', 'florent'\]/);
   });
 
+  it("keeps production Cloud Functions on Node 20", () => {
+    const pkg = JSON.parse(fs.readFileSync(path.join(repoRoot, "functions/package.json"), "utf8"));
+    assert.equal(pkg.engines.node, "20");
+  });
+
   it("does not add Stripe billing to Anthony's production Cloud Functions", () => {
     const index = fs.readFileSync(path.join(repoRoot, "functions/index.js"), "utf8");
     assert.equal(index.includes("stripeWebhook"), false);
@@ -74,5 +79,31 @@ describe("replica template does not leak Anthony's family defaults", () => {
     }
     const cfg = fs.readFileSync(path.join(repoRoot, "replica/public/js/firebase-config.js"), "utf8");
     assert.match(cfg, /export const RESET_NOTIFICATION_EMAIL = ""/);
+  });
+});
+
+describe("replica functions deploy without optional email secrets", () => {
+  it("uses Node 22 and does not depend on unused heavy packages", () => {
+    const pkg = JSON.parse(fs.readFileSync(path.join(repoRoot, "replica/functions/package.json"), "utf8"));
+    assert.equal(pkg.engines.node, "22");
+    assert.equal(pkg.dependencies["@google-cloud/scheduler"], undefined);
+    assert.equal(pkg.dependencies.resend, undefined);
+  });
+
+  it("does not bind EMAIL_* secrets on dailyResetAndStats", () => {
+    const index = fs.readFileSync(path.join(repoRoot, "replica/functions/index.js"), "utf8");
+    assert.match(index, /exports\.dailyResetAndStats/);
+    assert.equal(/secrets:\s*\[[^\]]*EMAIL_/.test(index), false);
+    assert.equal(/^const nodemailer = require/m.test(index), false);
+    assert.equal(/^admin\.initializeApp\(\)/m.test(index), false);
+  });
+
+  it("loads function exports without initializing the Admin SDK", () => {
+    const fns = require("../index");
+    assert.equal(typeof fns.dailyResetAndStats, "function");
+    assert.equal(typeof fns.bootstrapInstance, "function");
+    assert.equal(typeof fns.stripeWebhook, "function");
+    const admin = require("firebase-admin");
+    assert.equal(admin.apps.length, 0);
   });
 });

@@ -40,21 +40,26 @@ console.log(`
 Next steps (Anthony — do not deploy this onto systemederecompensesenfants.web.app):
 
 1. Create a NEW Firebase project named ${projectId} (separate Firestore database).
-2. Enable Authentication (Email/Password), Firestore, Hosting, and Functions (Node 20, europe-west1).
+2. Enable Authentication (Email/Password), Firestore, Hosting, and Functions (Node 22, europe-west1).
 3. Register a web app and paste the sdk config into replica/public/js/firebase-config.js
    (replace every YOUR_REPLICA_* placeholder).
-4. Set sandbox Stripe secrets (never sk_live):
+4. Set sandbox Stripe secrets (never sk_live). These are required for Checkout:
      firebase functions:secrets:set STRIPE_SECRET_KEY
      firebase functions:secrets:set STRIPE_WEBHOOK_SECRET
-   Optional email report:
-     firebase functions:secrets:set EMAIL_USER
-     firebase functions:secrets:set EMAIL_PASSWORD
+   Do NOT set EMAIL_USER / EMAIL_PASSWORD unless you want the daily report email.
+   The 06:00 cron deploys without those secrets (reset/stats still run; email is skipped).
    Prices already exist in AnthonyRsca sandbox:
      monthly price_1UAzwjA8Dakj1Sdel8QCE7II (2.50 EUR)
      yearly  price_1UAzx0A8Dakj1SdePoaupmpE (25 EUR)
 5. From the replica/ folder:
      npm --prefix functions install
+     node scripts/deploy.js
+   On Windows, if a raw `firebase deploy` fails with
+   "Timeout after 10000" / "Cannot determine backend specification":
+     set FUNCTIONS_DISCOVERY_TIMEOUT=60
      firebase deploy
+   or run scripts\\deploy.cmd
+   (CLI default discovery timeout is 10s.)
 6. In Stripe sandbox, add a webhook to:
      https://europe-west1-${projectId}.cloudfunctions.net/stripeWebhook
    Events: checkout.session.completed, customer.subscription.created,

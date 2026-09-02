@@ -1,15 +1,11 @@
 "use strict";
 
-const admin = require("firebase-admin");
 const functions = require("firebase-functions/v1");
+const { admin, db, ensureApp } = require("./lib/adminApp");
 const { hasAppAccess, needsCheckout, needsKidsSetup, billingFromSubscription } = require("./lib/access");
 const { peopleFromChildNames, DEFAULT_FAMILY } = require("./lib/family");
 const { buildCheckoutSessionParams, resolvePriceId, assertSandboxKey } = require("./lib/stripeCheckout");
 const { stripeRequest, verifyStripeSignature } = require("./lib/stripeHttp");
-
-function db() {
-  return admin.firestore();
-}
 
 function requireAuth(context) {
   if (!context.auth?.uid) {
@@ -19,7 +15,7 @@ function requireAuth(context) {
 }
 
 function instanceId() {
-  return process.env.GCLOUD_PROJECT || admin.app().options.projectId || "replica";
+  return process.env.GCLOUD_PROJECT || ensureApp().options.projectId || "replica";
 }
 
 function serializeState(billing, settings, uid) {

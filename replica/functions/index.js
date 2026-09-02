@@ -1,12 +1,8 @@
 "use strict";
 
-const admin = require("firebase-admin");
 const functions = require("firebase-functions/v1");
-const nodemailer = require("nodemailer");
 const family = require("./lib/family");
-
-admin.initializeApp();
-const db = admin.firestore();
+const { admin, db } = require("./lib/adminApp");
 
 const billingFns = require("./billing");
 Object.assign(exports, billingFns);
@@ -18,7 +14,7 @@ Object.assign(exports, billingFns);
 const DAY_NAMES_FR = ["Dimanche", "Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"];
 
 async function loadFamilyPeople() {
-  const snap = await db.collection("family_config").doc("settings").get();
+  const snap = await db().collection("family_config").doc("settings").get();
   const people = snap.exists && Array.isArray(snap.data().people) ? snap.data().people : family.DEFAULT_FAMILY;
   return people.length ? people : family.DEFAULT_FAMILY;
 }
@@ -62,15 +58,19 @@ function shouldAppearForDate(task, dateObj) {
    (On garde ton modèle EMAIL_USER/EMAIL_PASSWORD)
 ========================================================= */
 
-function requireEnv(val, name) {
-  if (!val) throw new Error(`Missing secret/env: ${name}`);
-  return val;
+function emailConfigured() {
+  return !!(String(process.env.EMAIL_USER || "").trim() && String(process.env.EMAIL_PASSWORD || "").trim());
 }
 
 async function sendEmail(subject, htmlContent) {
-  // On crée le transporteur à la demande (simple, robuste)
-  const user = requireEnv(process.env.EMAIL_USER, "EMAIL_USER");
-  const pass = requireEnv(process.env.EMAIL_PASSWORD, "EMAIL_PASSWORD");
+  if (!emailConfigured()) {
+    console.log("Email skipped (EMAIL_USER / EMAIL_PASSWORD not set). Daily reset still ran.");
+    return;
+  }
+
+  const nodemailer = require("nodemailer");
+  const user = process.env.EMAIL_USER;
+  const pass = process.env.EMAIL_PASSWORD;
 
   const transporter = nodemailer.createTransport({
     service: "gmail",
@@ -91,9 +91,9 @@ async function sendEmail(subject, htmlContent) {
 ========================================================= */
 
 async function claimRunOrSkip(reportDateStr) {
-  const runRef = db.collection("cron_runs").doc(`daily_${reportDateStr}`);
+  const runRef = db().collection("cron_runs").doc(`daily_${reportDateStr}`);
 
-  const shouldContinue = await db.runTransaction(async (tx) => {
+  const shouldContinue = await db().runTransaction(async (tx) => {
     const snap = await tx.get(runRef);
 
     if (snap.exists) {
@@ -129,7 +129,7 @@ async function markRunDone(runRef) {
 }
 
 async function markRunFailed(reportDateStr, error) {
-  await db.collection("cron_runs").doc(`daily_${reportDateStr}`).set(
+  await db().collection("cron_runs").doc(`daily_${reportDateStr}`).set(
     {
       status: "failed",
       failedAt: admin.firestore.FieldValue.serverTimestamp(),
@@ -243,7 +243,7 @@ stats.global.maxStars += normalMax;
 async function saveDailyStatsAligned(stats) {
   // On garde ta collection daily_stats, mais on met un doc id stable
   const docId = `stats_${stats.date}`;
-  await db.collection("daily_stats").doc(docId).set(
+  await db().collection("daily_stats").doc(docId).set(
     {
       date: stats.date,
       dayName: stats.dayName.toLowerCase(),
@@ -378,7 +378,6 @@ function generateEmailHtml(stats, resetCount, deleteCount, isFirstDayOfMonth, pe
 exports.dailyResetAndStats = functions
   .region("europe-west1")
   .runWith({
-    secrets: ["EMAIL_USER", "EMAIL_PASSWORD"],
     timeoutSeconds: 300,
   })
   .pubsub.schedule("0 6 * * *")
@@ -408,7 +407,7 @@ exports.dailyResetAndStats = functions
       }
 
       // 1) Charger toutes les tâches (collection petite => simple + évite index)
-      const snapshot = await db.collection("tasks").get();
+      const snapshot = await db().collection("tasks").get();
       const allDocs = snapshot.docs;
 
       // 2) Tâches "affichées" à la date du rapport (veille)
@@ -425,7 +424,7 @@ exports.dailyResetAndStats = functions
       // - On supprime les ponctuelles de la veille (elles ont "servi")
       // - On reset completed des tâches quotidiennes/hebdo de la veille
       // - Mensuel : reset seulement le 1er jour du mois (date d'exécution)
-      const batch = db.batch();
+      const batch = db().batch();
       let resetCount = 0;
       let deleteCount = 0;
 

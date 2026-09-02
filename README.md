@@ -42,7 +42,8 @@ Never create live products, live prices, or live charges. Never commit `sk_live`
 4. Cloud Functions secrets (sandbox):
    - `STRIPE_SECRET_KEY` (`sk_test_…` only)
    - `STRIPE_WEBHOOK_SECRET` (`whsec_…`)
-   - Optional: `EMAIL_USER`, `EMAIL_PASSWORD`, `EMAIL_TO` for the daily report
+   - Optional only: `EMAIL_USER`, `EMAIL_PASSWORD`, `EMAIL_TO` for the daily report email.
+     **Do not set these to deploy.** The 06:00 cron runs without them (reset/stats only).
    - Optional: `RESET_NOTIFICATION_EMAIL` in `replica/public/js/firebase-config.js` (same role as `EMAIL_TO`; no personal default)
 5. Stripe Customer Portal enabled in the **sandbox** Dashboard.
 6. Webhook endpoint on **that** project's function URL (see script output).
@@ -55,7 +56,22 @@ See `replica/env.example` for names. Copy values locally; do not commit them.
 node replica/scripts/provision-replica.js --project family-dupont
 ```
 
-The script refuses Anthony's live/QA project IDs. Then follow the printed checklist (`firebase deploy` from `replica/`, not from the repo root). Deploying from the repo root still only targets Anthony's `public/` + `public-qa/` hosting — replica hosting is **not** wired into root `firebase.json` on purpose.
+The script refuses Anthony's live/QA project IDs. Then follow the printed checklist. Deploy **from `replica/`**, not from the repo root:
+
+```bash
+cd replica
+npm --prefix functions install
+node scripts/deploy.js
+```
+
+On Windows PowerShell, if `firebase deploy` dies with `Timeout after 10000` / `Cannot determine backend specification`:
+
+```powershell
+$env:FUNCTIONS_DISCOVERY_TIMEOUT = "60"
+firebase deploy
+```
+
+Or double-click / run `replica/scripts/deploy.cmd`. Replica functions use **Node 22**. Deploying from the repo root still only targets Anthony's `public/` + `public-qa/` hosting — replica hosting is **not** wired into root `firebase.json` on purpose.
 
 ### QA path (per replica)
 
