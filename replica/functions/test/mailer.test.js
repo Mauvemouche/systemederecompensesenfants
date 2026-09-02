@@ -41,17 +41,17 @@ describe("mailer From and Reply-To", () => {
     }
   });
 
-  it("uses EMAIL_FROM when set, otherwise EMAIL_USER, and replies to proton by default", () => {
+  it("uses EMAIL_FROM when set, otherwise EMAIL_USER, and replies to contact@ by default", () => {
     process.env.EMAIL_USER = "gmail-smtp@gmail.com";
     delete process.env.EMAIL_FROM;
     delete process.env.EMAIL_REPLY_TO;
     assert.equal(mailFromAddress(), "gmail-smtp@gmail.com");
-    assert.equal(mailReplyTo(), "kidsrewardsystem@proton.me");
-    assert.equal(DEFAULT_REPLY_TO, "kidsrewardsystem@proton.me");
+    assert.equal(mailReplyTo(), "contact@kidsrewardsystem.com");
+    assert.equal(DEFAULT_REPLY_TO, "contact@kidsrewardsystem.com");
 
-    process.env.EMAIL_FROM = "kidsrewardsystem@proton.me";
-    assert.equal(mailFromAddress(), "kidsrewardsystem@proton.me");
-    assert.equal(mailReplyTo(), "kidsrewardsystem@proton.me");
+    process.env.EMAIL_FROM = "contact@kidsrewardsystem.com";
+    assert.equal(mailFromAddress(), "contact@kidsrewardsystem.com");
+    assert.equal(mailReplyTo(), "contact@kidsrewardsystem.com");
 
     process.env.EMAIL_FROM = "from-alias@example.com";
     delete process.env.EMAIL_REPLY_TO;
@@ -168,7 +168,7 @@ describe("mailer From and Reply-To", () => {
       response: "535 5.7.8 Error: authentication failed smtp-token-secret",
       responseCode: 535,
       message: "Invalid login: smtp-token-secret",
-      auth: { user: "kidsrewardsystem@proton.me", pass: "smtp-token-secret" },
+      auth: { user: "contact@kidsrewardsystem.com", pass: "smtp-token-secret" },
       stack: "Error: secret stack smtp-token-secret",
     });
     assert.equal(summary.code, "EAUTH");

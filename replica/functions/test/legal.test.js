@@ -64,9 +64,11 @@ describe("replica legal pages stay public-safe", () => {
     assert.equal(text.includes("OPERATOR_LEGAL_NAME"), false);
     assert.equal(text.includes("OPERATOR_STREET_ADDRESS"), false);
     assert.equal(/Rue de la Loi|Wetstraat|Avenue Louise/i.test(text), false);
+    assert.match(text, /contact@kidsrewardsystem\.com/);
     assert.match(text, /kidsrewardsystem@proton\.me/);
     const identity = fs.readFileSync(path.join(replicaPublic, "js/legal-identity.js"), "utf8");
     assert.match(identity, /PUBLIC_CONTACT_EMAIL/);
+    assert.match(identity, /contact@kidsrewardsystem\.com/);
     assert.equal(identity.includes("legalName:"), false);
     assert.equal(identity.includes("streetAddress:"), false);
   });
@@ -155,6 +157,7 @@ describe("privacy and terms copy covers the required GDPR / e-commerce points", 
       assert.match(blob, /vend|verkopen|verkaufen|sell/i);
       assert.match(blob, /analytics/i);
       assert.match(ui["privacy.deletionHtml"], /data-legal-mail/);
+      assert.match(ui["legal.paidNote"], /contact@kidsrewardsystem\.com/);
       assert.match(ui["legal.paidNote"], /kidsrewardsystem@proton\.me/);
       assert.match(ui["legal.paidNote"], /30/);
       assert.equal(/promo/i.test(ui["legal.paidNote"]), false, code);
@@ -182,7 +185,7 @@ describe("welcome and PIN-recovery emails include Privacy and Terms links, not a
         assert.match(body, /privacy\.html/, loc);
         assert.match(body, /terms\.html/, loc);
         assert.match(body, /https:\/\/recompenses-test\.web\.app/, loc);
-        assert.match(body, /kidsrewardsystem@proton\.me/, loc);
+        assert.match(body, /contact@kidsrewardsystem\.com/, loc);
         assert.equal(body.includes("YOUR_LEGAL_NAME"), false, loc);
         assert.equal(body.includes("YOUR_STREET_ADDRESS"), false, loc);
         assert.equal(body.includes("OPERATOR_LEGAL_NAME"), false, loc);
@@ -196,7 +199,7 @@ describe("getOperatorLegalIdentity checks Stripe amount_paid server-side", () =>
   it("is an authenticated Stripe callable that lists paid invoices", () => {
     const billing = fs.readFileSync(path.join(repoRoot, "replica/functions/billing.js"), "utf8");
     assert.match(billing, /exports\.getOperatorLegalIdentity/);
-    assert.match(billing, /CALLABLE_STRIPE/);
+    assert.match(billing, /CALLABLE_OPERATOR/);
     assert.match(billing, /listCustomerInvoices/);
     assert.match(billing, /invoicesIncludePaidCharge/);
     assert.match(billing, /shouldKeepExistingMembership/);

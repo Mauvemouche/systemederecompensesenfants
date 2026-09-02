@@ -28,6 +28,7 @@ const {
   STRIPE_WEBHOOK_SECRET,
   CALLABLE,
   CALLABLE_STRIPE,
+  CALLABLE_OPERATOR,
   requireAuth,
   wrapCallable,
 } = require("./lib/callable");
@@ -183,7 +184,7 @@ exports.bootstrapInstance = onCall(
 );
 
 exports.getOperatorLegalIdentity = onCall(
-  CALLABLE_STRIPE,
+  CALLABLE_OPERATOR,
   wrapCallable("getOperatorLegalIdentity", async (request) => {
     const { uid } = requireAuth(request);
     ensureApp();

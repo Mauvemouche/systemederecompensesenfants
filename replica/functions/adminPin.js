@@ -1,7 +1,7 @@
 "use strict";
 
 const { ensureApp, serverTimestamp } = require("./lib/adminApp");
-const { onCall, HttpsError, CALLABLE, wrapCallable, requireAuth } = require("./lib/callable");
+const { onCall, HttpsError, CALLABLE, CALLABLE_MAIL, wrapCallable, requireAuth } = require("./lib/callable");
 const { hashSecret, verifySecret } = require("./lib/secretHash");
 const {
   isFourDigitPin,
@@ -135,7 +135,7 @@ exports.changeAdminPin = onCall(
 );
 
 exports.recoverAdminPin = onCall(
-  CALLABLE,
+  CALLABLE_MAIL,
   wrapCallable("recoverAdminPin", async (request) => {
     const { uid } = requireAuth(request);
     ensureApp();

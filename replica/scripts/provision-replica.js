@@ -64,8 +64,18 @@ Next steps (Anthony — do not deploy this onto systemederecompensesenfants.web.
 2. Enable Authentication (Email/Password), Firestore, Hosting, and Cloud Functions (2nd gen, Node 22, europe-west1).
 3. Web app config lives in replica/public/js/firebase-config.js (deployed instance, not the live Florent/Harry app).
 4. Sandbox Stripe secrets (never sk_live):
-     firebase functions:secrets:set STRIPE_SECRET_KEY
-     firebase functions:secrets:set STRIPE_WEBHOOK_SECRET
+     firebase functions:secrets:set STRIPE_SECRET_KEY --project ${projectId}
+     firebase functions:secrets:set STRIPE_WEBHOOK_SECRET --project ${projectId}
+   Mail + operator identity (once; Secret Manager, not Cloud Run env vars):
+     firebase functions:secrets:set EMAIL_USER --project ${projectId}
+     firebase functions:secrets:set EMAIL_PASSWORD --project ${projectId}
+     firebase functions:secrets:set EMAIL_FROM --project ${projectId}
+     firebase functions:secrets:set EMAIL_REPLY_TO --project ${projectId}
+     firebase functions:secrets:set EMAIL_SMTP_HOST --project ${projectId}
+     firebase functions:secrets:set EMAIL_SMTP_PORT --project ${projectId}
+     firebase functions:secrets:set OPERATOR_LEGAL_NAME --project ${projectId}
+     firebase functions:secrets:set OPERATOR_STREET_ADDRESS --project ${projectId}
+   After that, do not use gcloud run services update --update-env-vars after each deploy.
    Prices already exist in AnthonyRsca sandbox:
      monthly price_1UAzwjA8Dakj1Sdel8QCE7II (2.50 EUR)
      yearly  price_1UAzx0A8Dakj1SdePoaupmpE (25 EUR)

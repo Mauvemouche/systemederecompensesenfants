@@ -2,7 +2,7 @@
  * Public contact only. Never put a legal name or street address in this file.
  * Paid-family identity is served by getOperatorLegalIdentity after amount_paid > 0.
  */
-export const PUBLIC_CONTACT_EMAIL = "kidsrewardsystem@proton.me";
+export const PUBLIC_CONTACT_EMAIL = "contact@kidsrewardsystem.com";
 
 export function fillPublicContact(root = document) {
   root.querySelectorAll("[data-legal-mail]").forEach((el) => {

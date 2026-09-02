@@ -47,6 +47,8 @@ describe("operator identity is gated on a real paid invoice", () => {
     const revealed = revealPayload(filled);
     assert.equal(revealed.revealed, true);
     assert.equal(revealed.contactEmail, PUBLIC_CONTACT_EMAIL);
+    assert.equal(PUBLIC_CONTACT_EMAIL, "contact@kidsrewardsystem.com");
+    assert.equal(publicContactPayload().contactEmail, "contact@kidsrewardsystem.com");
     assert.equal(publicContactPayload().revealed, false);
     assert.equal("legalName" in publicContactPayload(), false);
   });

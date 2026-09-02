@@ -53,7 +53,7 @@ describe("recovery and welcome emails follow the requested locale", () => {
     assert.match(defaultWelcome, /Welkom/);
   });
 
-  it("includes beer/coffee pricing and kidsrewardsystem@proton.me in all four welcome emails", () => {
+  it("includes beer/coffee pricing and contact@kidsrewardsystem.com in all four welcome emails", () => {
     for (const loc of ["nl", "fr", "de", "en"]) {
       const html = welcomeVerifyEmailHtml("482910", loc);
       const text = welcomeVerifyEmailText("482910", loc);
@@ -63,6 +63,7 @@ describe("recovery and welcome emails follow the requested locale", () => {
         assert.match(body, /25/);
         assert.match(body, /bière|pintje|Bier|beer/i);
         assert.match(body, /café|koffie|Kaffee|coffee/i);
+        assert.match(body, /contact@kidsrewardsystem\.com/);
         assert.match(body, /kidsrewardsystem@proton\.me/);
         assert.match(body, /daily summary|samenvatting|résumé quotidien|tägliche Zusammenfassung/i);
         assert.match(body, /card on file|carte enregistrée|geregistreerde kaart|hinterlegter Karte/i);

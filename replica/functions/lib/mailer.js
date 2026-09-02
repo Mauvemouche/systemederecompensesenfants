@@ -2,7 +2,7 @@
 
 const { t, normalizeLocale, bcp47 } = require("./i18n");
 
-const DEFAULT_REPLY_TO = "kidsrewardsystem@proton.me";
+const DEFAULT_REPLY_TO = "contact@kidsrewardsystem.com";
 
 function emailConfigured() {
   return !!(String(process.env.EMAIL_USER || "").trim() && String(process.env.EMAIL_PASSWORD || "").trim());

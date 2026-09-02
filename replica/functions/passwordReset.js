@@ -2,7 +2,7 @@
 
 const { getAuth } = require("firebase-admin/auth");
 const { ensureApp, db, serverTimestamp } = require("./lib/adminApp");
-const { onCall, HttpsError, CALLABLE, wrapCallable } = require("./lib/callable");
+const { onCall, HttpsError, CALLABLE, CALLABLE_MAIL, wrapCallable } = require("./lib/callable");
 const {
   normalizeEmail,
   isValidEmail,
@@ -39,7 +39,7 @@ async function findUserByEmail(email) {
 }
 
 exports.requestPasswordReset = onCall(
-  CALLABLE,
+  CALLABLE_MAIL,
   wrapCallable("requestPasswordReset", async (request) => {
     const locale = localeFromRequest(request);
     const email = normalizeEmail(request.data?.email);

@@ -2,7 +2,7 @@
 
 const { getAuth } = require("firebase-admin/auth");
 const { ensureApp, db, serverTimestamp } = require("./lib/adminApp");
-const { onCall, HttpsError, CALLABLE, wrapCallable } = require("./lib/callable");
+const { onCall, HttpsError, CALLABLE, CALLABLE_MAIL, wrapCallable } = require("./lib/callable");
 const { hashSecret, verifySecret } = require("./lib/secretHash");
 const {
   normalizeEmail,
@@ -77,7 +77,7 @@ async function persistAndSendCode({ email, uid, now, locale }) {
 }
 
 exports.requestSignup = onCall(
-  CALLABLE,
+  CALLABLE_MAIL,
   wrapCallable("requestSignup", async (request) => {
     const locale = localeFromRequest(request);
     const email = normalizeEmail(request.data?.email);

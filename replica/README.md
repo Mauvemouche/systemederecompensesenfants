@@ -18,7 +18,47 @@ Replica functions are **2nd gen** (Cloud Run). They run as the **Compute Engine 
 
 Required secrets: `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` (sandbox `sk_test` / `whsec` only).
 
-Email secrets (`EMAIL_USER`, `EMAIL_PASSWORD`) are **optional**. The daily cron deploys without them.
+Mail and operator identity live in **Google Secret Manager** (Firebase `defineSecret`). They survive `firebase deploy --only functions`. Do **not** set them with `gcloud run services update --update-env-vars` — those Cloud Run env vars are wiped on every functions deploy.
+
+### One-time: create/set secrets (project `recompenses-test`, functions region `europe-west1`)
+
+From the `replica/` folder. The CLI prompts for the value; **never** put real values in git or in this README.
+
+```bat
+firebase functions:secrets:set EMAIL_USER --project recompenses-test
+firebase functions:secrets:set EMAIL_PASSWORD --project recompenses-test
+firebase functions:secrets:set EMAIL_FROM --project recompenses-test
+firebase functions:secrets:set EMAIL_REPLY_TO --project recompenses-test
+firebase functions:secrets:set EMAIL_SMTP_HOST --project recompenses-test
+firebase functions:secrets:set EMAIL_SMTP_PORT --project recompenses-test
+firebase functions:secrets:set OPERATOR_LEGAL_NAME --project recompenses-test
+firebase functions:secrets:set OPERATOR_STREET_ADDRESS --project recompenses-test
+```
+
+Same names with `gcloud` (placeholders only — replace the echoed text with the real value, do not commit it):
+
+```bat
+echo YOUR_EMAIL_USER | gcloud secrets create EMAIL_USER --data-file=- --project=recompenses-test --replication-policy=automatic
+echo YOUR_SMTP_TOKEN | gcloud secrets create EMAIL_PASSWORD --data-file=- --project=recompenses-test --replication-policy=automatic
+echo YOUR_EMAIL_FROM | gcloud secrets create EMAIL_FROM --data-file=- --project=recompenses-test --replication-policy=automatic
+echo YOUR_EMAIL_REPLY_TO | gcloud secrets create EMAIL_REPLY_TO --data-file=- --project=recompenses-test --replication-policy=automatic
+echo YOUR_SMTP_HOST | gcloud secrets create EMAIL_SMTP_HOST --data-file=- --project=recompenses-test --replication-policy=automatic
+echo YOUR_SMTP_PORT | gcloud secrets create EMAIL_SMTP_PORT --data-file=- --project=recompenses-test --replication-policy=automatic
+echo YOUR_LEGAL_NAME | gcloud secrets create OPERATOR_LEGAL_NAME --data-file=- --project=recompenses-test --replication-policy=automatic
+echo YOUR_STREET_ADDRESS | gcloud secrets create OPERATOR_STREET_ADDRESS --data-file=- --project=recompenses-test --replication-policy=automatic
+```
+
+If the secret **already exists**, add a version instead of `create`:
+
+```bat
+echo YOUR_SMTP_TOKEN | gcloud secrets versions add EMAIL_PASSWORD --data-file=- --project=recompenses-test
+```
+
+Typical mail values (do not paste tokens here): `EMAIL_FROM` / `EMAIL_USER` = `contact@kidsrewardsystem.com` (custom-domain From), `EMAIL_SMTP_HOST` = `smtp.protonmail.ch`, `EMAIL_SMTP_PORT` = `587`. Leave `EMAIL_SMTP_HOST` unset (or empty) to keep the Gmail `service: "gmail"` fallback.
+
+Create the secret **resource** once even if the value is still empty/placeholder, so `firebase deploy --only functions` can bind it. An empty value at runtime does **not** crash the container: signup/PIN/reset return `EMAIL_NOT_CONFIGURED`, and daily mail is skipped. Do not call `SecretParam.value()` at module load.
+
+After this one-time set, later `firebase deploy --only functions` remounts the same secrets. No `gcloud run services update --update-env-vars` after each deploy.
 
 ```bat
 npm --prefix functions install
@@ -31,9 +71,9 @@ Deploy **functions + hosting + firestore:rules**. Claims and per-family paths ne
 
 Runtime: Node **22**, region **europe-west1**. After deploy, register the Stripe sandbox webhook on the printed `stripeWebhook` URL (Cloud Functions URL or Cloud Run URL).
 
-Signup verification, Admin PIN recovery, and password reset also use `EMAIL_USER` / `EMAIL_PASSWORD` at runtime. They are **not** bound with `defineSecret`, so deploy still works if they are missing. If they are unset, the callables return a localized error instead of sending mail. To actually send mail, set those env vars (or mount the existing secrets) on the Cloud Run services for `requestSignup`, `verifyEmailCode`, `requestPasswordReset`, `confirmPasswordReset`, and `recoverAdminPin`.
+Signup verification (`requestSignup`), Admin PIN recovery (`recoverAdminPin`), password reset (`requestPasswordReset`), and daily summary mail (`dailyResetAndStats`) bind the EMAIL_* secrets. Other functions do not. If `EMAIL_USER` / `EMAIL_PASSWORD` are empty at runtime, those callables return a localized error (or the cron skips mail) instead of sending.
 
-Optional: `EMAIL_FROM` (display From) and `EMAIL_REPLY_TO` (falls back to `EMAIL_FROM`, then `kidsrewardsystem@proton.me`). SMTP auth stays `EMAIL_USER` / `EMAIL_PASSWORD`. If `EMAIL_SMTP_HOST` is set (e.g. `smtp.protonmail.ch`), mail goes over STARTTLS on `EMAIL_SMTP_PORT` or 587; Proton SMTP tokens need a paid plan and a custom-domain From, not `@proton.me`. If the host is unset, Gmail `service: "gmail"` is used. Gmail “Send mail as” must verify the From alias or Gmail will rewrite it.
+`EMAIL_FROM` is the SMTP From (bare address on Proton). `EMAIL_REPLY_TO` falls back to `EMAIL_FROM`, then `contact@kidsrewardsystem.com`. SMTP auth stays `EMAIL_USER` / `EMAIL_PASSWORD`. If `EMAIL_SMTP_HOST` is set (e.g. `smtp.protonmail.ch`), mail goes over STARTTLS on `EMAIL_SMTP_PORT` or 587 with a bare From (no display-name); Proton SMTP tokens need a paid plan and a custom-domain From, not `@proton.me`. If the host is unset, Gmail `service: "gmail"` is used with a display-name From. Failed sends log a safe SMTP summary (no token).
 
 Languages: **nl, fr, de, en** (Dutch first). Unknown locale and default mail locale: **nl**.
 
@@ -41,16 +81,9 @@ Languages: **nl, fr, de, en** (Dutch first). Unknown locale and default mail loc
 
 Never commit a real name or street address.
 
-Public surfaces (gate, signup, `privacy.html`, `terms.html`, emails, visitors, trial, unpaid, 100% forever promo) show only `kidsrewardsystem@proton.me` and optionally “a Belgian father”.
+Public surfaces (gate, signup, `privacy.html`, `terms.html`, emails, visitors, trial, unpaid) show **`contact@kidsrewardsystem.com`** as Contact. `kidsrewardsystem@proton.me` may appear as a secondary complaints address. Do not put “un papa belge” under Contact. Home footer still uses the Belgian-father line separately.
 
-After **that family’s first Stripe invoice with `amount_paid > 0`**, the logged-in app can show the operator name and street. Set these on the Cloud Run services for `getOperatorLegalIdentity` (or in Firestore `platform/legal_identity`, Admin SDK only — clients cannot read it):
-
-```
-OPERATOR_LEGAL_NAME
-OPERATOR_STREET_ADDRESS
-```
-
-Optional: `OPERATOR_POSTCODE_CITY`, `OPERATOR_COUNTRY`, `OPERATOR_BCE_KBO`, `OPERATOR_VAT`.
+After **that family’s first Stripe invoice with `amount_paid > 0`**, the logged-in app can show the operator name and street. Set these **once** in Secret Manager (commands above) on `getOperatorLegalIdentity` — not as Cloud Run env vars. Optional extra fields in Firestore `platform/legal_identity` (Admin SDK only — clients cannot read it): `OPERATOR_POSTCODE_CITY`, `OPERATOR_COUNTRY`, `OPERATOR_BCE_KBO`, `OPERATOR_VAT`.
 
 Do **not** put real values in git, locale JSON, or `replica/public`. Trial checkout and founder/promo with no charge do not reveal the address. Replica hosting has **no** Firebase Analytics / gtag / cookie banner.
 

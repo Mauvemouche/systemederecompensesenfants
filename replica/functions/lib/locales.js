@@ -8,7 +8,7 @@ const fr = {
   "err.invalidEmail": "Email invalide.",
   "err.weakPassword": "Mot de passe trop faible (6 caractères min.).",
   "err.emailNotConfigured":
-    "L’envoi d’email n’est pas encore configuré. Réessaie plus tard, ou écris à kidsrewardsystem@proton.me.",
+    "L’envoi d’email n’est pas encore configuré. Réessaie plus tard, ou écris à contact@kidsrewardsystem.com.",
   "err.resendWait": "Attends une minute avant de renvoyer le code.",
   "err.mailFailed": "Impossible d’envoyer l’email. Réessaie dans un instant.",
   "err.verifyMailFailed": "Impossible d’envoyer l’email de vérification. Réessaie dans un instant.",
@@ -75,8 +75,9 @@ const fr = {
   "email.welcome.pricesText":
     "Prix : 2,50 €/mois (30 €/an si payé mois par mois) ou 25 €/an. Premier mois d’essai, avec carte enregistrée. Prix autour d’une bière (ou d’un café) par mois, parce qu’un père belge l’a construite.",
   "email.welcome.contact":
-    "Une idée, une plainte, un « ça bug » ? Écris à <a href=\"mailto:kidsrewardsystem@proton.me\">kidsrewardsystem@proton.me</a>.",
-  "email.welcome.contactText": "Suggestions / plaintes : kidsrewardsystem@proton.me",
+    "Une idée, une plainte, un « ça bug » ? Écris à <a href=\"mailto:contact@kidsrewardsystem.com\">contact@kidsrewardsystem.com</a>. Pour une plainte, tu peux aussi écrire à kidsrewardsystem@proton.me.",
+  "email.welcome.contactText":
+    "Suggestions / plaintes : contact@kidsrewardsystem.com (plaintes aussi : kidsrewardsystem@proton.me)",
   "email.welcome.dailyEmail":
     "Tu recevras un résumé quotidien par email. Tu pourras le désactiver sur l’écran d’accueil.",
   "email.welcome.dailyEmailText":
@@ -86,9 +87,9 @@ const fr = {
   "email.recover.body":
     "Quelqu’un a demandé à récupérer le code Admin de ta famille. L’ancien code ne fonctionne plus. Voici le nouveau (4 chiffres) :",
   "email.recover.after":
-    "En mode Admin, tu pourras le changer. Si tu n’as pas fait cette demande, change le code dès que tu peux, et écris-nous à <a href=\"mailto:kidsrewardsystem@proton.me\">kidsrewardsystem@proton.me</a>.",
+    "En mode Admin, tu pourras le changer. Si tu n’as pas fait cette demande, change le code dès que tu peux, et écris-nous à <a href=\"mailto:contact@kidsrewardsystem.com\">contact@kidsrewardsystem.com</a> (plaintes : kidsrewardsystem@proton.me).",
   "email.recover.afterText":
-    "En mode Admin, tu pourras le changer. Si tu n’as pas fait cette demande, écris à kidsrewardsystem@proton.me.",
+    "En mode Admin, tu pourras le changer. Si tu n’as pas fait cette demande, écris à contact@kidsrewardsystem.com (plaintes : kidsrewardsystem@proton.me).",
   "email.reset.subject": "Ton code pour réinitialiser le mot de passe",
   "email.reset.title": "Réinitialiser le mot de passe",
   "email.reset.body":
@@ -108,7 +109,7 @@ const nl = {
   "err.invalidEmail": "Ongeldig e-mailadres.",
   "err.weakPassword": "Wachtwoord te zwak (minstens 6 tekens).",
   "err.emailNotConfigured":
-    "E-mail is nog niet ingesteld. Probeer later opnieuw, of schrijf naar kidsrewardsystem@proton.me.",
+    "E-mail is nog niet ingesteld. Probeer later opnieuw, of schrijf naar contact@kidsrewardsystem.com.",
   "err.resendWait": "Wacht een minuut voor je de code opnieuw verstuurt.",
   "err.mailFailed": "De e-mail kon niet worden verstuurd. Probeer zo meteen opnieuw.",
   "err.verifyMailFailed": "De verificatiemail kon niet worden verstuurd. Probeer zo meteen opnieuw.",
@@ -175,8 +176,9 @@ const nl = {
   "email.welcome.pricesText":
     "Prijzen: 2,50 €/maand (30 €/jaar als je maandelijks betaalt) of 25 €/jaar. Eerste maand proef, met geregistreerde kaart. Prijs rond een pintje (of een koffie) per maand, omdat een Belgische vader dit gebouwd heeft.",
   "email.welcome.contact":
-    "Een idee, een klacht, een « het bugt »? Schrijf naar <a href=\"mailto:kidsrewardsystem@proton.me\">kidsrewardsystem@proton.me</a>.",
-  "email.welcome.contactText": "Suggesties / klachten: kidsrewardsystem@proton.me",
+    "Een idee, een klacht, een « het bugt »? Schrijf naar <a href=\"mailto:contact@kidsrewardsystem.com\">contact@kidsrewardsystem.com</a>. Voor een klacht kun je ook schrijven naar kidsrewardsystem@proton.me.",
+  "email.welcome.contactText":
+    "Suggesties / klachten: contact@kidsrewardsystem.com (klachten ook: kidsrewardsystem@proton.me)",
   "email.welcome.dailyEmail":
     "Je krijgt dagelijks een samenvatting per e-mail. Je kunt dat uitzetten op het startscherm.",
   "email.welcome.dailyEmailText":
@@ -186,9 +188,9 @@ const nl = {
   "email.recover.body":
     "Iemand heeft gevraagd de Admin-code van je gezin terug te halen. De oude code werkt niet meer. Hier is de nieuwe (4 cijfers):",
   "email.recover.after":
-    "In Admin-modus kun je hem wijzigen. Als jij deze aanvraag niet hebt gedaan, wijzig de code zo snel je kunt en schrijf naar <a href=\"mailto:kidsrewardsystem@proton.me\">kidsrewardsystem@proton.me</a>.",
+    "In Admin-modus kun je hem wijzigen. Als jij deze aanvraag niet hebt gedaan, wijzig de code zo snel je kunt en schrijf naar <a href=\"mailto:contact@kidsrewardsystem.com\">contact@kidsrewardsystem.com</a> (klachten: kidsrewardsystem@proton.me).",
   "email.recover.afterText":
-    "In Admin-modus kun je hem wijzigen. Als jij deze aanvraag niet hebt gedaan, schrijf naar kidsrewardsystem@proton.me.",
+    "In Admin-modus kun je hem wijzigen. Als jij deze aanvraag niet hebt gedaan, schrijf naar contact@kidsrewardsystem.com (klachten: kidsrewardsystem@proton.me).",
   "email.reset.subject": "Je code om het wachtwoord te herstellen",
   "email.reset.title": "Wachtwoord herstellen",
   "email.reset.body":
@@ -208,7 +210,7 @@ const de = {
   "err.invalidEmail": "Ungültige E-Mail-Adresse.",
   "err.weakPassword": "Passwort zu schwach (mindestens 6 Zeichen).",
   "err.emailNotConfigured":
-    "E-Mail ist noch nicht eingerichtet. Versuch es später erneut oder schreib an kidsrewardsystem@proton.me.",
+    "E-Mail ist noch nicht eingerichtet. Versuch es später erneut oder schreib an contact@kidsrewardsystem.com.",
   "err.resendWait": "Warte eine Minute, bevor du den Code erneut sendest.",
   "err.mailFailed": "Die E-Mail konnte nicht gesendet werden. Versuch es gleich noch einmal.",
   "err.verifyMailFailed": "Die Bestätigungs-E-Mail konnte nicht gesendet werden. Versuch es gleich noch einmal.",
@@ -275,8 +277,9 @@ const de = {
   "email.welcome.pricesText":
     "Preise: 2,50 €/Monat (30 €/Jahr bei monatlicher Zahlung) oder 25 €/Jahr. Erster Monat zur Probe, mit hinterlegter Karte. Preis um ein Bier (oder einen Kaffee) pro Monat, weil ein belgischer Vater das gebaut hat.",
   "email.welcome.contact":
-    "Eine Idee, eine Beschwerde, ein « das bugt »? Schreib an <a href=\"mailto:kidsrewardsystem@proton.me\">kidsrewardsystem@proton.me</a>.",
-  "email.welcome.contactText": "Ideen / Beschwerden: kidsrewardsystem@proton.me",
+    "Eine Idee, eine Beschwerde, ein « das bugt »? Schreib an <a href=\"mailto:contact@kidsrewardsystem.com\">contact@kidsrewardsystem.com</a>. Beschwerden auch an kidsrewardsystem@proton.me.",
+  "email.welcome.contactText":
+    "Ideen / Beschwerden: contact@kidsrewardsystem.com (Beschwerden auch: kidsrewardsystem@proton.me)",
   "email.welcome.dailyEmail":
     "Du bekommst eine tägliche Zusammenfassung per E-Mail. Du kannst sie auf dem Startbildschirm abschalten.",
   "email.welcome.dailyEmailText":
@@ -286,9 +289,9 @@ const de = {
   "email.recover.body":
     "Jemand hat den Admin-Code deiner Familie angefordert. Der alte Code gilt nicht mehr. Hier ist der neue (4 Ziffern):",
   "email.recover.after":
-    "Im Admin-Modus kannst du ihn ändern. Wenn du das nicht angefordert hast, ändere den Code so schnell du kannst und schreib an <a href=\"mailto:kidsrewardsystem@proton.me\">kidsrewardsystem@proton.me</a>.",
+    "Im Admin-Modus kannst du ihn ändern. Wenn du das nicht angefordert hast, ändere den Code so schnell du kannst und schreib an <a href=\"mailto:contact@kidsrewardsystem.com\">contact@kidsrewardsystem.com</a> (Beschwerden: kidsrewardsystem@proton.me).",
   "email.recover.afterText":
-    "Im Admin-Modus kannst du ihn ändern. Wenn du das nicht angefordert hast, schreib an kidsrewardsystem@proton.me.",
+    "Im Admin-Modus kannst du ihn ändern. Wenn du das nicht angefordert hast, schreib an contact@kidsrewardsystem.com (Beschwerden: kidsrewardsystem@proton.me).",
   "email.reset.subject": "Dein Code zum Zurücksetzen des Passworts",
   "email.reset.title": "Passwort zurücksetzen",
   "email.reset.body":
@@ -308,7 +311,7 @@ const en = {
   "err.invalidEmail": "Invalid email.",
   "err.weakPassword": "Password too weak (6 characters min.).",
   "err.emailNotConfigured":
-    "Email isn’t set up yet. Try again later, or write to kidsrewardsystem@proton.me.",
+    "Email isn’t set up yet. Try again later, or write to contact@kidsrewardsystem.com.",
   "err.resendWait": "Wait a minute before sending the code again.",
   "err.mailFailed": "Couldn’t send the email. Try again in a moment.",
   "err.verifyMailFailed": "Couldn’t send the verification email. Try again in a moment.",
@@ -375,8 +378,9 @@ const en = {
   "email.welcome.pricesText":
     "Prices: €2.50/month (€30/year if paid monthly) or €25/year. First month trial, with a card on file. Price around a beer (or a coffee) a month, because a Belgian father built it.",
   "email.welcome.contact":
-    "An idea, a complaint, a “it’s buggy”? Write to <a href=\"mailto:kidsrewardsystem@proton.me\">kidsrewardsystem@proton.me</a>.",
-  "email.welcome.contactText": "Suggestions / complaints: kidsrewardsystem@proton.me",
+    "An idea, a complaint, a “it’s buggy”? Write to <a href=\"mailto:contact@kidsrewardsystem.com\">contact@kidsrewardsystem.com</a>. Complaints may also go to kidsrewardsystem@proton.me.",
+  "email.welcome.contactText":
+    "Suggestions / complaints: contact@kidsrewardsystem.com (complaints also: kidsrewardsystem@proton.me)",
   "email.welcome.dailyEmail":
     "You’ll get a daily summary by email. You can turn it off on the home screen.",
   "email.welcome.dailyEmailText":
@@ -386,9 +390,9 @@ const en = {
   "email.recover.body":
     "Someone asked to recover your family’s Admin code. The old code no longer works. Here’s the new one (4 digits):",
   "email.recover.after":
-    "In Admin mode, you can change it. If you didn’t request this, change the code as soon as you can and write to <a href=\"mailto:kidsrewardsystem@proton.me\">kidsrewardsystem@proton.me</a>.",
+    "In Admin mode, you can change it. If you didn’t request this, change the code as soon as you can and write to <a href=\"mailto:contact@kidsrewardsystem.com\">contact@kidsrewardsystem.com</a> (complaints: kidsrewardsystem@proton.me).",
   "email.recover.afterText":
-    "In Admin mode, you can change it. If you didn’t request this, write to kidsrewardsystem@proton.me.",
+    "In Admin mode, you can change it. If you didn’t request this, write to contact@kidsrewardsystem.com (complaints: kidsrewardsystem@proton.me).",
   "email.reset.subject": "Your password reset code",
   "email.reset.title": "Reset your password",
   "email.reset.body":

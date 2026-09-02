@@ -2,14 +2,15 @@
 
 const { db } = require("./adminApp");
 
-const PUBLIC_CONTACT_EMAIL = "kidsrewardsystem@proton.me";
+const PUBLIC_CONTACT_EMAIL = "contact@kidsrewardsystem.com";
+const SECONDARY_COMPLAINTS_EMAIL = "kidsrewardsystem@proton.me";
 
 /**
  * Operator name + street are NOT in the repo.
- * Set them on the Cloud Run service (or in Firestore platform/legal_identity, Admin SDK only):
- *   OPERATOR_LEGAL_NAME
- *   OPERATOR_STREET_ADDRESS
- * Optional: OPERATOR_POSTCODE_CITY, OPERATOR_COUNTRY, OPERATOR_BCE_KBO, OPERATOR_VAT
+ * Set them once in Secret Manager (OPERATOR_LEGAL_NAME / OPERATOR_STREET_ADDRESS)
+ * and bind them on getOperatorLegalIdentity. They survive functions deploy.
+ * Optional extra fields: OPERATOR_POSTCODE_CITY, OPERATOR_COUNTRY, OPERATOR_BCE_KBO, OPERATOR_VAT
+ * (env or Firestore platform/legal_identity, Admin SDK only).
  * Never commit real values. Never put them in replica/public or locale JSON.
  */
 
@@ -92,6 +93,7 @@ async function listCustomerInvoices(stripeRequest, secret, customerId) {
 
 module.exports = {
   PUBLIC_CONTACT_EMAIL,
+  SECONDARY_COMPLAINTS_EMAIL,
   cleanField,
   identityFromSources,
   publicContactPayload,

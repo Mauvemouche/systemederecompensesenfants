@@ -5,6 +5,7 @@ const { onSchedule } = require("firebase-functions/v2/scheduler");
 const family = require("./lib/family");
 const families = require("./lib/families");
 const { db, serverTimestamp } = require("./lib/adminApp");
+const { EMAIL_SECRETS } = require("./lib/callable");
 
 setGlobalOptions({ region: "europe-west1" });
 
@@ -63,7 +64,8 @@ function shouldAppearForDate(task, dateObj) {
 
 /* =========================================================
    EMAIL
-   EMAIL_USER / EMAIL_PASSWORD optional at runtime (never defineSecret)
+   EMAIL_* come from Secret Manager when bound on this function.
+   Empty/missing at runtime skips mail (EMAIL_NOT_CONFIGURED); do not read .value() at boot.
 ========================================================= */
 
 const { emailConfigured, sendMail, logMailFailure } = require("./lib/mailer");
@@ -368,7 +370,7 @@ function generateEmailHtml(stats, resetCount, deleteCount, isFirstDayOfMonth, pe
    - Anti double-envoi
    - Stats alignées UI
    - Reset + cleanup
-   - EMAIL_* not bound (optional at runtime)
+   - EMAIL_* bound via Secret Manager (empty value skips mail)
 ========================================================= */
 
 exports.dailyResetAndStats = onSchedule(
@@ -377,6 +379,7 @@ exports.dailyResetAndStats = onSchedule(
     schedule: "0 6 * * *",
     timeZone: "Europe/Paris",
     timeoutSeconds: 300,
+    secrets: EMAIL_SECRETS,
   },
   async () => {
     console.log("🔄 Début du cycle quotidien");

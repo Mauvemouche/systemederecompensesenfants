@@ -83,7 +83,7 @@ describe("replica template does not leak Anthony's family defaults", () => {
   });
 });
 
-describe("replica functions deploy without optional email secrets", () => {
+describe("replica functions bind mail and operator secrets without crashing at boot", () => {
   it("uses Node 22 and does not depend on unused heavy packages", () => {
     const pkg = JSON.parse(fs.readFileSync(path.join(repoRoot, "replica/functions/package.json"), "utf8"));
     assert.equal(pkg.engines.node, "22");
@@ -91,21 +91,45 @@ describe("replica functions deploy without optional email secrets", () => {
     assert.equal(pkg.dependencies.resend, undefined);
   });
 
-  it("does not bind EMAIL_* secrets on dailyResetAndStats", () => {
-    const files = [
-      "replica/functions/index.js",
-      "replica/functions/billing.js",
-      "replica/functions/lib/callable.js",
-    ];
-    for (const rel of files) {
-      const src = fs.readFileSync(path.join(repoRoot, rel), "utf8");
-      assert.equal(/defineSecret\(\s*["']EMAIL_/.test(src), false, rel);
-      assert.equal(/secrets:\s*\[[^\]]*EMAIL_/.test(src), false, rel);
-    }
+  it("binds EMAIL_* and OPERATOR_* secrets only on the functions that need them", () => {
+    const callable = fs.readFileSync(path.join(repoRoot, "replica/functions/lib/callable.js"), "utf8");
+    assert.match(callable, /defineSecret\(\s*"EMAIL_USER"\s*\)/);
+    assert.match(callable, /defineSecret\(\s*"EMAIL_PASSWORD"\s*\)/);
+    assert.match(callable, /defineSecret\(\s*"EMAIL_FROM"\s*\)/);
+    assert.match(callable, /defineSecret\(\s*"EMAIL_REPLY_TO"\s*\)/);
+    assert.match(callable, /defineSecret\(\s*"EMAIL_SMTP_HOST"\s*\)/);
+    assert.match(callable, /defineSecret\(\s*"EMAIL_SMTP_PORT"\s*\)/);
+    assert.match(callable, /defineSecret\(\s*"OPERATOR_LEGAL_NAME"\s*\)/);
+    assert.match(callable, /defineSecret\(\s*"OPERATOR_STREET_ADDRESS"\s*\)/);
+    assert.match(callable, /CALLABLE_MAIL/);
+    assert.match(callable, /CALLABLE_OPERATOR/);
+    assert.equal(/EMAIL_USER\.value\s*\(/.test(callable), false);
+    assert.equal(/EMAIL_PASSWORD\.value\s*\(/.test(callable), false);
+    assert.equal(/OPERATOR_LEGAL_NAME\.value\s*\(/.test(callable), false);
+    assert.equal(/OPERATOR_STREET_ADDRESS\.value\s*\(/.test(callable), false);
+
+    const signup = fs.readFileSync(path.join(repoRoot, "replica/functions/signup.js"), "utf8");
+    assert.match(signup, /exports\.requestSignup = onCall\(\s*CALLABLE_MAIL/);
+    assert.match(signup, /exports\.verifyEmailCode = onCall\(\s*CALLABLE,/);
+
+    const pin = fs.readFileSync(path.join(repoRoot, "replica/functions/adminPin.js"), "utf8");
+    assert.match(pin, /exports\.recoverAdminPin = onCall\(\s*CALLABLE_MAIL/);
+    assert.match(pin, /exports\.setAdminPin = onCall\(\s*CALLABLE,/);
+
+    const reset = fs.readFileSync(path.join(repoRoot, "replica/functions/passwordReset.js"), "utf8");
+    assert.match(reset, /exports\.requestPasswordReset = onCall\(\s*CALLABLE_MAIL/);
+    assert.match(reset, /exports\.confirmPasswordReset = onCall\(\s*CALLABLE,/);
+
     const index = fs.readFileSync(path.join(repoRoot, "replica/functions/index.js"), "utf8");
     assert.match(index, /exports\.dailyResetAndStats/);
+    assert.match(index, /secrets:\s*EMAIL_SECRETS/);
     assert.equal(/^const nodemailer = require/m.test(index), false);
     assert.equal(/^admin\.initializeApp\(\)/m.test(index), false);
+
+    const billing = fs.readFileSync(path.join(repoRoot, "replica/functions/billing.js"), "utf8");
+    assert.match(billing, /exports\.getOperatorLegalIdentity = onCall\(\s*CALLABLE_OPERATOR/);
+    assert.match(billing, /exports\.createCheckoutSession = onCall\(\s*CALLABLE_STRIPE/);
+    assert.equal(/EMAIL_USER/.test(billing), false);
   });
 
   it("uses 2nd gen functions, not App Engine 1st gen", () => {
@@ -152,6 +176,21 @@ describe("replica functions deploy without optional email secrets", () => {
     const platform = fns.stripeWebhook.__endpoint?.platform || fns.bootstrapInstance.__endpoint?.platform;
     assert.equal(platform, "gcfv2");
     assert.equal(getApps().length, before);
+
+    const secretKeys = (fn) =>
+      (fn.__endpoint?.secretEnvironmentVariables || []).map((s) => s.key);
+    for (const name of ["EMAIL_USER", "EMAIL_PASSWORD", "EMAIL_FROM", "EMAIL_REPLY_TO", "EMAIL_SMTP_HOST", "EMAIL_SMTP_PORT"]) {
+      assert.equal(secretKeys(fns.requestSignup).includes(name), true, name);
+      assert.equal(secretKeys(fns.recoverAdminPin).includes(name), true, name);
+      assert.equal(secretKeys(fns.requestPasswordReset).includes(name), true, name);
+      assert.equal(secretKeys(fns.dailyResetAndStats).includes(name), true, name);
+      assert.equal(secretKeys(fns.createCheckoutSession).includes(name), false, name);
+      assert.equal(secretKeys(fns.verifyEmailCode).includes(name), false, name);
+    }
+    assert.equal(secretKeys(fns.getOperatorLegalIdentity).includes("OPERATOR_LEGAL_NAME"), true);
+    assert.equal(secretKeys(fns.getOperatorLegalIdentity).includes("OPERATOR_STREET_ADDRESS"), true);
+    assert.equal(secretKeys(fns.getOperatorLegalIdentity).includes("STRIPE_SECRET_KEY"), true);
+    assert.equal(secretKeys(fns.createCheckoutSession).includes("OPERATOR_LEGAL_NAME"), false);
   });
 
   it("deploy helpers always run firebase deploy and append extra args", () => {
@@ -160,6 +199,18 @@ describe("replica functions deploy without optional email secrets", () => {
     assert.equal(js.includes('args.length ? args : ["deploy"]'), false);
     const cmd = fs.readFileSync(path.join(repoRoot, "replica/scripts/deploy.cmd"), "utf8");
     assert.match(cmd, /firebase deploy %\*/);
+  });
+
+  it("documents one-time Secret Manager set commands and no Cloud Run env-var workaround", () => {
+    const readme = fs.readFileSync(path.join(repoRoot, "replica/README.md"), "utf8");
+    assert.match(readme, /firebase functions:secrets:set EMAIL_USER --project recompenses-test/);
+    assert.match(readme, /firebase functions:secrets:set EMAIL_PASSWORD --project recompenses-test/);
+    assert.match(readme, /firebase functions:secrets:set OPERATOR_LEGAL_NAME --project recompenses-test/);
+    assert.match(readme, /gcloud secrets create EMAIL_USER/);
+    assert.match(readme, /europe-west1/);
+    assert.match(readme, /update-env-vars/);
+    assert.match(readme, /contact@kidsrewardsystem\.com/);
+    assert.equal(readme.includes("sk_live"), false);
   });
 });
 

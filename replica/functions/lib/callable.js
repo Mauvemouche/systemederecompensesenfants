@@ -6,12 +6,42 @@ const { t, localeFromRequest } = require("./i18n");
 
 const REGION = "europe-west1";
 
-/** Bound only on Stripe functions. EMAIL_* are never declared so deploy works without them. */
+/** Bound only on Stripe functions. Never live keys. */
 const STRIPE_SECRET_KEY = defineSecret("STRIPE_SECRET_KEY");
 const STRIPE_WEBHOOK_SECRET = defineSecret("STRIPE_WEBHOOK_SECRET");
 
+/**
+ * Secret Manager names. Bound only on the functions that need them.
+ * Do not call .value() at module load (deploy discovery / container boot).
+ * Runtime reads process.env[name] the same way the mailer already does.
+ * Empty or missing at runtime → EMAIL_NOT_CONFIGURED / public contact only.
+ */
+const EMAIL_USER = defineSecret("EMAIL_USER");
+const EMAIL_PASSWORD = defineSecret("EMAIL_PASSWORD");
+const EMAIL_FROM = defineSecret("EMAIL_FROM");
+const EMAIL_REPLY_TO = defineSecret("EMAIL_REPLY_TO");
+const EMAIL_SMTP_HOST = defineSecret("EMAIL_SMTP_HOST");
+const EMAIL_SMTP_PORT = defineSecret("EMAIL_SMTP_PORT");
+const OPERATOR_LEGAL_NAME = defineSecret("OPERATOR_LEGAL_NAME");
+const OPERATOR_STREET_ADDRESS = defineSecret("OPERATOR_STREET_ADDRESS");
+
+const EMAIL_SECRETS = [
+  EMAIL_USER,
+  EMAIL_PASSWORD,
+  EMAIL_FROM,
+  EMAIL_REPLY_TO,
+  EMAIL_SMTP_HOST,
+  EMAIL_SMTP_PORT,
+];
+const OPERATOR_SECRETS = [OPERATOR_LEGAL_NAME, OPERATOR_STREET_ADDRESS];
+
 const CALLABLE = { region: REGION };
+const CALLABLE_MAIL = { region: REGION, secrets: EMAIL_SECRETS };
 const CALLABLE_STRIPE = { region: REGION, secrets: [STRIPE_SECRET_KEY] };
+const CALLABLE_OPERATOR = {
+  region: REGION,
+  secrets: [STRIPE_SECRET_KEY, ...OPERATOR_SECRETS],
+};
 
 function requireAuth(request) {
   if (!request.auth?.uid) {
@@ -52,8 +82,12 @@ module.exports = {
   REGION,
   STRIPE_SECRET_KEY,
   STRIPE_WEBHOOK_SECRET,
+  EMAIL_SECRETS,
+  OPERATOR_SECRETS,
   CALLABLE,
+  CALLABLE_MAIL,
   CALLABLE_STRIPE,
+  CALLABLE_OPERATOR,
   requireAuth,
   isHttpsError,
   rethrowAsHttps,
