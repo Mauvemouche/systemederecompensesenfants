@@ -25,6 +25,7 @@ const $ = (id) => document.getElementById(id);
 
 let pendingSignup = null;
 let pendingGiftMessage = false;
+let pendingResetEmail = null;
 
 function callFn(name, payload = {}) {
   if (!window.functions) throw new Error(t("err.functionsMissing"));
@@ -32,7 +33,7 @@ function callFn(name, payload = {}) {
 }
 
 function showPanel(name) {
-  ["auth", "verify", "checkout", "gift", "pin", "kids", "blocked"].forEach((key) => {
+  ["auth", "verify", "reset", "resetConfirm", "checkout", "gift", "pin", "kids", "blocked"].forEach((key) => {
     const el = $(`gate-${key}`);
     if (el) el.classList.toggle("hidden", key !== name);
   });
@@ -126,6 +127,8 @@ function syncAuthLabels() {
   }
   const legalWrap = $("acceptLegalWrap");
   if (legalWrap) legalWrap.hidden = !signup;
+  const forgotWrap = $("forgotPasswordWrap");
+  if (forgotWrap) forgotWrap.hidden = signup;
 }
 
 function billingLabel(state) {
@@ -153,6 +156,13 @@ function accountBar(state, user) {
   if (emailEl) emailEl.textContent = user.email || "";
   const billEl = $("accountBilling");
   if (billEl) billEl.textContent = billingLabel(state);
+  const optWrap = $("dailyEmailOptInWrap");
+  const opt = $("dailyEmailOptIn");
+  if (optWrap && opt) {
+    const show = !!(user && state?.isOwner && state?.hasAccess);
+    optWrap.classList.toggle("hidden", !show);
+    if (show) opt.checked = state.dailyEmailOptIn !== false;
+  }
 }
 
 async function refreshPaidLegalIdentity(state) {
@@ -264,7 +274,7 @@ async function routeState(state) {
   await applyState(state);
   if (!window.auth?.currentUser) {
     setGate(true);
-    showPanel(pendingSignup ? "verify" : "auth");
+    showPanel(pendingSignup ? "verify" : pendingResetEmail ? "resetConfirm" : "auth");
     return;
   }
   if (state.needsCheckout) {
@@ -341,7 +351,106 @@ function bindUi() {
     form.dataset.mode = signup ? "signup" : "login";
     syncAuthLabels();
     pendingSignup = null;
+    pendingResetEmail = null;
     showPanel("auth");
+  });
+
+  $("forgotPasswordLink")?.addEventListener("click", (e) => {
+    e.preventDefault();
+    setError("");
+    pendingResetEmail = null;
+    const email = $("authEmail")?.value.trim() || "";
+    if ($("resetEmail")) $("resetEmail").value = email;
+    showPanel("reset");
+    ($("resetEmail")?.value ? $("resetRequestSubmit") : $("resetEmail"))?.focus();
+  });
+
+  $("resetRequestForm")?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    setError("");
+    const email = $("resetEmail")?.value.trim() || "";
+    const submit = $("resetRequestSubmit");
+    if (submit) submit.disabled = true;
+    try {
+      await callFn("requestPasswordReset", { email });
+      pendingResetEmail = email;
+      if ($("authEmail")) $("authEmail").value = email;
+      showPanel("resetConfirm");
+      $("resetCode")?.focus();
+    } catch (err) {
+      setError(callableErrorMessage(err), callableErrorKey(err));
+    } finally {
+      if (submit) submit.disabled = false;
+    }
+  });
+
+  $("resetConfirmForm")?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    setError("");
+    const email = pendingResetEmail || $("resetEmail")?.value.trim() || $("authEmail")?.value.trim() || "";
+    const code = $("resetCode")?.value.trim() || "";
+    const password = $("resetPassword")?.value || "";
+    const submit = $("resetConfirmSubmit");
+    if (submit) submit.disabled = true;
+    try {
+      await callFn("confirmPasswordReset", { email, code, password });
+      pendingResetEmail = null;
+      await signInWithEmailAndPassword(window.auth, email, password);
+      const state = await refreshState();
+      await routeState(state);
+    } catch (err) {
+      setError(callableErrorMessage(err), callableErrorKey(err));
+    } finally {
+      if (submit) submit.disabled = false;
+    }
+  });
+
+  $("resetResendBtn")?.addEventListener("click", async (e) => {
+    e.preventDefault();
+    setError("");
+    const email = pendingResetEmail || $("resetEmail")?.value.trim() || $("authEmail")?.value.trim() || "";
+    if (!email) {
+      showPanel("reset");
+      return;
+    }
+    try {
+      await callFn("requestPasswordReset", { email });
+      pendingResetEmail = email;
+      const hint = $("resetResent");
+      if (hint) {
+        hint.style.display = "block";
+        hint.dataset.errorKey = "gate.resent";
+        hint.textContent = t("gate.resent");
+      }
+    } catch (err) {
+      setError(callableErrorMessage(err), callableErrorKey(err));
+    }
+  });
+
+  $("resetBackToAuthBtn")?.addEventListener("click", (e) => {
+    e.preventDefault();
+    pendingResetEmail = null;
+    showPanel("auth");
+  });
+
+  $("resetConfirmBackBtn")?.addEventListener("click", (e) => {
+    e.preventDefault();
+    pendingResetEmail = null;
+    showPanel("auth");
+  });
+
+  $("dailyEmailOptIn")?.addEventListener("change", async (e) => {
+    const checked = !!e.target.checked;
+    e.target.disabled = true;
+    try {
+      const res = await callFn("setDailyEmailOptIn", { optIn: checked });
+      await applyState(res.data);
+    } catch (err) {
+      e.target.checked = !checked;
+      setError(callableErrorMessage(err), callableErrorKey(err));
+    } finally {
+      e.target.disabled = false;
+    }
   });
 
   $("verifyForm")?.addEventListener("submit", async (e) => {
@@ -553,7 +662,7 @@ export function startReplicaGate() {
       setReferralOverlay(false);
       renderReferralThanks(null);
       setGate(true);
-      showPanel(pendingSignup ? "verify" : "auth");
+      showPanel(pendingSignup ? "verify" : pendingResetEmail ? "resetConfirm" : "auth");
       return;
     }
     try {

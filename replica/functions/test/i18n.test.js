@@ -64,6 +64,7 @@ describe("recovery and welcome emails follow the requested locale", () => {
         assert.match(body, /bière|pintje|Bier|beer/i);
         assert.match(body, /café|koffie|Kaffee|coffee/i);
         assert.match(body, /kidsrewardsystem@proton\.me/);
+        assert.match(body, /daily summary|samenvatting|résumé quotidien|tägliche Zusammenfassung/i);
       }
     }
   });
@@ -113,6 +114,8 @@ describe("UI locale files share the same keys", () => {
       "privacy.title",
       "legal.paidNote",
       "referral.thanks",
+      "gate.forgotPassword",
+      "header.dailyEmail",
       "terms.priceBody",
       "err.acceptedLegal",
     ]) {

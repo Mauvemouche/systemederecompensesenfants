@@ -31,7 +31,9 @@ Deploy **functions + hosting + firestore:rules**. Claims and per-family paths ne
 
 Runtime: Node **22**, region **europe-west1**. After deploy, register the Stripe sandbox webhook on the printed `stripeWebhook` URL (Cloud Functions URL or Cloud Run URL).
 
-Signup verification and Admin PIN recovery also use `EMAIL_USER` / `EMAIL_PASSWORD` at runtime. They are **not** bound with `defineSecret`, so deploy still works if they are missing. If they are unset, the callables return a localized error instead of sending mail. To actually send mail, set those env vars (or mount the existing secrets) on the Cloud Run services for `requestSignup`, `verifyEmailCode`, and `recoverAdminPin`.
+Signup verification, Admin PIN recovery, and password reset also use `EMAIL_USER` / `EMAIL_PASSWORD` at runtime. They are **not** bound with `defineSecret`, so deploy still works if they are missing. If they are unset, the callables return a localized error instead of sending mail. To actually send mail, set those env vars (or mount the existing secrets) on the Cloud Run services for `requestSignup`, `verifyEmailCode`, `requestPasswordReset`, `confirmPasswordReset`, and `recoverAdminPin`.
+
+Optional: `EMAIL_FROM` (display From, e.g. `kidsrewardsystem@proton.me`) and `EMAIL_REPLY_TO` (default `kidsrewardsystem@proton.me`). SMTP auth stays `EMAIL_USER` / `EMAIL_PASSWORD` (Gmail). Gmail “Send mail as” must verify the proton alias or Gmail will rewrite From to the gmail address.
 
 Languages: **nl, fr, de, en** (Dutch first). Unknown locale and default mail locale: **nl**.
 

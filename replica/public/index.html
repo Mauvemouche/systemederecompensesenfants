@@ -6,7 +6,7 @@
   <title>Système de récompenses</title>
 
   <!-- IMPORTANT: garde ton styles.css existant -->
-  <link rel="stylesheet" href="./styles.css?v=115" />
+  <link rel="stylesheet" href="./styles.css?v=116" />
 </head>
 
 <body>
@@ -27,6 +27,10 @@
             <button id="portalBtn" class="btn-refresh" type="button" data-i18n="header.portal"></button>
             <button id="changeAdminPinBtn" class="btn-refresh change-admin-pin-btn" type="button" data-i18n="header.changePin"></button>
             <button id="logoutBtn" class="btn-refresh" type="button" data-i18n="header.logout"></button>
+            <label id="dailyEmailOptInWrap" class="daily-email-optin hidden">
+              <input id="dailyEmailOptIn" type="checkbox" />
+              <span data-i18n="header.dailyEmail"></span>
+            </label>
           </div>
           <button id="adminModeBtn" class="admin-mode-btn" data-i18n-title="header.adminMode" title="" type="button">🔒</button>
           <button class="btn-refresh" id="refreshBtn" type="button" data-i18n="header.refresh"></button>
@@ -354,7 +358,41 @@
             <button id="authSubmit" class="btn btn-primary" type="submit" data-i18n="gate.login"></button>
           </div>
         </form>
-        <p><a href="#" id="toggleAuthMode" data-i18n="gate.toggleSignup"></a></p>
+        <p>
+          <a href="#" id="toggleAuthMode" data-i18n="gate.toggleSignup"></a>
+          <span id="forgotPasswordWrap"> · <a href="#" id="forgotPasswordLink" data-i18n="gate.forgotPassword"></a></span>
+        </p>
+      </section>
+
+      <section id="gate-reset" class="hidden">
+        <h2 data-i18n="gate.resetTitle"></h2>
+        <p class="gate-lead" data-i18n="gate.resetLead"></p>
+        <form id="resetRequestForm">
+          <label class="modal-label" for="resetEmail" data-i18n="gate.email"></label>
+          <input id="resetEmail" class="modal-input" type="email" autocomplete="email" required />
+          <p class="gate-error" role="alert" style="display:none;"></p>
+          <div class="modal-footer" style="margin-top:14px;">
+            <button id="resetRequestSubmit" class="btn btn-primary" type="submit" data-i18n="gate.resetSend"></button>
+          </div>
+        </form>
+        <p><a href="#" id="resetBackToAuthBtn" data-i18n="gate.back"></a></p>
+      </section>
+
+      <section id="gate-resetConfirm" class="hidden">
+        <h2 data-i18n="gate.resetConfirmTitle"></h2>
+        <p class="gate-lead" data-i18n="gate.resetConfirmLead"></p>
+        <form id="resetConfirmForm">
+          <label class="modal-label" for="resetCode" data-i18n="gate.verifyCode"></label>
+          <input id="resetCode" class="modal-input" type="text" inputmode="numeric" pattern="\d{6}" maxlength="6" autocomplete="one-time-code" required />
+          <label class="modal-label" for="resetPassword" data-i18n="gate.resetPassword"></label>
+          <input id="resetPassword" class="modal-input" type="password" autocomplete="new-password" required minlength="6" />
+          <p class="gate-error" role="alert" style="display:none;"></p>
+          <p id="resetResent" class="modal-hint" style="display:none; color:#2e7d32;"></p>
+          <div class="modal-footer" style="margin-top:14px;">
+            <button id="resetConfirmSubmit" class="btn btn-primary" type="submit" data-i18n="gate.resetSubmit"></button>
+          </div>
+        </form>
+        <p><a href="#" id="resetResendBtn" data-i18n="gate.resend"></a> · <a href="#" id="resetConfirmBackBtn" data-i18n="gate.back"></a></p>
       </section>
 
       <section id="gate-verify" class="hidden">

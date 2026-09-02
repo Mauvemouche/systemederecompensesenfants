@@ -441,6 +441,18 @@ exports.setFamilyLocale = onCall(
   })
 );
 
+exports.setDailyEmailOptIn = onCall(
+  CALLABLE,
+  wrapCallable("setDailyEmailOptIn", async (request) => {
+    const { uid } = requireAuth(request);
+    const locale = localeFromRequest(request);
+    const { familyId } = await requireFamilyOwner(uid, locale);
+    const optIn = request.data?.optIn !== false;
+    await settingsRef(familyId).set({ dailyEmailOptIn: optIn, updatedAt: serverTimestamp() }, { merge: true });
+    return loadState(familyId, uid);
+  })
+);
+
 exports.stripeWebhook = onRequest(
   {
     region: REGION,

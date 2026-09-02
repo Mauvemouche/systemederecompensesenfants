@@ -71,6 +71,10 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
+    match /reset_codes/{id} {
+      allow read, write: if false;
+    }
+
     match /referrals/{familyId} {
       allow read, write: if false;
     }

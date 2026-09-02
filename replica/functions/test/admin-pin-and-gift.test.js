@@ -74,6 +74,14 @@ describe("serializeState never leaks the PIN hash", () => {
     assert.equal(state.needsAdminPin, false);
     assert.equal(state.complimentaryForever, true);
     assert.equal(state.billing.complimentaryForever, true);
+    assert.equal(state.dailyEmailOptIn, true);
+    const optedOut = serializeState(
+      "fam1",
+      { status: "active", ownerUid: "u1", stripeSubscriptionId: "sub_1" },
+      { people: [{ id: "papa", name: "Papa", role: "parent" }], kidsNamed: true, adminPinHash: "x", dailyEmailOptIn: false },
+      "u1"
+    );
+    assert.equal(optedOut.dailyEmailOptIn, false);
   });
 });
 
@@ -94,6 +102,7 @@ describe("welcome email copy", () => {
       assert.match(body, /25/);
       assert.match(body, /bière/);
       assert.match(body, /kidsrewardsystem@proton\.me/);
+      assert.match(body, /résumé quotidien|écran d’accueil/);
     }
   });
 });

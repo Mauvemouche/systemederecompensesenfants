@@ -2,8 +2,18 @@
 
 const { t, normalizeLocale, bcp47 } = require("./i18n");
 
+const DEFAULT_REPLY_TO = "kidsrewardsystem@proton.me";
+
 function emailConfigured() {
   return !!(String(process.env.EMAIL_USER || "").trim() && String(process.env.EMAIL_PASSWORD || "").trim());
+}
+
+function mailFromAddress() {
+  return String(process.env.EMAIL_FROM || "").trim() || String(process.env.EMAIL_USER || "").trim();
+}
+
+function mailReplyTo() {
+  return String(process.env.EMAIL_REPLY_TO || "").trim() || DEFAULT_REPLY_TO;
 }
 
 function missingEmailMessage(locale) {
@@ -24,12 +34,15 @@ async function sendMail({ to, subject, html, text, locale }) {
   const user = process.env.EMAIL_USER;
   const pass = process.env.EMAIL_PASSWORD;
   const fromName = t(locale, "email.fromName");
+  const fromAddr = mailFromAddress();
   const transporter = nodemailer.createTransport({
     service: "gmail",
     auth: { user, pass },
   });
+  // Gmail “Send mail as” must verify the proton alias or Gmail will rewrite From to the gmail address.
   await transporter.sendMail({
-    from: `"${fromName}" <${user}>`,
+    from: `"${fromName}" <${fromAddr}>`,
+    replyTo: mailReplyTo(),
     to,
     subject,
     html,
@@ -91,6 +104,7 @@ function welcomeVerifyEmailHtml(code, locale) {
     </ul>
     <h3 style="margin:16px 0 8px;font-size:16px;">${t(loc, "email.welcome.pricesTitle")}</h3>
     <p style="margin:0 0 12px;color:#333;line-height:1.5;">${t(loc, "email.welcome.prices")}</p>
+    <p style="margin:0 0 12px;color:#333;line-height:1.5;">${t(loc, "email.welcome.dailyEmail")}</p>
     <p style="margin:0;color:#333;line-height:1.5;">${t(loc, "email.welcome.contact")}</p>
     `
   );
@@ -109,6 +123,8 @@ ${t(loc, "email.welcome.afterCodeText")}
 ${t(loc, "email.welcome.adminText")}
 
 ${t(loc, "email.welcome.pricesText")}
+
+${t(loc, "email.welcome.dailyEmailText")}
 
 ${t(loc, "email.welcome.contactText")}
 
@@ -148,15 +164,50 @@ ${t(loc, "email.dad")}
 ${legalEmailText(loc)}`;
 }
 
+function resetPasswordEmailHtml(code, locale) {
+  const loc = normalizeLocale(locale);
+  const digits = String(code);
+  return wrapEmail(
+    loc,
+    t(loc, "email.reset.title"),
+    `
+    <h2 style="margin:0 0 10px;font-size:22px;">${t(loc, "email.reset.title")}</h2>
+    <p style="margin:0 0 12px;color:#333;line-height:1.5;">${t(loc, "email.reset.body")}</p>
+    <div style="font-size:32px;letter-spacing:8px;font-weight:800;text-align:center;padding:14px 0 18px;font-family:Arial,Helvetica,sans-serif;">
+      ${digits}
+    </div>
+    <p style="margin:0 0 12px;color:#333;line-height:1.5;">${t(loc, "email.reset.after")}</p>
+    `
+  );
+}
+
+function resetPasswordEmailText(code, locale) {
+  const loc = normalizeLocale(locale);
+  return `${t(loc, "email.reset.title")}
+
+${t(loc, "email.reset.body")} ${code}
+
+${t(loc, "email.reset.afterText")}
+
+${t(loc, "email.dad")}
+
+${legalEmailText(loc)}`;
+}
+
 module.exports = {
+  DEFAULT_REPLY_TO,
   emailConfigured,
   missingEmailMessage,
   requireEmailConfigured,
+  mailFromAddress,
+  mailReplyTo,
   sendMail,
   welcomeVerifyEmailHtml,
   welcomeVerifyEmailText,
   recoverPinEmailHtml,
   recoverPinEmailText,
+  resetPasswordEmailHtml,
+  resetPasswordEmailText,
   publicOrigin,
   bcp47,
 };

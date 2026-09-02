@@ -13,6 +13,7 @@ Object.assign(exports, billingFns);
 Object.assign(exports, require("./signup"));
 Object.assign(exports, require("./adminPin"));
 Object.assign(exports, require("./referrals"));
+Object.assign(exports, require("./passwordReset"));
 
 /* =========================================================
    CONFIG
@@ -451,10 +452,15 @@ exports.dailyResetAndStats = onSchedule(
           console.log(`✅ Famille ${familyId} : ${resetCount} reset, ${deleteCount} supprimées.`);
         }
 
-        const familySnap = await families.familyRef(familyId).get();
-        const ownerEmail = familySnap.exists ? familySnap.data().ownerEmail : "";
-        const html = generateEmailHtml(stats, resetCount, deleteCount, isFirstDayOfMonth, people);
-        await sendEmail(`✅ Rapport Quotidien - ${stats.dayName} ${stats.date}`, html, ownerEmail);
+        const settings = await families.readFamilySettings(familyId);
+        if (families.wantsDailySummaryEmail(settings)) {
+          const familySnap = await families.familyRef(familyId).get();
+          const ownerEmail = familySnap.exists ? familySnap.data().ownerEmail : "";
+          const html = generateEmailHtml(stats, resetCount, deleteCount, isFirstDayOfMonth, people);
+          await sendEmail(`✅ Rapport Quotidien - ${stats.dayName} ${stats.date}`, html, ownerEmail);
+        } else {
+          console.log(`⏭️ Famille ${familyId} : daily summary email opted out.`);
+        }
 
         await markRunDone(runRef);
       } catch (error) {

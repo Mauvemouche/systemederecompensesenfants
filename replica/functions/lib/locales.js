@@ -43,6 +43,7 @@ const fr = {
   "err.acceptedLegal": "Accepte les conditions et la politique de confidentialité pour créer un compte.",
   "err.referralOnce": "Le parrainage de cette famille est déjà enregistré.",
   "err.referralName": "Indique un prénom et un nom (sans lien ni email), ou passe cette étape.",
+  "err.resetMailFailed": "Impossible d’envoyer l’email de réinitialisation. Réessaie dans un instant.",
   "email.fromName": "Système de récompenses",
   "email.signoff": "À très vite,",
   "email.dad": "Un papa belge",
@@ -72,6 +73,10 @@ const fr = {
   "email.welcome.contact":
     "Une idée, une plainte, un « ça bug » ? Écris à <a href=\"mailto:kidsrewardsystem@proton.me\">kidsrewardsystem@proton.me</a>.",
   "email.welcome.contactText": "Suggestions / plaintes : kidsrewardsystem@proton.me",
+  "email.welcome.dailyEmail":
+    "Tu recevras un résumé quotidien par email. Tu pourras le désactiver sur l’écran d’accueil.",
+  "email.welcome.dailyEmailText":
+    "Tu recevras un résumé quotidien par email. Tu pourras le désactiver sur l’écran d’accueil.",
   "email.recover.subject": "Nouveau code Admin",
   "email.recover.title": "Nouveau code Admin",
   "email.recover.body":
@@ -80,6 +85,14 @@ const fr = {
     "En mode Admin, tu pourras le changer. Si tu n’as pas fait cette demande, change le code dès que tu peux, et écris-nous à <a href=\"mailto:kidsrewardsystem@proton.me\">kidsrewardsystem@proton.me</a>.",
   "email.recover.afterText":
     "En mode Admin, tu pourras le changer. Si tu n’as pas fait cette demande, écris à kidsrewardsystem@proton.me.",
+  "email.reset.subject": "Ton code pour réinitialiser le mot de passe",
+  "email.reset.title": "Réinitialiser le mot de passe",
+  "email.reset.body":
+    "Quelqu’un a demandé à changer le mot de passe de ce compte. Voici le code à 6 chiffres (valable 15 minutes) :",
+  "email.reset.after":
+    "Entre-le dans l’appli avec ton nouveau mot de passe. Si tu n’as pas fait cette demande, ignore cet email.",
+  "email.reset.afterText":
+    "Entre-le dans l’appli avec ton nouveau mot de passe. Si tu n’as pas fait cette demande, ignore cet email.",
   "email.legalHtml":
     "<a href=\"{origin}/privacy.html\">Confidentialité</a> · <a href=\"{origin}/terms.html\">Conditions</a>",
   "email.legalText": "Confidentialité : {origin}/privacy.html\nConditions : {origin}/terms.html",
@@ -126,6 +139,7 @@ const nl = {
   "err.acceptedLegal": "Aanvaard de voorwaarden en de privacyverklaring om een account aan te maken.",
   "err.referralOnce": "De doorverwijzing van dit gezin is al opgeslagen.",
   "err.referralName": "Vul een voornaam en naam in (geen link of e-mail), of sla deze stap over.",
+  "err.resetMailFailed": "De herstelmail kon niet worden verstuurd. Probeer zo meteen opnieuw.",
   "email.fromName": "Beloningssysteem",
   "email.signoff": "Tot gauw,",
   "email.dad": "Een Belgische papa",
@@ -155,6 +169,10 @@ const nl = {
   "email.welcome.contact":
     "Een idee, een klacht, een « het bugt »? Schrijf naar <a href=\"mailto:kidsrewardsystem@proton.me\">kidsrewardsystem@proton.me</a>.",
   "email.welcome.contactText": "Suggesties / klachten: kidsrewardsystem@proton.me",
+  "email.welcome.dailyEmail":
+    "Je krijgt dagelijks een samenvatting per e-mail. Je kunt dat uitzetten op het startscherm.",
+  "email.welcome.dailyEmailText":
+    "Je krijgt dagelijks een samenvatting per e-mail. Je kunt dat uitzetten op het startscherm.",
   "email.recover.subject": "Nieuwe Admin-code",
   "email.recover.title": "Nieuwe Admin-code",
   "email.recover.body":
@@ -163,6 +181,14 @@ const nl = {
     "In Admin-modus kun je hem wijzigen. Als jij deze aanvraag niet hebt gedaan, wijzig de code zo snel je kunt en schrijf naar <a href=\"mailto:kidsrewardsystem@proton.me\">kidsrewardsystem@proton.me</a>.",
   "email.recover.afterText":
     "In Admin-modus kun je hem wijzigen. Als jij deze aanvraag niet hebt gedaan, schrijf naar kidsrewardsystem@proton.me.",
+  "email.reset.subject": "Je code om het wachtwoord te herstellen",
+  "email.reset.title": "Wachtwoord herstellen",
+  "email.reset.body":
+    "Iemand heeft gevraagd het wachtwoord van dit account te wijzigen. Hier is de code van 6 cijfers (15 minuten geldig):",
+  "email.reset.after":
+    "Vul hem in de app in samen met je nieuwe wachtwoord. Als jij dit niet hebt gevraagd, negeer deze e-mail.",
+  "email.reset.afterText":
+    "Vul hem in de app in samen met je nieuwe wachtwoord. Als jij dit niet hebt gevraagd, negeer deze e-mail.",
   "email.legalHtml":
     "<a href=\"{origin}/privacy.html\">Privacy</a> · <a href=\"{origin}/terms.html\">Voorwaarden</a>",
   "email.legalText": "Privacy: {origin}/privacy.html\nVoorwaarden: {origin}/terms.html",
@@ -209,6 +235,7 @@ const de = {
   "err.acceptedLegal": "Bitte akzeptiere die Bedingungen und die Datenschutzerklärung, um ein Konto zu erstellen.",
   "err.referralOnce": "Die Empfehlung dieser Familie ist bereits gespeichert.",
   "err.referralName": "Gib Vor- und Nachnamen ein (kein Link und keine E-Mail), oder überspringe diesen Schritt.",
+  "err.resetMailFailed": "Die Zurücksetz-E-Mail konnte nicht gesendet werden. Versuch es gleich noch einmal.",
   "email.fromName": "Belohnungssystem",
   "email.signoff": "Bis gleich,",
   "email.dad": "Ein belgischer Papa",
@@ -238,6 +265,10 @@ const de = {
   "email.welcome.contact":
     "Eine Idee, eine Beschwerde, ein « das bugt »? Schreib an <a href=\"mailto:kidsrewardsystem@proton.me\">kidsrewardsystem@proton.me</a>.",
   "email.welcome.contactText": "Ideen / Beschwerden: kidsrewardsystem@proton.me",
+  "email.welcome.dailyEmail":
+    "Du bekommst eine tägliche Zusammenfassung per E-Mail. Du kannst sie auf dem Startbildschirm abschalten.",
+  "email.welcome.dailyEmailText":
+    "Du bekommst eine tägliche Zusammenfassung per E-Mail. Du kannst sie auf dem Startbildschirm abschalten.",
   "email.recover.subject": "Neuer Admin-Code",
   "email.recover.title": "Neuer Admin-Code",
   "email.recover.body":
@@ -246,6 +277,14 @@ const de = {
     "Im Admin-Modus kannst du ihn ändern. Wenn du das nicht angefordert hast, ändere den Code so schnell du kannst und schreib an <a href=\"mailto:kidsrewardsystem@proton.me\">kidsrewardsystem@proton.me</a>.",
   "email.recover.afterText":
     "Im Admin-Modus kannst du ihn ändern. Wenn du das nicht angefordert hast, schreib an kidsrewardsystem@proton.me.",
+  "email.reset.subject": "Dein Code zum Zurücksetzen des Passworts",
+  "email.reset.title": "Passwort zurücksetzen",
+  "email.reset.body":
+    "Jemand hat gebeten, das Passwort dieses Kontos zu ändern. Hier ist der 6-stellige Code (15 Minuten gültig):",
+  "email.reset.after":
+    "Gib ihn in der App zusammen mit deinem neuen Passwort ein. Wenn du das nicht angefordert hast, ignoriere diese E-Mail.",
+  "email.reset.afterText":
+    "Gib ihn in der App zusammen mit deinem neuen Passwort ein. Wenn du das nicht angefordert hast, ignoriere diese E-Mail.",
   "email.legalHtml":
     "<a href=\"{origin}/privacy.html\">Datenschutz</a> · <a href=\"{origin}/terms.html\">Bedingungen</a>",
   "email.legalText": "Datenschutz: {origin}/privacy.html\nBedingungen: {origin}/terms.html",
@@ -292,6 +331,7 @@ const en = {
   "err.acceptedLegal": "Accept the Terms and Privacy policy to create an account.",
   "err.referralOnce": "This family’s referral is already saved.",
   "err.referralName": "Enter a first and last name (no link or email), or skip this step.",
+  "err.resetMailFailed": "Couldn’t send the reset email. Try again in a moment.",
   "email.fromName": "Rewards system",
   "email.signoff": "See you soon,",
   "email.dad": "A Belgian dad",
@@ -321,6 +361,10 @@ const en = {
   "email.welcome.contact":
     "An idea, a complaint, a “it’s buggy”? Write to <a href=\"mailto:kidsrewardsystem@proton.me\">kidsrewardsystem@proton.me</a>.",
   "email.welcome.contactText": "Suggestions / complaints: kidsrewardsystem@proton.me",
+  "email.welcome.dailyEmail":
+    "You’ll get a daily summary by email. You can turn it off on the home screen.",
+  "email.welcome.dailyEmailText":
+    "You’ll get a daily summary by email. You can turn it off on the home screen.",
   "email.recover.subject": "New Admin code",
   "email.recover.title": "New Admin code",
   "email.recover.body":
@@ -329,6 +373,14 @@ const en = {
     "In Admin mode, you can change it. If you didn’t request this, change the code as soon as you can and write to <a href=\"mailto:kidsrewardsystem@proton.me\">kidsrewardsystem@proton.me</a>.",
   "email.recover.afterText":
     "In Admin mode, you can change it. If you didn’t request this, write to kidsrewardsystem@proton.me.",
+  "email.reset.subject": "Your password reset code",
+  "email.reset.title": "Reset your password",
+  "email.reset.body":
+    "Someone asked to change the password for this account. Here’s the 6-digit code (valid for 15 minutes):",
+  "email.reset.after":
+    "Enter it in the app with your new password. If you didn’t request this, ignore this email.",
+  "email.reset.afterText":
+    "Enter it in the app with your new password. If you didn’t request this, ignore this email.",
   "email.legalHtml":
     "<a href=\"{origin}/privacy.html\">Privacy</a> · <a href=\"{origin}/terms.html\">Terms</a>",
   "email.legalText": "Privacy: {origin}/privacy.html\nTerms: {origin}/terms.html",

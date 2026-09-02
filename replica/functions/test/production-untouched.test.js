@@ -142,10 +142,13 @@ describe("replica functions deploy without optional email secrets", () => {
     assert.equal(typeof fns.changeAdminPin, "function");
     assert.equal(typeof fns.recoverAdminPin, "function");
     assert.equal(typeof fns.setFamilyLocale, "function");
+    assert.equal(typeof fns.setDailyEmailOptIn, "function");
     assert.equal(typeof fns.getOperatorLegalIdentity, "function");
     assert.equal(typeof fns.submitReferral, "function");
     assert.equal(typeof fns.skipReferral, "function");
     assert.equal(typeof fns.refreshReferralBest, "function");
+    assert.equal(typeof fns.requestPasswordReset, "function");
+    assert.equal(typeof fns.confirmPasswordReset, "function");
     const platform = fns.stripeWebhook.__endpoint?.platform || fns.bootstrapInstance.__endpoint?.platform;
     assert.equal(platform, "gcfv2");
     assert.equal(getApps().length, before);
@@ -225,6 +228,8 @@ describe("replica parent gate UX", () => {
     assert.equal(js.includes("setError(err.message || \"Connexion impossible\")"), false);
     assert.match(js, /requestSignup/);
     assert.match(js, /verifyEmailCode/);
+    assert.match(js, /requestPasswordReset/);
+    assert.match(js, /confirmPasswordReset/);
     assert.equal(js.includes("createUserWithEmailAndPassword"), false);
   });
 });

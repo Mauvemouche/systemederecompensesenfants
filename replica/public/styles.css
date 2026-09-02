@@ -841,6 +841,16 @@ body{
 .account-bar #changeAdminPinBtn{ padding:8px 12px; font-size:13px; }
 .change-admin-pin-btn{ display:none; }
 .admin-mode-active .change-admin-pin-btn{ display:inline-flex; }
+.daily-email-optin{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  color:#fff;
+  font-weight:800;
+  font-size:12px;
+  cursor:pointer;
+}
+.daily-email-optin.hidden{ display:none; }
 .referral-thanks{
   margin:10px 0 0;
   padding:8px 12px;

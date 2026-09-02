@@ -127,9 +127,14 @@ function emptySettings(now, locale) {
     people: DEFAULT_FAMILY,
     kidsNamed: true,
     locale: normalizeLocale(locale),
+    dailyEmailOptIn: true,
     createdAt: now,
     updatedAt: now,
   };
+}
+
+function wantsDailySummaryEmail(settings) {
+  return settings?.dailyEmailOptIn !== false;
 }
 
 async function setFamilyClaim(uid, familyId) {
@@ -355,6 +360,7 @@ module.exports = {
   familyIdFromStripe,
   emptyBilling,
   emptySettings,
+  wantsDailySummaryEmail,
   setFamilyClaim,
   readFamilyBilling,
   readFamilySettings,

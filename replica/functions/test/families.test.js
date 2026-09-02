@@ -14,6 +14,8 @@ const {
   chooseFamilyResolution,
   familyIdFromStripe,
   LEGACY_OWNER_EMAIL,
+  emptySettings,
+  wantsDailySummaryEmail,
 } = require("../lib/families");
 
 describe("multi-family isolation helpers", () => {
@@ -131,6 +133,17 @@ describe("replica platform is multi-family on one URL", () => {
     assert.match(families, /chooseFamilyResolution/);
   });
 
+  it("defaults daily summary emails on and treats a missing flag as opted in", () => {
+    assert.equal(emptySettings(1, "en").dailyEmailOptIn, true);
+    assert.equal(wantsDailySummaryEmail(undefined), true);
+    assert.equal(wantsDailySummaryEmail({}), true);
+    assert.equal(wantsDailySummaryEmail({ dailyEmailOptIn: true }), true);
+    assert.equal(wantsDailySummaryEmail({ dailyEmailOptIn: false }), false);
+    const cron = fs.readFileSync(path.join(repoRoot, "replica/functions/index.js"), "utf8");
+    assert.match(cron, /wantsDailySummaryEmail\(settings\)/);
+    assert.match(cron, /daily summary email opted out/);
+  });
+
   it("scopes Firestore rules to token.familyId and denies root collections", () => {
     const rules = fs.readFileSync(path.join(repoRoot, "replica/firestore.rules"), "utf8");
     assert.match(rules, /request\.auth\.token\.familyId == familyId/);
@@ -141,6 +154,7 @@ describe("replica platform is multi-family on one URL", () => {
     assert.match(rules, /referral_best/);
     assert.equal(rules.includes("referral_month_"), false);
     assert.match(rules, /match \/referrals\/\{familyId\}/);
+    assert.match(rules, /reset_codes/);
     assert.equal(rules.includes("function billingDoc()"), false);
   });
 

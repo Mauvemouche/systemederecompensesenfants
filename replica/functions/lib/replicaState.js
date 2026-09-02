@@ -40,6 +40,7 @@ function serializeState(familyId, billing, settings, uid, extras = {}) {
     locale: normalizeLocale(settingsData.locale),
     needsReferralPrompt: extras.referral?.status === "pending",
     referralThanks: extras.referralThanks && extras.referralThanks.count > 0 ? extras.referralThanks : null,
+    dailyEmailOptIn: settingsData.dailyEmailOptIn !== false,
   };
 }
 
