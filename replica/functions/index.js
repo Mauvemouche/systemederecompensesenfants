@@ -1,8 +1,11 @@
 "use strict";
 
-const functions = require("firebase-functions/v1");
+const { setGlobalOptions } = require("firebase-functions/v2");
+const { onSchedule } = require("firebase-functions/v2/scheduler");
 const family = require("./lib/family");
 const { admin, db } = require("./lib/adminApp");
+
+setGlobalOptions({ region: "europe-west1" });
 
 const billingFns = require("./billing");
 Object.assign(exports, billingFns);
@@ -368,21 +371,22 @@ function generateEmailHtml(stats, resetCount, deleteCount, isFirstDayOfMonth, pe
 }
 
 /* =========================================================
-   DAILY CRON (v1) — 06:00 Europe/Paris
+   DAILY CRON (2nd gen) — 06:00 Europe/Paris
    - Rapport = VEILLE (J-1 Paris)
    - Anti double-envoi
    - Stats alignées UI
    - Reset + cleanup
+   - EMAIL_* not bound (optional at runtime)
 ========================================================= */
 
-exports.dailyResetAndStats = functions
-  .region("europe-west1")
-  .runWith({
+exports.dailyResetAndStats = onSchedule(
+  {
+    region: "europe-west1",
+    schedule: "0 6 * * *",
+    timeZone: "Europe/Paris",
     timeoutSeconds: 300,
-  })
-  .pubsub.schedule("0 6 * * *")
-  .timeZone("Europe/Paris")
-  .onRun(async () => {
+  },
+  async () => {
     console.log("🔄 Début du cycle quotidien");
 
     const execNow = nowParis();

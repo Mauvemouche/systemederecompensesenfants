@@ -29,6 +29,7 @@ describe("Anthony's live family app stays a separate instance", () => {
     const index = fs.readFileSync(path.join(repoRoot, "functions/index.js"), "utf8");
     assert.equal(index.includes("stripeWebhook"), false);
     assert.equal(index.includes("bootstrapHousehold"), false);
+    assert.match(index, /firebase-functions\/v1/);
     assert.match(index, /const PEOPLE = \["papa", "maman", "florent", "harry"\]/);
   });
 
@@ -91,11 +92,38 @@ describe("replica functions deploy without optional email secrets", () => {
   });
 
   it("does not bind EMAIL_* secrets on dailyResetAndStats", () => {
+    const files = [
+      "replica/functions/index.js",
+      "replica/functions/billing.js",
+      "replica/functions/lib/callable.js",
+    ];
+    for (const rel of files) {
+      const src = fs.readFileSync(path.join(repoRoot, rel), "utf8");
+      assert.equal(/defineSecret\(\s*["']EMAIL_/.test(src), false, rel);
+      assert.equal(/secrets:\s*\[[^\]]*EMAIL_/.test(src), false, rel);
+    }
     const index = fs.readFileSync(path.join(repoRoot, "replica/functions/index.js"), "utf8");
     assert.match(index, /exports\.dailyResetAndStats/);
-    assert.equal(/secrets:\s*\[[^\]]*EMAIL_/.test(index), false);
     assert.equal(/^const nodemailer = require/m.test(index), false);
     assert.equal(/^admin\.initializeApp\(\)/m.test(index), false);
+  });
+
+  it("uses 2nd gen functions, not App Engine 1st gen", () => {
+    const files = [
+      "replica/functions/index.js",
+      "replica/functions/billing.js",
+      "replica/functions/lib/callable.js",
+    ];
+    for (const rel of files) {
+      const src = fs.readFileSync(path.join(repoRoot, rel), "utf8");
+      assert.equal(src.includes("firebase-functions/v1"), false, rel);
+    }
+    const index = fs.readFileSync(path.join(repoRoot, "replica/functions/index.js"), "utf8");
+    const billing = fs.readFileSync(path.join(repoRoot, "replica/functions/billing.js"), "utf8");
+    assert.match(index, /firebase-functions\/v2/);
+    assert.match(index, /onSchedule/);
+    assert.match(billing, /onCall/);
+    assert.match(billing, /onRequest/);
   });
 
   it("loads function exports without initializing the Admin SDK", () => {
@@ -103,6 +131,8 @@ describe("replica functions deploy without optional email secrets", () => {
     assert.equal(typeof fns.dailyResetAndStats, "function");
     assert.equal(typeof fns.bootstrapInstance, "function");
     assert.equal(typeof fns.stripeWebhook, "function");
+    const platform = fns.stripeWebhook.__endpoint?.platform || fns.bootstrapInstance.__endpoint?.platform;
+    assert.equal(platform, "gcfv2");
     const admin = require("firebase-admin");
     assert.equal(admin.apps.length, 0);
   });

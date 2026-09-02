@@ -40,7 +40,8 @@ console.log(`
 Next steps (Anthony — do not deploy this onto systemederecompensesenfants.web.app):
 
 1. Create a NEW Firebase project named ${projectId} (separate Firestore database).
-2. Enable Authentication (Email/Password), Firestore, Hosting, and Functions (Node 22, europe-west1).
+2. Enable Authentication (Email/Password), Firestore, Hosting, and Cloud Functions (2nd gen, Node 22, europe-west1).
+   Replica functions do not need the App Engine default SA (PROJECT@appspot.gserviceaccount.com).
 3. Register a web app and paste the sdk config into replica/public/js/firebase-config.js
    (replace every YOUR_REPLICA_* placeholder).
 4. Set sandbox Stripe secrets (never sk_live). These are required for Checkout:
@@ -60,7 +61,8 @@ Next steps (Anthony — do not deploy this onto systemederecompensesenfants.web.
      firebase deploy
    or run scripts\\deploy.cmd
    (CLI default discovery timeout is 10s.)
-6. In Stripe sandbox, add a webhook to:
+6. In Stripe sandbox, add a webhook to the URL printed by deploy for `stripeWebhook`
+   (2nd gen). Typical:
      https://europe-west1-${projectId}.cloudfunctions.net/stripeWebhook
    Events: checkout.session.completed, customer.subscription.created,
            customer.subscription.updated, customer.subscription.deleted,

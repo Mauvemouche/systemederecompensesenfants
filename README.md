@@ -71,7 +71,9 @@ $env:FUNCTIONS_DISCOVERY_TIMEOUT = "60"
 firebase deploy
 ```
 
-Or double-click / run `replica/scripts/deploy.cmd`. Replica functions use **Node 22**. Deploying from the repo root still only targets Anthony's `public/` + `public-qa/` hosting — replica hosting is **not** wired into root `firebase.json` on purpose.
+Replica functions are **2nd gen** (Cloud Run / Compute default SA). They do **not** need `PROJECT@appspot.gserviceaccount.com`. 1st gen does — do not use 1st gen on a project where that App Engine SA is missing.
+
+Or run `replica/scripts/deploy.cmd`. Deploying from the repo root still only targets Anthony's `public/` + `public-qa/` hosting — replica hosting is **not** wired into root `firebase.json` on purpose.
 
 ### QA path (per replica)
 

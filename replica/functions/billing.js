@@ -1,18 +1,21 @@
 "use strict";
 
-const functions = require("firebase-functions/v1");
 const { admin, db, ensureApp } = require("./lib/adminApp");
 const { hasAppAccess, needsCheckout, needsKidsSetup, billingFromSubscription } = require("./lib/access");
 const { peopleFromChildNames, DEFAULT_FAMILY } = require("./lib/family");
 const { buildCheckoutSessionParams, resolvePriceId, assertSandboxKey } = require("./lib/stripeCheckout");
 const { stripeRequest, verifyStripeSignature } = require("./lib/stripeHttp");
-
-function requireAuth(context) {
-  if (!context.auth?.uid) {
-    throw new functions.https.HttpsError("unauthenticated", "Connecte-toi pour continuer.");
-  }
-  return { uid: context.auth.uid, email: context.auth.token.email || null };
-}
+const {
+  onCall,
+  onRequest,
+  HttpsError,
+  REGION,
+  STRIPE_SECRET_KEY,
+  STRIPE_WEBHOOK_SECRET,
+  CALLABLE,
+  CALLABLE_STRIPE,
+  requireAuth,
+} = require("./lib/callable");
 
 function instanceId() {
   return process.env.GCLOUD_PROJECT || ensureApp().options.projectId || "replica";
@@ -48,17 +51,18 @@ async function readSettings() {
 async function assertOwner(uid) {
   const billing = await readBilling();
   if (!billing?.ownerUid) {
-    throw new functions.https.HttpsError("failed-precondition", "Instance non initialisée.");
+    throw new HttpsError("failed-precondition", "Instance non initialisée.");
   }
   if (billing.ownerUid !== uid) {
-    throw new functions.https.HttpsError("permission-denied", "Seul le parent titulaire peut faire ça.");
+    throw new HttpsError("permission-denied", "Seul le parent titulaire peut faire ça.");
   }
   return billing;
 }
 
-exports.bootstrapInstance = functions.region("europe-west1").https.onCall(async (data, context) => {
-  const { uid, email } = requireAuth(context);
-  const plan = data?.plan === "yearly" ? "yearly" : "monthly";
+exports.bootstrapInstance = onCall(CALLABLE, async (request) => {
+  const { uid, email } = requireAuth(request);
+  const data = request.data || {};
+  const plan = data.plan === "yearly" ? "yearly" : "monthly";
   const now = admin.firestore.FieldValue.serverTimestamp();
 
   const billingRef = db().collection("billing").doc("current");
@@ -83,7 +87,7 @@ exports.bootstrapInstance = functions.region("europe-west1").https.onCall(async 
     } else {
       const current = billingSnap.data() || {};
       if (current.ownerUid && current.ownerUid !== uid) {
-        throw new functions.https.HttpsError(
+        throw new HttpsError(
           "permission-denied",
           "Cette instance appartient déjà à un autre parent."
         );
@@ -113,118 +117,113 @@ exports.bootstrapInstance = functions.region("europe-west1").https.onCall(async 
   return serializeState(await readBilling(), await readSettings(), uid);
 });
 
-exports.createCheckoutSession = functions
-  .region("europe-west1")
-  .runWith({ secrets: ["STRIPE_SECRET_KEY"] })
-  .https.onCall(async (data, context) => {
-    const { uid, email } = requireAuth(context);
-    const billing = await assertOwner(uid);
-    if (!needsCheckout(billing)) {
-      throw new functions.https.HttpsError("failed-precondition", "Un abonnement est déjà actif.");
-    }
-
-    const origin = String(data?.origin || "").replace(/\/$/, "");
-    if (!origin || !/^https?:\/\//i.test(origin)) {
-      throw new functions.https.HttpsError("invalid-argument", "origin HTTPS requis.");
-    }
-
-    const plan = data?.plan === "yearly" ? "yearly" : billing.plan || "monthly";
-    const secret = process.env.STRIPE_SECRET_KEY;
-    assertSandboxKey(secret);
-
-    const params = buildCheckoutSessionParams({
-      instanceId: instanceId(),
-      uid,
-      email,
-      plan,
-      origin,
-    });
-
-    const session = await stripeRequest("POST", "/checkout/sessions", params, secret);
-
-    await db().collection("billing").doc("current").set(
-      {
-        plan,
-        checkoutSessionId: session.id,
-        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
-      },
-      { merge: true }
-    );
-
-    return { url: session.url, id: session.id, priceId: resolvePriceId(plan) };
-  });
-
-exports.confirmCheckoutSession = functions
-  .region("europe-west1")
-  .runWith({ secrets: ["STRIPE_SECRET_KEY"] })
-  .https.onCall(async (data, context) => {
-    const { uid } = requireAuth(context);
-    await assertOwner(uid);
-
-    const sessionId = data?.sessionId;
-    if (!sessionId || !String(sessionId).startsWith("cs_test_")) {
-      throw new functions.https.HttpsError(
-        "invalid-argument",
-        "sessionId sandbox (cs_test_…) requis. Les sessions live sont refusées."
-      );
-    }
-
-    const secret = process.env.STRIPE_SECRET_KEY;
-    const session = await stripeRequest(
-      "GET",
-      `/checkout/sessions/${sessionId}`,
-      { expand: ["subscription"] },
-      secret
-    );
-
-    if (session.livemode) {
-      throw new functions.https.HttpsError("failed-precondition", "Événement live refusé (sandbox only).");
-    }
-
-    let sub = session.subscription;
-    if (typeof sub === "string") {
-      sub = await stripeRequest("GET", `/subscriptions/${sub}`, {}, secret);
-    }
-
-    if (sub && sub.id) {
-      await applyBilling(billingFromSubscription(sub, { customerId: session.customer }));
-    }
-
-    return serializeState(await readBilling(), await readSettings(), uid);
-  });
-
-exports.createPortalSession = functions
-  .region("europe-west1")
-  .runWith({ secrets: ["STRIPE_SECRET_KEY"] })
-  .https.onCall(async (data, context) => {
-    const { uid } = requireAuth(context);
-    const billing = await assertOwner(uid);
-    if (!billing.stripeCustomerId) {
-      throw new functions.https.HttpsError("failed-precondition", "Pas encore de client Stripe.");
-    }
-    const origin = String(data?.origin || "").replace(/\/$/, "");
-    if (!origin) throw new functions.https.HttpsError("invalid-argument", "origin requis.");
-
-    const session = await stripeRequest(
-      "POST",
-      "/billing_portal/sessions",
-      { customer: billing.stripeCustomerId, return_url: origin },
-      process.env.STRIPE_SECRET_KEY
-    );
-    return { url: session.url };
-  });
-
-exports.saveChildren = functions.region("europe-west1").https.onCall(async (data, context) => {
-  const { uid } = requireAuth(context);
+exports.createCheckoutSession = onCall(CALLABLE_STRIPE, async (request) => {
+  const { uid, email } = requireAuth(request);
+  const data = request.data || {};
   const billing = await assertOwner(uid);
-  if (!hasAppAccess(billing)) {
-    throw new functions.https.HttpsError("failed-precondition", "Abonnement requis.");
+  if (!needsCheckout(billing)) {
+    throw new HttpsError("failed-precondition", "Un abonnement est déjà actif.");
   }
 
-  const names = Array.isArray(data?.childNames) ? data.childNames : [];
+  const origin = String(data.origin || "").replace(/\/$/, "");
+  if (!origin || !/^https?:\/\//i.test(origin)) {
+    throw new HttpsError("invalid-argument", "origin HTTPS requis.");
+  }
+
+  const plan = data.plan === "yearly" ? "yearly" : billing.plan || "monthly";
+  const secret = process.env.STRIPE_SECRET_KEY;
+  assertSandboxKey(secret);
+
+  const params = buildCheckoutSessionParams({
+    instanceId: instanceId(),
+    uid,
+    email,
+    plan,
+    origin,
+  });
+
+  const session = await stripeRequest("POST", "/checkout/sessions", params, secret);
+
+  await db().collection("billing").doc("current").set(
+    {
+      plan,
+      checkoutSessionId: session.id,
+      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+    },
+    { merge: true }
+  );
+
+  return { url: session.url, id: session.id, priceId: resolvePriceId(plan) };
+});
+
+exports.confirmCheckoutSession = onCall(CALLABLE_STRIPE, async (request) => {
+  const { uid } = requireAuth(request);
+  const data = request.data || {};
+  await assertOwner(uid);
+
+  const sessionId = data.sessionId;
+  if (!sessionId || !String(sessionId).startsWith("cs_test_")) {
+    throw new HttpsError(
+      "invalid-argument",
+      "sessionId sandbox (cs_test_…) requis. Les sessions live sont refusées."
+    );
+  }
+
+  const secret = process.env.STRIPE_SECRET_KEY;
+  const session = await stripeRequest(
+    "GET",
+    `/checkout/sessions/${sessionId}`,
+    { expand: ["subscription"] },
+    secret
+  );
+
+  if (session.livemode) {
+    throw new HttpsError("failed-precondition", "Événement live refusé (sandbox only).");
+  }
+
+  let sub = session.subscription;
+  if (typeof sub === "string") {
+    sub = await stripeRequest("GET", `/subscriptions/${sub}`, {}, secret);
+  }
+
+  if (sub && sub.id) {
+    await applyBilling(billingFromSubscription(sub, { customerId: session.customer }));
+  }
+
+  return serializeState(await readBilling(), await readSettings(), uid);
+});
+
+exports.createPortalSession = onCall(CALLABLE_STRIPE, async (request) => {
+  const { uid } = requireAuth(request);
+  const data = request.data || {};
+  const billing = await assertOwner(uid);
+  if (!billing.stripeCustomerId) {
+    throw new HttpsError("failed-precondition", "Pas encore de client Stripe.");
+  }
+  const origin = String(data.origin || "").replace(/\/$/, "");
+  if (!origin) throw new HttpsError("invalid-argument", "origin requis.");
+
+  const session = await stripeRequest(
+    "POST",
+    "/billing_portal/sessions",
+    { customer: billing.stripeCustomerId, return_url: origin },
+    process.env.STRIPE_SECRET_KEY
+  );
+  return { url: session.url };
+});
+
+exports.saveChildren = onCall(CALLABLE, async (request) => {
+  const { uid } = requireAuth(request);
+  const data = request.data || {};
+  const billing = await assertOwner(uid);
+  if (!hasAppAccess(billing)) {
+    throw new HttpsError("failed-precondition", "Abonnement requis.");
+  }
+
+  const names = Array.isArray(data.childNames) ? data.childNames : [];
   const cleaned = names.map((n) => String(n || "").trim()).filter(Boolean);
   if (cleaned.length < 1 || cleaned.length > 6) {
-    throw new functions.https.HttpsError("invalid-argument", "Indique entre 1 et 6 prénoms.");
+    throw new HttpsError("invalid-argument", "Indique entre 1 et 6 prénoms.");
   }
 
   const people = peopleFromChildNames(cleaned);
@@ -253,10 +252,14 @@ async function applyBilling(patch) {
     );
 }
 
-exports.stripeWebhook = functions
-  .region("europe-west1")
-  .runWith({ secrets: ["STRIPE_SECRET_KEY", "STRIPE_WEBHOOK_SECRET"] })
-  .https.onRequest(async (req, res) => {
+exports.stripeWebhook = onRequest(
+  {
+    region: REGION,
+    secrets: [STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET],
+    cors: false,
+    invoker: "public",
+  },
+  async (req, res) => {
     if (req.method !== "POST") {
       res.status(405).send("Method not allowed");
       return;
@@ -313,4 +316,5 @@ exports.stripeWebhook = functions
       console.error("Webhook handler error", err);
       res.status(500).send("Webhook handler failed");
     }
-  });
+  }
+);
