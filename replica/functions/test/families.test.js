@@ -15,6 +15,7 @@ const {
   familyIdFromStripe,
   LEGACY_OWNER_EMAIL,
   emptySettings,
+  emptyBilling,
   wantsDailySummaryEmail,
 } = require("../lib/families");
 
@@ -142,6 +143,20 @@ describe("replica platform is multi-family on one URL", () => {
     const cron = fs.readFileSync(path.join(repoRoot, "replica/functions/index.js"), "utf8");
     assert.match(cron, /wantsDailySummaryEmail\(settings\)/);
     assert.match(cron, /daily summary email opted out/);
+  });
+
+  it("does not wipe family data on cancel and keeps trialUsed off until first checkout", () => {
+    assert.equal(emptyBilling("u1", "a@b.c", "monthly", 1).trialUsed, false);
+    const billingSrc = fs.readFileSync(path.join(repoRoot, "replica/functions/billing.js"), "utf8");
+    const deleted = billingSrc.split("customer.subscription.deleted")[1];
+    assert.ok(deleted, "subscription deleted handler");
+    assert.match(deleted, /applyFamilyBilling/);
+    assert.equal(deleted.includes(".delete("), false);
+    assert.equal(billingSrc.includes("fingerprint"), false);
+    assert.match(billingSrc, /next\.trialUsed = true/);
+    assert.match(billingSrc, /if \(!next\.stripeCustomerId\) delete next\.stripeCustomerId/);
+    const settingsSrc = fs.readFileSync(path.join(repoRoot, "replica/functions/lib/families.js"), "utf8");
+    assert.match(settingsSrc, /trialUsed: false/);
   });
 
   it("scopes Firestore rules to token.familyId and denies root collections", () => {

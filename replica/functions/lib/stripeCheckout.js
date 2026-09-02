@@ -20,7 +20,22 @@ function resolvePriceId(plan, env = process.env) {
   return env.STRIPE_PRICE_MONTHLY || PRICE_MONTHLY;
 }
 
-function buildCheckoutSessionParams({ instanceId, familyId, uid, email, plan, origin, customerId, locale }) {
+function stripeCustomerHadTrialOrSubscription(listOrResponse) {
+  const list = Array.isArray(listOrResponse) ? listOrResponse : listOrResponse?.data;
+  if (!Array.isArray(list) || list.length === 0) return false;
+  return list.some((sub) => {
+    if (!sub || typeof sub !== "object") return false;
+    return !!(sub.id || sub.trial_start || sub.trial_end || sub.status === "trialing");
+  });
+}
+
+function resolveCheckoutTrial({ trialUsed, stripeSubscriptions } = {}) {
+  if (trialUsed === true) return false;
+  if (stripeCustomerHadTrialOrSubscription(stripeSubscriptions)) return false;
+  return true;
+}
+
+function buildCheckoutSessionParams({ instanceId, familyId, uid, email, plan, origin, customerId, locale, offerTrial = true }) {
   if (!instanceId) throw new Error("instanceId required");
   if (!familyId) throw new Error("familyId required");
   if (!uid) throw new Error("uid required");
@@ -33,6 +48,13 @@ function buildCheckoutSessionParams({ instanceId, familyId, uid, email, plan, or
     firebaseUid: uid,
   };
 
+  const subscription_data = {
+    metadata: familyMeta,
+  };
+  if (offerTrial !== false) {
+    subscription_data.trial_period_days = TRIAL_DAYS;
+  }
+
   const params = {
     mode: "subscription",
     client_reference_id: familyId,
@@ -40,10 +62,7 @@ function buildCheckoutSessionParams({ instanceId, familyId, uid, email, plan, or
     allow_promotion_codes: "true",
     locale: locale === "fr" || locale === "de" || locale === "en" ? locale : "nl",
     line_items: [{ price: priceId, quantity: 1 }],
-    subscription_data: {
-      trial_period_days: TRIAL_DAYS,
-      metadata: familyMeta,
-    },
+    subscription_data,
     metadata: {
       ...familyMeta,
       plan: plan === "yearly" ? "yearly" : "monthly",
@@ -91,4 +110,6 @@ module.exports = {
   resolvePriceId,
   buildCheckoutSessionParams,
   encodeStripeParams,
+  stripeCustomerHadTrialOrSubscription,
+  resolveCheckoutTrial,
 };

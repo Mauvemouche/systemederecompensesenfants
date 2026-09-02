@@ -17,7 +17,7 @@ const {
   resolveFamilyForUser,
   shouldKeepExistingMembership,
 } = require("./lib/families");
-const { buildCheckoutSessionParams, resolvePriceId, assertSandboxKey } = require("./lib/stripeCheckout");
+const { buildCheckoutSessionParams, resolvePriceId, assertSandboxKey, resolveCheckoutTrial } = require("./lib/stripeCheckout");
 const { stripeRequest, verifyStripeSignature } = require("./lib/stripeHttp");
 const {
   onCall,
@@ -117,15 +117,12 @@ async function applyFamilyBilling(familyId, patch) {
     console.error("applyFamilyBilling missing familyId");
     return;
   }
-  await billingRef(familyId).set(
-    {
-      ...patch,
-      updatedAt: serverTimestamp(),
-    },
-    { merge: true }
-  );
-  if (patch.stripeCustomerId) {
-    await stripeCustomerIndexRef(patch.stripeCustomerId).set(
+  const next = { ...patch, updatedAt: serverTimestamp() };
+  if (!next.stripeCustomerId) delete next.stripeCustomerId;
+  if (next.stripeSubscriptionId) next.trialUsed = true;
+  await billingRef(familyId).set(next, { merge: true });
+  if (next.stripeCustomerId) {
+    await stripeCustomerIndexRef(next.stripeCustomerId).set(
       { familyId, updatedAt: serverTimestamp() },
       { merge: true }
     );
@@ -262,6 +259,26 @@ exports.createCheckoutSession = onCall(
       await tagStripeCustomer(secret, customerId, familyId, uid);
     }
 
+    let stripeSubscriptions = [];
+    if (customerId) {
+      try {
+        const listed = await stripeRequest(
+          "GET",
+          "/subscriptions",
+          { customer: customerId, status: "all", limit: 100 },
+          secret
+        );
+        stripeSubscriptions = listed.data || [];
+      } catch (err) {
+        console.error("list subscriptions for trial check failed", err?.message || err);
+        stripeSubscriptions = [];
+      }
+    }
+    const offerTrial = resolveCheckoutTrial({
+      trialUsed: billing.trialUsed === true,
+      stripeSubscriptions,
+    });
+
     const params = buildCheckoutSessionParams({
       instanceId: instanceId(),
       familyId,
@@ -271,6 +288,7 @@ exports.createCheckoutSession = onCall(
       origin,
       customerId,
       locale: stripeCheckoutLocale(locale),
+      offerTrial,
     });
 
     const session = await stripeRequest("POST", "/checkout/sessions", params, secret);

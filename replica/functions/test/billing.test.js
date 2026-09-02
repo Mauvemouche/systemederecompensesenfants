@@ -3,6 +3,8 @@
 const { describe, it } = require("node:test");
 const assert = require("node:assert/strict");
 const crypto = require("crypto");
+const fs = require("fs");
+const path = require("path");
 const {
   PRICE_MONTHLY,
   PRICE_YEARLY,
@@ -10,6 +12,8 @@ const {
   assertSandboxKey,
   buildCheckoutSessionParams,
   encodeStripeParams,
+  resolveCheckoutTrial,
+  stripeCustomerHadTrialOrSubscription,
 } = require("../lib/stripeCheckout");
 const { verifyStripeSignature } = require("../lib/stripeHttp");
 const { peopleFromChildNames, DEFAULT_FAMILY, renamePersonInList } = require("../lib/family");
@@ -108,6 +112,46 @@ describe("replica Stripe Checkout (sandbox)", () => {
     assert.ok(body.includes("payment_method_collection=if_required"));
   });
 
+  it("omits the trial on a second checkout for the same family", () => {
+    assert.equal(resolveCheckoutTrial({ trialUsed: false, stripeSubscriptions: [] }), true);
+    assert.equal(resolveCheckoutTrial({ trialUsed: true, stripeSubscriptions: [] }), false);
+    assert.equal(
+      resolveCheckoutTrial({
+        trialUsed: false,
+        stripeSubscriptions: [{ id: "sub_old", status: "canceled", trial_end: 1700000000 }],
+      }),
+      false
+    );
+    assert.equal(stripeCustomerHadTrialOrSubscription({ data: [] }), false);
+    assert.equal(stripeCustomerHadTrialOrSubscription({ data: [{ id: "sub_1", status: "trialing" }] }), true);
+
+    const first = buildCheckoutSessionParams({
+      instanceId: "recompenses-test",
+      familyId: "fam_dupont",
+      uid: "uid_1",
+      email: "parent@example.com",
+      plan: "monthly",
+      origin: "https://example.com",
+      offerTrial: true,
+    });
+    assert.equal(first.subscription_data.trial_period_days, 30);
+
+    const second = buildCheckoutSessionParams({
+      instanceId: "recompenses-test",
+      familyId: "fam_dupont",
+      uid: "uid_1",
+      email: "parent@example.com",
+      plan: "monthly",
+      origin: "https://example.com",
+      customerId: "cus_test_1",
+      offerTrial: false,
+    });
+    assert.equal(second.subscription_data.trial_period_days, undefined);
+    assert.equal("trial_period_days" in second.subscription_data, false);
+    assert.equal(second.customer, "cus_test_1");
+    assert.equal(second.subscription_data.metadata.familyId, "fam_dupont");
+  });
+
   it("passes an existing Stripe customer so customer metadata can carry familyId", () => {
     const params = buildCheckoutSessionParams({
       instanceId: "recompenses-test",
@@ -129,6 +173,18 @@ describe("replica Stripe Checkout (sandbox)", () => {
     const v1 = crypto.createHmac("sha256", secret).update(`${timestamp}.${payload}`).digest("hex");
     const event = verifyStripeSignature(payload, `t=${timestamp},v1=${v1}`, secret);
     assert.equal(event.livemode, false);
+  });
+
+  it("locks the trial after first checkout and still offers it to a new family", () => {
+    const src = fs.readFileSync(path.join(__dirname, "..", "billing.js"), "utf8");
+    assert.match(src, /resolveCheckoutTrial/);
+    assert.match(src, /status: "all"/);
+    assert.match(src, /offerTrial/);
+    assert.match(src, /if \(next\.stripeSubscriptionId\) next\.trialUsed = true/);
+    assert.equal(src.includes("fingerprint"), false);
+    const checkoutFn = src.split("exports.createCheckoutSession")[1].split("exports.confirmCheckoutSession")[0];
+    assert.match(checkoutFn, /offerTrial/);
+    assert.match(checkoutFn, /trialUsed/);
   });
 });
 

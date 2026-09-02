@@ -116,6 +116,7 @@ function emptyBilling(uid, email, plan, now) {
     stripeCustomerId: null,
     stripeSubscriptionId: null,
     stripePriceId: null,
+    trialUsed: false,
     createdAt: now,
     updatedAt: now,
   };

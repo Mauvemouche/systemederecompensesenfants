@@ -19,7 +19,8 @@ describe("replica billing access", () => {
 
   it("requires checkout until a subscription exists", () => {
     assert.equal(needsCheckout({ status: "incomplete" }), true);
-    assert.equal(needsCheckout({ status: "trialing", stripeSubscriptionId: "sub_test" }), false);
+    assert.equal(needsCheckout({ status: "canceled", stripeSubscriptionId: "sub_old", trialUsed: true }), true);
+    assert.equal(hasAppAccess({ status: "canceled", trialUsed: true, stripeCustomerId: "cus_1" }), false);
   });
 
   it("requires kids setup until children are named", () => {
@@ -38,6 +39,15 @@ describe("replica billing access", () => {
     });
     assert.equal(billing.status, "trialing");
     assert.equal(billing.stripeSubscriptionId, "sub_123");
+    assert.equal(billing.stripeCustomerId, "cus_123");
     assert.equal(!!billing.complimentaryForever, false);
+
+    const canceled = billingFromSubscription({
+      id: "sub_old",
+      status: "canceled",
+      customer: "cus_keep",
+    });
+    assert.equal(canceled.status, "canceled");
+    assert.equal(canceled.stripeCustomerId, "cus_keep");
   });
 });
