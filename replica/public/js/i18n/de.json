@@ -234,12 +234,12 @@
   "legal.belgianDad": "Ein belgischer Papa",
   "legal.paidNote": "Fragen vor oder während der Testphase: kidsrewardsystem@proton.me. Der vollständige gesetzliche Name und die geografische Adresse werden in der App nach der ersten bezahlten Rechnung angezeigt (nicht während der 30-tägigen Testphase und nicht, wenn eine Promo das Abo kostenlos macht).",
   "referral.title": "Wer hat dich empfohlen?",
-  "referral.lead": "OPTIONAL: Du kannst hier Vor- und Nachnamen der Person eintragen, die dich auf diese App aufmerksam gemacht hat. Empfehlungen werden erfasst, damit die beste des Monats in einer Danke-Zeile auf dem Startbildschirm erscheint.",
+  "referral.lead": "OPTIONAL: Du kannst hier Vor- und Nachnamen der Person eintragen, die dich auf diese App aufmerksam gemacht hat. Empfehlungen werden erfasst, damit die aktuell beste Empfehlung in einer Danke-Zeile auf dem Startbildschirm erscheint.",
   "referral.first": "Vorname",
   "referral.last": "Nachname",
   "referral.submit": "Speichern",
   "referral.skip": "Überspringen",
-  "referral.thanks": "Danke an unsere beste Empfehlung des Monats: {first} {last}, mit {count} empfohlenen Abos in diesem Monat! ❤️🙏",
+  "referral.thanks": "Danke an unsere beste Empfehlung aktuell: {first} {last} mit {count} empfohlenen Abos! ❤️🙏",
   "err.referralOnce": "Die Empfehlung dieser Familie ist bereits gespeichert.",
   "err.referralName": "Gib Vor- und Nachnamen ein (kein Link und keine E-Mail), oder überspringe diesen Schritt."
 }

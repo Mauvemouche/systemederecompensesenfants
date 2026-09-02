@@ -234,12 +234,12 @@
   "legal.belgianDad": "Een Belgische papa",
   "legal.paidNote": "Voor vragen vóór of tijdens de proefperiode: kidsrewardsystem@proton.me. De volledige wettelijke naam en het geografische adres worden in de app getoond na de eerste betaalde factuur (niet tijdens de proefperiode van 30 dagen, en niet als een promo het abonnement gratis maakt).",
   "referral.title": "Wie heeft je doorverwezen?",
-  "referral.lead": "OPTIONEEL: Je mag hier de voornaam en naam invullen van wie je naar deze webapp heeft doorverwezen. Doorverwijzingen worden bijgehouden zodat de beste van de maand in een bedankje op het startscherm verschijnt.",
+  "referral.lead": "OPTIONEEL: Je mag hier de voornaam en naam invullen van wie je naar deze webapp heeft doorverwezen. Doorverwijzingen worden bijgehouden zodat de huidige beste doorverwijzer in een bedankje op het startscherm verschijnt.",
   "referral.first": "Voornaam",
   "referral.last": "Naam",
   "referral.submit": "Opslaan",
   "referral.skip": "Overslaan",
-  "referral.thanks": "Dank aan onze beste doorverwijzer van de maand: {first} {last}, met {count} doorverwezen abonnementen deze maand! ❤️🙏",
+  "referral.thanks": "Dank aan onze beste doorverwijzer momenteel: {first} {last} met {count} doorverwezen abonnementen! ❤️🙏",
   "err.referralOnce": "De doorverwijzing van dit gezin is al opgeslagen.",
   "err.referralName": "Vul een voornaam en naam in (geen link of e-mail), of sla deze stap over."
 }

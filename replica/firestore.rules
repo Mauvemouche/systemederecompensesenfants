@@ -75,9 +75,9 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
-    /* legal_identity stays unreadable. Monthly winner is public-read names+count only. */
+    /* legal_identity stays unreadable. All-time best referrer is public-read names+count only. */
     match /platform/{docId} {
-      allow read: if docId.matches('referral_month_[0-9]{4}-[0-9]{2}');
+      allow read: if docId == 'referral_best';
       allow write: if false;
     }
 

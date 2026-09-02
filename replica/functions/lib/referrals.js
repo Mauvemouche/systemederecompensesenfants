@@ -2,20 +2,7 @@
 
 const NAME_MAX = 40;
 
-function monthKeyFromDate(date = new Date(), timeZone = "Europe/Brussels") {
-  const parts = new Intl.DateTimeFormat("en-GB", {
-    timeZone,
-    year: "numeric",
-    month: "2-digit",
-  }).formatToParts(date);
-  const year = parts.find((p) => p.type === "year")?.value;
-  const month = parts.find((p) => p.type === "month")?.value;
-  return `${year}-${month}`;
-}
-
-function referralMonthDocId(monthKey) {
-  return `referral_month_${monthKey}`;
-}
+const REFERRAL_BEST_DOC_ID = "referral_best";
 
 function cleanName(raw) {
   return String(raw || "").trim().replace(/\s+/g, " ");
@@ -78,7 +65,7 @@ function modeName(rows, normKey, field) {
   return ranked[0]?.[0] || "";
 }
 
-function pickMonthlyWinner(rows) {
+function pickBestReferrer(rows) {
   const list = Array.isArray(rows) ? rows : [];
   const byKey = new Map();
   for (const row of list) {
@@ -118,13 +105,12 @@ function publicThanksPayload(winner) {
 
 module.exports = {
   NAME_MAX,
-  monthKeyFromDate,
-  referralMonthDocId,
+  REFERRAL_BEST_DOC_ID,
   cleanName,
   looksLikeUrlOrEmail,
   makeNormKey,
   parseReferralNames,
   canWriteReferral,
-  pickMonthlyWinner,
+  pickBestReferrer,
   publicThanksPayload,
 };

@@ -121,5 +121,8 @@ describe("UI locale files share the same keys", () => {
       assert.ok(de[key], key);
       assert.ok(en[key], key);
     }
+    assert.match(en["referral.thanks"], /^Thank you to our best referrer currently:/);
+    assert.equal(/month/i.test(en["referral.thanks"]), false);
+    assert.equal(/month/i.test(en["referral.lead"]), false);
   });
 });

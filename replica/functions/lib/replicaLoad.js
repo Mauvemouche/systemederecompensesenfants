@@ -4,9 +4,8 @@ const { db, ensureApp, serverTimestamp } = require("./adminApp");
 const { readFamilyBilling, readFamilySettings, referralRef, readFamilyReferral } = require("./families");
 const { serializeState } = require("./replicaState");
 const {
-  monthKeyFromDate,
-  referralMonthDocId,
-  pickMonthlyWinner,
+  REFERRAL_BEST_DOC_ID,
+  pickBestReferrer,
   publicThanksPayload,
 } = require("./referrals");
 
@@ -33,12 +32,11 @@ async function markReferralPromptPending(familyId) {
   });
 }
 
-async function listMonthReferrals(monthKey) {
-  const snap = await db().collection("referrals").where("monthKey", "==", monthKey).get();
+async function listSavedReferrals() {
+  const snap = await db().collection("referrals").get();
   return snap.docs.map((docSnap) => {
     const data = docSnap.data() || {};
     return {
-      familyId: data.familyId || docSnap.id,
       givenFirst: data.givenFirst || "",
       givenLast: data.givenLast || "",
       normKey: data.normKey || "",
@@ -47,22 +45,20 @@ async function listMonthReferrals(monthKey) {
   });
 }
 
-async function writeMonthWinner(monthKey = monthKeyFromDate()) {
-  const rows = await listMonthReferrals(monthKey);
-  const winner = pickMonthlyWinner(rows);
+async function writeBestReferrer() {
+  const rows = await listSavedReferrals();
+  const winner = pickBestReferrer(rows);
   const payload = {
     displayFirst: winner.displayFirst || "",
     displayLast: winner.displayLast || "",
     count: winner.count || 0,
-    monthKey,
-    updatedAt: serverTimestamp(),
   };
-  await platformDoc(referralMonthDocId(monthKey)).set(payload, { merge: true });
+  await platformDoc(REFERRAL_BEST_DOC_ID).set(payload);
   return publicThanksPayload(winner);
 }
 
-async function readCurrentReferralThanks(monthKey = monthKeyFromDate()) {
-  const snap = await platformDoc(referralMonthDocId(monthKey)).get();
+async function readCurrentReferralThanks() {
+  const snap = await platformDoc(REFERRAL_BEST_DOC_ID).get();
   if (!snap.exists) return null;
   return publicThanksPayload(snap.data());
 }
@@ -84,8 +80,8 @@ async function loadReplicaState(familyId, uid) {
 module.exports = {
   instanceId,
   markReferralPromptPending,
-  listMonthReferrals,
-  writeMonthWinner,
+  listSavedReferrals,
+  writeBestReferrer,
   readCurrentReferralThanks,
   loadReplicaState,
 };

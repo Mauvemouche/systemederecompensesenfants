@@ -7,10 +7,10 @@ const path = require("path");
 const {
   parseReferralNames,
   canWriteReferral,
-  pickMonthlyWinner,
+  pickBestReferrer,
   publicThanksPayload,
-  monthKeyFromDate,
   makeNormKey,
+  REFERRAL_BEST_DOC_ID,
 } = require("../lib/referrals");
 const { serializeState } = require("../lib/replicaState");
 
@@ -49,13 +49,13 @@ describe("one referral per family", () => {
   });
 });
 
-describe("monthly referral winner", () => {
-  it("counts case-insensitively and displays the most common capitalization", () => {
-    const winner = pickMonthlyWinner([
-      { givenFirst: "marie", givenLast: "curie", normKey: "marie curie", createdAt: 30 },
-      { givenFirst: "Marie", givenLast: "Curie", normKey: "marie curie", createdAt: 10 },
-      { givenFirst: "Marie", givenLast: "Curie", normKey: "marie curie", createdAt: 20 },
-      { givenFirst: "Pierre", givenLast: "Curie", normKey: "pierre curie", createdAt: 1 },
+describe("all-time best referrer", () => {
+  it("counts every saved referral case-insensitively, including leftover monthKeys", () => {
+    const winner = pickBestReferrer([
+      { givenFirst: "marie", givenLast: "curie", normKey: "marie curie", createdAt: 30, monthKey: "2026-08" },
+      { givenFirst: "Marie", givenLast: "Curie", normKey: "marie curie", createdAt: 10, monthKey: "2026-09" },
+      { givenFirst: "Marie", givenLast: "Curie", normKey: "marie curie", createdAt: 20, monthKey: "2026-07" },
+      { givenFirst: "Pierre", givenLast: "Curie", normKey: "pierre curie", createdAt: 1, monthKey: "2026-09" },
     ]);
     assert.equal(winner.count, 3);
     assert.equal(winner.displayFirst, "Marie");
@@ -63,7 +63,7 @@ describe("monthly referral winner", () => {
   });
 
   it("breaks equal counts with the earliest createdAt, then name", () => {
-    const winner = pickMonthlyWinner([
+    const winner = pickBestReferrer([
       { givenFirst: "Zoé", givenLast: "B", normKey: "zoé b", createdAt: 50 },
       { givenFirst: "Anne", givenLast: "A", normKey: "anne a", createdAt: 20 },
     ]);
@@ -72,17 +72,12 @@ describe("monthly referral winner", () => {
     assert.equal(winner.displayLast, "A");
   });
 
-  it("hides the thanks payload when the month has no referrals", () => {
-    assert.equal(publicThanksPayload(pickMonthlyWinner([])), null);
+  it("hides the thanks payload when nobody has referrals yet", () => {
+    assert.equal(publicThanksPayload(pickBestReferrer([])), null);
     assert.equal(publicThanksPayload({ displayFirst: "A", displayLast: "B", count: 0 }), null);
     const shown = publicThanksPayload({ displayFirst: "Ada", displayLast: "Lovelace", count: 2 });
     assert.deepEqual(shown, { displayFirst: "Ada", displayLast: "Lovelace", count: 2 });
     assert.equal("familyId" in shown, false);
-  });
-
-  it("uses Europe/Brussels for the month key", () => {
-    assert.equal(monthKeyFromDate(new Date("2026-09-01T00:30:00+02:00")), "2026-09");
-    assert.equal(monthKeyFromDate(new Date("2026-08-31T22:30:00Z")), "2026-09");
   });
 });
 
@@ -99,6 +94,30 @@ describe("replica board referral prompt wiring", () => {
     const firstPending = billing.indexOf("markReferralPromptPending");
     assert.ok(firstPending >= 0);
     void afterPaid;
+  });
+
+  it("recomputes the all-time public winner immediately after save, not a month doc", () => {
+    const src = fs.readFileSync(path.join(repoRoot, "replica/functions/referrals.js"), "utf8");
+    assert.match(src, /if \(wroteAgg\) await writeBestReferrer\(\)/);
+    assert.match(src, /exports\.refreshReferralBest/);
+    assert.equal(src.includes("writeMonthWinner"), false);
+    assert.equal(src.includes("refreshReferralMonth"), false);
+    assert.equal(src.includes("monthKey"), false);
+
+    const load = fs.readFileSync(path.join(repoRoot, "replica/functions/lib/replicaLoad.js"), "utf8");
+    assert.match(load, /collection\("referrals"\)\.get\(\)/);
+    assert.equal(load.includes('where("monthKey"'), false);
+    assert.match(load, /REFERRAL_BEST_DOC_ID/);
+    assert.equal(load.includes("referral_month_"), false);
+    assert.equal(REFERRAL_BEST_DOC_ID, "referral_best");
+
+    const payload = load.match(/const payload = \{[\s\S]*?\};/);
+    assert.ok(payload, "public winner payload");
+    assert.match(payload[0], /displayFirst/);
+    assert.match(payload[0], /displayLast/);
+    assert.match(payload[0], /count/);
+    assert.equal(payload[0].includes("familyId"), false);
+    assert.equal(payload[0].includes("monthKey"), false);
   });
 
   it("hides the home-screen thanks line when count is 0 and keeps skip off the aggregatable collection", () => {
@@ -129,6 +148,22 @@ describe("replica board referral prompt wiring", () => {
     assert.match(gate, /skipReferral/);
     assert.match(gate, /submitReferral/);
     assert.match(gate, /handleCheckoutReturn/);
+  });
+
+  it("uses all-time thank-you copy with a capital T and no month wording", () => {
+    const en = JSON.parse(fs.readFileSync(path.join(repoRoot, "replica/public/js/i18n/en.json"), "utf8"));
+    assert.equal(
+      en["referral.thanks"],
+      "Thank you to our best referrer currently: {first} {last} with {count} referred subscriptions! ❤️🙏"
+    );
+    assert.match(en["referral.lead"], /current best referrer/);
+    assert.equal(/month/i.test(en["referral.thanks"]), false);
+    assert.equal(/month/i.test(en["referral.lead"]), false);
+    for (const loc of ["nl", "fr", "de"]) {
+      const dict = JSON.parse(fs.readFileSync(path.join(repoRoot, "replica/public/js/i18n", `${loc}.json`), "utf8"));
+      assert.equal(/of the month|this month|du mois|ce mois|van de maand|deze maand|des Monats|diesem Monat/i.test(dict["referral.thanks"]), false, loc);
+      assert.equal(/month's best|meilleur du mois|beste van de maand|beste des Monats/i.test(dict["referral.lead"]), false, loc);
+    }
   });
 
   it("does not add the referral prompt to Anthony's live public/ app", () => {

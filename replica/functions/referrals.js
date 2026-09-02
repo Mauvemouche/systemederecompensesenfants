@@ -6,8 +6,8 @@ const { onCall, HttpsError, CALLABLE, wrapCallable, requireAuth, REGION } = requ
 const { hasAppAccess } = require("./lib/access");
 const { memberRef, referralRef, readFamilyBilling } = require("./lib/families");
 const { t, localeFromRequest } = require("./lib/i18n");
-const { parseReferralNames, canWriteReferral, monthKeyFromDate } = require("./lib/referrals");
-const { loadReplicaState, writeMonthWinner } = require("./lib/replicaLoad");
+const { parseReferralNames, canWriteReferral } = require("./lib/referrals");
+const { loadReplicaState, writeBestReferrer } = require("./lib/replicaLoad");
 
 function fail(status, locale, key) {
   throw new HttpsError(status, t(locale, key), { key });
@@ -49,7 +49,6 @@ async function finishReferral(familyId, uid, parsed, locale) {
         );
         return false;
       }
-      const monthKey = monthKeyFromDate();
       tx.set(
         ref,
         {
@@ -57,7 +56,6 @@ async function finishReferral(familyId, uid, parsed, locale) {
           givenFirst: parsed.givenFirst,
           givenLast: parsed.givenLast,
           normKey: parsed.normKey,
-          monthKey,
           updatedAt: serverTimestamp(),
           createdAt: existing?.createdAt || serverTimestamp(),
         },
@@ -68,7 +66,6 @@ async function finishReferral(familyId, uid, parsed, locale) {
         givenFirst: parsed.givenFirst,
         givenLast: parsed.givenLast,
         normKey: parsed.normKey,
-        monthKey,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
       });
@@ -78,7 +75,7 @@ async function finishReferral(familyId, uid, parsed, locale) {
     if (err?.code === "referral-once") fail("failed-precondition", locale, "err.referralOnce");
     throw err;
   }
-  if (wroteAgg) await writeMonthWinner();
+  if (wroteAgg) await writeBestReferrer();
   return loadReplicaState(familyId, uid);
 }
 
@@ -106,7 +103,7 @@ exports.skipReferral = onCall(
   })
 );
 
-exports.refreshReferralMonth = onSchedule(
+exports.refreshReferralBest = onSchedule(
   {
     region: REGION,
     schedule: "10 0 * * *",
@@ -114,7 +111,7 @@ exports.refreshReferralMonth = onSchedule(
     timeoutSeconds: 120,
   },
   async () => {
-    await writeMonthWinner();
+    await writeBestReferrer();
     return null;
   }
 );

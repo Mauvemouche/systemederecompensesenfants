@@ -145,7 +145,7 @@ describe("replica functions deploy without optional email secrets", () => {
     assert.equal(typeof fns.getOperatorLegalIdentity, "function");
     assert.equal(typeof fns.submitReferral, "function");
     assert.equal(typeof fns.skipReferral, "function");
-    assert.equal(typeof fns.refreshReferralMonth, "function");
+    assert.equal(typeof fns.refreshReferralBest, "function");
     const platform = fns.stripeWebhook.__endpoint?.platform || fns.bootstrapInstance.__endpoint?.platform;
     assert.equal(platform, "gcfv2");
     assert.equal(getApps().length, before);

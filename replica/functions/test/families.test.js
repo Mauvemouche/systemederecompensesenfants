@@ -138,7 +138,8 @@ describe("replica platform is multi-family on one URL", () => {
     assert.equal(rules.includes("billing/current"), false);
     assert.equal(rules.includes("match /family_config"), false);
     assert.match(rules, /match \/platform\/\{docId\}/);
-    assert.match(rules, /referral_month_/);
+    assert.match(rules, /referral_best/);
+    assert.equal(rules.includes("referral_month_"), false);
     assert.match(rules, /match \/referrals\/\{familyId\}/);
     assert.equal(rules.includes("function billingDoc()"), false);
   });
