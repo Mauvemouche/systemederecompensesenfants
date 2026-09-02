@@ -72,9 +72,9 @@ const fr = {
     "Mode Admin :\n- Au premier accès, tu choisis un code Admin à 4 chiffres. Garde-le précieusement : on ne te l’envoie pas maintenant.\n- En mode Admin, tu peux le changer (« Changer le code Admin »).\n- Si tu n’es pas en mode Admin et que tu as oublié le code, utilise « Récupérer le code Admin ». On t’envoie un nouveau code à 4 chiffres par email, et l’ancien ne fonctionne plus.",
   "email.welcome.pricesTitle": "Les prix",
   "email.welcome.prices":
-    "<b>2,50 €/mois</b> (ça ferait 30 €/an si tu restes au mois) ou <b>25 €/an</b>. Premier mois d’essai, avec carte enregistrée. J’ai mis le prix autour d’une bière (ou d’un café) par mois, parce que c’est un père belge qui l’a construite — pas pour s’acheter une Ferrari, juste pour payer le serveur.",
+    "<b>2,50 €/mois</b> (ça ferait 30 €/an si tu restes au mois) ou <b>25 €/an</b>. Premier mois d’essai, avec carte enregistrée. J’ai mis le prix autour d’une bière (ou d’un café) par mois, parce que c’est un père belge qui l’a construite — pas pour s’acheter une Ferrari, juste pour payer le serveur (et à la base pour trouver une solution à la gestion du temps d'écran de ses propres enfants en insistant sur le côté récompense et responsabilités).",
   "email.welcome.pricesText":
-    "Prix : 2,50 €/mois (30 €/an si payé mois par mois) ou 25 €/an. Premier mois d’essai, avec carte enregistrée. Prix autour d’une bière (ou d’un café) par mois, parce qu’un père belge l’a construite.",
+    "Prix : 2,50 €/mois (30 €/an si payé mois par mois) ou 25 €/an. Premier mois d’essai, avec carte enregistrée. Prix autour d’une bière (ou d’un café) par mois, parce qu’un père belge l’a construite — pas pour s’acheter une Ferrari, juste pour payer le serveur (et à la base pour trouver une solution à la gestion du temps d'écran de ses propres enfants en insistant sur le côté récompense et responsabilités).",
   "email.welcome.contact":
     "Une idée, une plainte, un « ça bug » ? Écris à <a href=\"mailto:contact@kidsrewardsystem.com\">contact@kidsrewardsystem.com</a>. Pour une plainte, tu peux aussi écrire à kidsrewardsystem@proton.me.",
   "email.welcome.contactText":
@@ -174,9 +174,9 @@ const nl = {
     "Admin-modus:\n- Bij de eerste toegang kies je een Admin-code van 4 cijfers. Onthoud hem goed: we sturen hem nu niet per mail.\n- In Admin-modus kun je hem wijzigen (« Admin-code wijzigen »).\n- Als je niet in Admin-modus bent en de code vergeten bent, gebruik « Admin-code terughalen ». We mailen een nieuwe code van 4 cijfers, en de oude werkt niet meer.",
   "email.welcome.pricesTitle": "De prijzen",
   "email.welcome.prices":
-    "<b>2,50 €/maand</b> (dat zou 30 €/jaar zijn als je maandelijks betaalt) of <b>25 €/jaar</b>. Eerste maand proef, met geregistreerde kaart. Ik heb de prijs rond een pintje (of een koffie) per maand gezet, omdat een Belgische vader dit gebouwd heeft — niet voor een Ferrari, gewoon om de server te betalen.",
+    "<b>2,50 €/maand</b> (dat zou 30 €/jaar zijn als je maandelijks betaalt) of <b>25 €/jaar</b>. Eerste maand proef, met geregistreerde kaart. Ik heb de prijs rond een pintje (of een koffie) per maand gezet, omdat een Belgische vader dit gebouwd heeft — niet voor een Ferrari, gewoon om de server te betalen (en in de eerste plaats om een oplossing te vinden voor de schermtijd van zijn eigen kinderen, met nadruk op beloning en verantwoordelijkheden).",
   "email.welcome.pricesText":
-    "Prijzen: 2,50 €/maand (30 €/jaar als je maandelijks betaalt) of 25 €/jaar. Eerste maand proef, met geregistreerde kaart. Prijs rond een pintje (of een koffie) per maand, omdat een Belgische vader dit gebouwd heeft.",
+    "Prijzen: 2,50 €/maand (30 €/jaar als je maandelijks betaalt) of 25 €/jaar. Eerste maand proef, met geregistreerde kaart. Prijs rond een pintje (of een koffie) per maand, omdat een Belgische vader dit gebouwd heeft — niet voor een Ferrari, gewoon om de server te betalen (en in de eerste plaats om een oplossing te vinden voor de schermtijd van zijn eigen kinderen, met nadruk op beloning en verantwoordelijkheden).",
   "email.welcome.contact":
     "Een idee, een klacht, een « het bugt »? Schrijf naar <a href=\"mailto:contact@kidsrewardsystem.com\">contact@kidsrewardsystem.com</a>. Voor een klacht kun je ook schrijven naar kidsrewardsystem@proton.me.",
   "email.welcome.contactText":
@@ -276,9 +276,9 @@ const de = {
     "Admin-Modus:\n- Beim ersten Zugang wählst du einen Admin-Code mit 4 Ziffern. Merk ihn dir gut: Wir schicken ihn jetzt nicht per E-Mail.\n- Im Admin-Modus kannst du ihn ändern (« Admin-Code ändern »).\n- Wenn du nicht im Admin-Modus bist und den Code vergessen hast, nutze « Admin-Code wiederherstellen ». Wir mailen einen neuen 4-stelligen Code, und der alte gilt nicht mehr.",
   "email.welcome.pricesTitle": "Die Preise",
   "email.welcome.prices":
-    "<b>2,50 €/Monat</b> (das wären 30 €/Jahr bei monatlicher Zahlung) oder <b>25 €/Jahr</b>. Erster Monat zur Probe, mit hinterlegter Karte. Ich habe den Preis um ein Bier (oder einen Kaffee) pro Monat gesetzt, weil ein belgischer Vater das gebaut hat — nicht für einen Ferrari, nur um den Server zu zahlen.",
+    "<b>2,50 €/Monat</b> (das wären 30 €/Jahr bei monatlicher Zahlung) oder <b>25 €/Jahr</b>. Erster Monat zur Probe, mit hinterlegter Karte. Ich habe den Preis um ein Bier (oder einen Kaffee) pro Monat gesetzt, weil ein belgischer Vater das gebaut hat — nicht für einen Ferrari, nur um den Server zu zahlen (und ursprünglich, um eine Lösung für die Bildschirmzeit seiner eigenen Kinder zu finden, mit Betonung auf Belohnung und Verantwortung).",
   "email.welcome.pricesText":
-    "Preise: 2,50 €/Monat (30 €/Jahr bei monatlicher Zahlung) oder 25 €/Jahr. Erster Monat zur Probe, mit hinterlegter Karte. Preis um ein Bier (oder einen Kaffee) pro Monat, weil ein belgischer Vater das gebaut hat.",
+    "Preise: 2,50 €/Monat (30 €/Jahr bei monatlicher Zahlung) oder 25 €/Jahr. Erster Monat zur Probe, mit hinterlegter Karte. Preis um ein Bier (oder einen Kaffee) pro Monat, weil ein belgischer Vater das gebaut hat — nicht für einen Ferrari, nur um den Server zu zahlen (und ursprünglich, um eine Lösung für die Bildschirmzeit seiner eigenen Kinder zu finden, mit Betonung auf Belohnung und Verantwortung).",
   "email.welcome.contact":
     "Eine Idee, eine Beschwerde, ein « das bugt »? Schreib an <a href=\"mailto:contact@kidsrewardsystem.com\">contact@kidsrewardsystem.com</a>. Beschwerden auch an kidsrewardsystem@proton.me.",
   "email.welcome.contactText":
@@ -378,9 +378,9 @@ const en = {
     "Admin mode:\n- On first access, you choose a 4-digit Admin code. Remember it: we don’t email it now.\n- In Admin mode, you can change it (“Change Admin code”).\n- If you’re not in Admin mode and you forgot the code, use “Recover Admin code”. We email a new 4-digit code, and the old one stops working.",
   "email.welcome.pricesTitle": "Prices",
   "email.welcome.prices":
-    "<b>€2.50/month</b> (that would be €30/year if you stay monthly) or <b>€25/year</b>. First month trial, with a card on file. I set the price around a beer (or a coffee) a month, because a Belgian father built it — not to buy a Ferrari, just to pay for the server.",
+    "<b>€2.50/month</b> (that would be €30/year if you stay monthly) or <b>€25/year</b>. First month trial, with a card on file. I set the price around a beer (or a coffee) a month, because a Belgian father built it — not to buy a Ferrari, just to pay for the server (and originally to find a way to manage his own kids’ screen time, with emphasis on rewards and responsibilities).",
   "email.welcome.pricesText":
-    "Prices: €2.50/month (€30/year if paid monthly) or €25/year. First month trial, with a card on file. Price around a beer (or a coffee) a month, because a Belgian father built it.",
+    "Prices: €2.50/month (€30/year if paid monthly) or €25/year. First month trial, with a card on file. Price around a beer (or a coffee) a month, because a Belgian father built it — not to buy a Ferrari, just to pay for the server (and originally to find a way to manage his own kids’ screen time, with emphasis on rewards and responsibilities).",
   "email.welcome.contact":
     "An idea, a complaint, a “it’s buggy”? Write to <a href=\"mailto:contact@kidsrewardsystem.com\">contact@kidsrewardsystem.com</a>. Complaints may also go to kidsrewardsystem@proton.me.",
   "email.welcome.contactText":

@@ -68,6 +68,7 @@ describe("recovery and welcome emails follow the requested locale", () => {
         assert.match(body, /daily summary|samenvatting|résumé quotidien|tägliche Zusammenfassung/i);
         assert.match(body, /card on file|carte enregistrée|geregistreerde kaart|hinterlegter Karte/i);
         assert.match(body, /Ce code expire après 15 minutes|Deze code vervalt na 15 minuten|Dieser Code läuft nach 15 Minuten ab|This code expires after 15 minutes/);
+        assert.match(body, /récompense et responsabilités|beloning en verantwoordelijkheden|Belohnung und Verantwortung|rewards and responsibilities/);
       }
       assert.match(html, /identity theft|identiteitsdiefstal|Identitätsdiebstahl|vol d/i);
       assert.match(text, /identity theft|identiteitsdiefstal|Identitätsdiebstahl|vol d/i);
