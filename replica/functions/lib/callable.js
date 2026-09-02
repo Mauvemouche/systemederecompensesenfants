@@ -19,6 +19,30 @@ function requireAuth(request) {
   return { uid: request.auth.uid, email: request.auth.token.email || null };
 }
 
+function isHttpsError(err) {
+  return (
+    err instanceof HttpsError ||
+    err?.name === "HttpsError" ||
+    (typeof err?.code === "string" && typeof err?.httpErrorCode === "object")
+  );
+}
+
+function rethrowAsHttps(err, label) {
+  if (isHttpsError(err)) throw err;
+  console.error(label || "callable failed", err);
+  throw new HttpsError("internal", String(err?.message || err));
+}
+
+function wrapCallable(name, handler) {
+  return async (request) => {
+    try {
+      return await handler(request);
+    } catch (err) {
+      rethrowAsHttps(err, name);
+    }
+  };
+}
+
 module.exports = {
   onCall,
   onRequest,
@@ -29,4 +53,7 @@ module.exports = {
   CALLABLE,
   CALLABLE_STRIPE,
   requireAuth,
+  isHttpsError,
+  rethrowAsHttps,
+  wrapCallable,
 };

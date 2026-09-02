@@ -127,14 +127,15 @@ describe("replica functions deploy without optional email secrets", () => {
   });
 
   it("loads function exports without initializing the Admin SDK", () => {
+    const { getApps } = require("firebase-admin/app");
+    const before = getApps().length;
     const fns = require("../index");
     assert.equal(typeof fns.dailyResetAndStats, "function");
     assert.equal(typeof fns.bootstrapInstance, "function");
     assert.equal(typeof fns.stripeWebhook, "function");
     const platform = fns.stripeWebhook.__endpoint?.platform || fns.bootstrapInstance.__endpoint?.platform;
     assert.equal(platform, "gcfv2");
-    const admin = require("firebase-admin");
-    assert.equal(admin.apps.length, 0);
+    assert.equal(getApps().length, before);
   });
 
   it("deploy helpers always run firebase deploy and append extra args", () => {

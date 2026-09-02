@@ -3,7 +3,7 @@
 const { setGlobalOptions } = require("firebase-functions/v2");
 const { onSchedule } = require("firebase-functions/v2/scheduler");
 const family = require("./lib/family");
-const { admin, db } = require("./lib/adminApp");
+const { db, serverTimestamp } = require("./lib/adminApp");
 
 setGlobalOptions({ region: "europe-west1" });
 
@@ -114,7 +114,7 @@ async function claimRunOrSkip(reportDateStr) {
       runRef,
       {
         status: "started",
-        startedAt: admin.firestore.FieldValue.serverTimestamp(),
+        startedAt: serverTimestamp(),
       },
       { merge: true }
     );
@@ -126,7 +126,7 @@ async function claimRunOrSkip(reportDateStr) {
 
 async function markRunDone(runRef) {
   await runRef.set(
-    { status: "done", doneAt: admin.firestore.FieldValue.serverTimestamp() },
+    { status: "done", doneAt: serverTimestamp() },
     { merge: true }
   );
 }
@@ -135,7 +135,7 @@ async function markRunFailed(reportDateStr, error) {
   await db().collection("cron_runs").doc(`daily_${reportDateStr}`).set(
     {
       status: "failed",
-      failedAt: admin.firestore.FieldValue.serverTimestamp(),
+      failedAt: serverTimestamp(),
       error: String(error?.message || error),
     },
     { merge: true }
@@ -261,8 +261,8 @@ async function saveDailyStatsAligned(stats) {
       maxStars: stats.global.maxStars,
       familyCompletionRate: stats.global.percent,
 
-      createdAt: admin.firestore.FieldValue.serverTimestamp(),
-      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
     },
     { merge: true }
   );
@@ -455,7 +455,7 @@ exports.dailyResetAndStats = onSchedule(
           if (shouldReset) {
             batch.update(docSnap.ref, {
               completed: false,
-              updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+              updatedAt: serverTimestamp(),
             });
             resetCount++;
           }

@@ -1,6 +1,6 @@
 "use strict";
 
-const { admin, db, ensureApp } = require("./lib/adminApp");
+const { db, ensureApp, serverTimestamp } = require("./lib/adminApp");
 const { hasAppAccess, needsCheckout, needsKidsSetup, billingFromSubscription } = require("./lib/access");
 const { peopleFromChildNames, DEFAULT_FAMILY } = require("./lib/family");
 const { buildCheckoutSessionParams, resolvePriceId, assertSandboxKey } = require("./lib/stripeCheckout");
@@ -15,6 +15,7 @@ const {
   CALLABLE,
   CALLABLE_STRIPE,
   requireAuth,
+  wrapCallable,
 } = require("./lib/callable");
 
 function instanceId() {
@@ -59,185 +60,216 @@ async function assertOwner(uid) {
   return billing;
 }
 
-exports.bootstrapInstance = onCall(CALLABLE, async (request) => {
-  const { uid, email } = requireAuth(request);
-  const data = request.data || {};
-  const plan = data.plan === "yearly" ? "yearly" : "monthly";
-  const now = admin.firestore.FieldValue.serverTimestamp();
+exports.bootstrapInstance = onCall(
+  CALLABLE,
+  wrapCallable("bootstrapInstance", async (request) => {
+    const { uid, email } = requireAuth(request);
+    const data = request.data || {};
+    const plan = data.plan === "yearly" ? "yearly" : "monthly";
 
-  const billingRef = db().collection("billing").doc("current");
-  const settingsRef = db().collection("family_config").doc("settings");
+    ensureApp();
+    const now = serverTimestamp();
+    const firestore = db();
+    const billingRef = firestore.collection("billing").doc("current");
+    const settingsRef = firestore.collection("family_config").doc("settings");
+    const userRef = firestore.collection("users").doc(uid);
 
-  await db().runTransaction(async (tx) => {
-    const billingSnap = await tx.get(billingRef);
-    const settingsSnap = await tx.get(settingsRef);
-
-    if (!billingSnap.exists) {
-      tx.set(billingRef, {
-        status: "incomplete",
-        ownerUid: uid,
-        ownerEmail: email,
-        plan,
-        stripeCustomerId: null,
-        stripeSubscriptionId: null,
-        stripePriceId: null,
-        createdAt: now,
-        updatedAt: now,
-      });
-    } else {
-      const current = billingSnap.data() || {};
+    const existing = await billingRef.get();
+    if (existing.exists) {
+      const current = existing.data() || {};
       if (current.ownerUid && current.ownerUid !== uid) {
         throw new HttpsError(
           "permission-denied",
           "Cette instance appartient déjà à un autre parent."
         );
       }
-      if (!current.ownerUid) {
-        tx.set(billingRef, { ownerUid: uid, ownerEmail: email, updatedAt: now }, { merge: true });
+    }
+
+    let ownerConflict = false;
+    await firestore.runTransaction(async (tx) => {
+      const billingSnap = await tx.get(billingRef);
+      const settingsSnap = await tx.get(settingsRef);
+
+      if (!billingSnap.exists) {
+        tx.set(billingRef, {
+          status: "incomplete",
+          ownerUid: uid,
+          ownerEmail: email,
+          plan,
+          stripeCustomerId: null,
+          stripeSubscriptionId: null,
+          stripePriceId: null,
+          createdAt: now,
+          updatedAt: now,
+        });
+      } else {
+        const current = billingSnap.data() || {};
+        if (current.ownerUid && current.ownerUid !== uid) {
+          ownerConflict = true;
+          return;
+        }
+        if (!current.ownerUid) {
+          tx.set(billingRef, { ownerUid: uid, ownerEmail: email, updatedAt: now }, { merge: true });
+        }
       }
+
+      if (!settingsSnap.exists) {
+        tx.set(settingsRef, {
+          name: "",
+          people: DEFAULT_FAMILY,
+          kidsNamed: true,
+          createdAt: now,
+          updatedAt: now,
+        });
+      }
+
+      tx.set(userRef, { email, role: "parent", updatedAt: now }, { merge: true });
+    });
+
+    if (ownerConflict) {
+      throw new HttpsError(
+        "permission-denied",
+        "Cette instance appartient déjà à un autre parent."
+      );
     }
 
-    if (!settingsSnap.exists) {
-      tx.set(settingsRef, {
-        name: "",
-        people: DEFAULT_FAMILY,
-        kidsNamed: true,
-        createdAt: now,
-        updatedAt: now,
-      });
+    return serializeState(await readBilling(), await readSettings(), uid);
+  })
+);
+
+exports.createCheckoutSession = onCall(
+  CALLABLE_STRIPE,
+  wrapCallable("createCheckoutSession", async (request) => {
+    const { uid, email } = requireAuth(request);
+    const data = request.data || {};
+    const billing = await assertOwner(uid);
+    if (!needsCheckout(billing)) {
+      throw new HttpsError("failed-precondition", "Un abonnement est déjà actif.");
     }
 
-    tx.set(
-      db().collection("users").doc(uid),
-      { email, role: "parent", updatedAt: now },
+    const origin = String(data.origin || "").replace(/\/$/, "");
+    if (!origin || !/^https?:\/\//i.test(origin)) {
+      throw new HttpsError("invalid-argument", "origin HTTPS requis.");
+    }
+
+    const plan = data.plan === "yearly" ? "yearly" : billing.plan || "monthly";
+    const secret = process.env.STRIPE_SECRET_KEY;
+    assertSandboxKey(secret);
+
+    const params = buildCheckoutSessionParams({
+      instanceId: instanceId(),
+      uid,
+      email,
+      plan,
+      origin,
+    });
+
+    const session = await stripeRequest("POST", "/checkout/sessions", params, secret);
+
+    await db().collection("billing").doc("current").set(
+      {
+        plan,
+        checkoutSessionId: session.id,
+        updatedAt: serverTimestamp(),
+      },
       { merge: true }
     );
-  });
 
-  return serializeState(await readBilling(), await readSettings(), uid);
-});
+    return { url: session.url, id: session.id, priceId: resolvePriceId(plan) };
+  })
+);
 
-exports.createCheckoutSession = onCall(CALLABLE_STRIPE, async (request) => {
-  const { uid, email } = requireAuth(request);
-  const data = request.data || {};
-  const billing = await assertOwner(uid);
-  if (!needsCheckout(billing)) {
-    throw new HttpsError("failed-precondition", "Un abonnement est déjà actif.");
-  }
+exports.confirmCheckoutSession = onCall(
+  CALLABLE_STRIPE,
+  wrapCallable("confirmCheckoutSession", async (request) => {
+    const { uid } = requireAuth(request);
+    const data = request.data || {};
+    await assertOwner(uid);
 
-  const origin = String(data.origin || "").replace(/\/$/, "");
-  if (!origin || !/^https?:\/\//i.test(origin)) {
-    throw new HttpsError("invalid-argument", "origin HTTPS requis.");
-  }
+    const sessionId = data.sessionId;
+    if (!sessionId || !String(sessionId).startsWith("cs_test_")) {
+      throw new HttpsError(
+        "invalid-argument",
+        "sessionId sandbox (cs_test_…) requis. Les sessions live sont refusées."
+      );
+    }
 
-  const plan = data.plan === "yearly" ? "yearly" : billing.plan || "monthly";
-  const secret = process.env.STRIPE_SECRET_KEY;
-  assertSandboxKey(secret);
-
-  const params = buildCheckoutSessionParams({
-    instanceId: instanceId(),
-    uid,
-    email,
-    plan,
-    origin,
-  });
-
-  const session = await stripeRequest("POST", "/checkout/sessions", params, secret);
-
-  await db().collection("billing").doc("current").set(
-    {
-      plan,
-      checkoutSessionId: session.id,
-      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
-    },
-    { merge: true }
-  );
-
-  return { url: session.url, id: session.id, priceId: resolvePriceId(plan) };
-});
-
-exports.confirmCheckoutSession = onCall(CALLABLE_STRIPE, async (request) => {
-  const { uid } = requireAuth(request);
-  const data = request.data || {};
-  await assertOwner(uid);
-
-  const sessionId = data.sessionId;
-  if (!sessionId || !String(sessionId).startsWith("cs_test_")) {
-    throw new HttpsError(
-      "invalid-argument",
-      "sessionId sandbox (cs_test_…) requis. Les sessions live sont refusées."
+    const secret = process.env.STRIPE_SECRET_KEY;
+    const session = await stripeRequest(
+      "GET",
+      `/checkout/sessions/${sessionId}`,
+      { expand: ["subscription"] },
+      secret
     );
-  }
 
-  const secret = process.env.STRIPE_SECRET_KEY;
-  const session = await stripeRequest(
-    "GET",
-    `/checkout/sessions/${sessionId}`,
-    { expand: ["subscription"] },
-    secret
-  );
+    if (session.livemode) {
+      throw new HttpsError("failed-precondition", "Événement live refusé (sandbox only).");
+    }
 
-  if (session.livemode) {
-    throw new HttpsError("failed-precondition", "Événement live refusé (sandbox only).");
-  }
+    let sub = session.subscription;
+    if (typeof sub === "string") {
+      sub = await stripeRequest("GET", `/subscriptions/${sub}`, {}, secret);
+    }
 
-  let sub = session.subscription;
-  if (typeof sub === "string") {
-    sub = await stripeRequest("GET", `/subscriptions/${sub}`, {}, secret);
-  }
+    if (sub && sub.id) {
+      await applyBilling(billingFromSubscription(sub, { customerId: session.customer }));
+    }
 
-  if (sub && sub.id) {
-    await applyBilling(billingFromSubscription(sub, { customerId: session.customer }));
-  }
+    return serializeState(await readBilling(), await readSettings(), uid);
+  })
+);
 
-  return serializeState(await readBilling(), await readSettings(), uid);
-});
+exports.createPortalSession = onCall(
+  CALLABLE_STRIPE,
+  wrapCallable("createPortalSession", async (request) => {
+    const { uid } = requireAuth(request);
+    const data = request.data || {};
+    const billing = await assertOwner(uid);
+    if (!billing.stripeCustomerId) {
+      throw new HttpsError("failed-precondition", "Pas encore de client Stripe.");
+    }
+    const origin = String(data.origin || "").replace(/\/$/, "");
+    if (!origin) throw new HttpsError("invalid-argument", "origin requis.");
 
-exports.createPortalSession = onCall(CALLABLE_STRIPE, async (request) => {
-  const { uid } = requireAuth(request);
-  const data = request.data || {};
-  const billing = await assertOwner(uid);
-  if (!billing.stripeCustomerId) {
-    throw new HttpsError("failed-precondition", "Pas encore de client Stripe.");
-  }
-  const origin = String(data.origin || "").replace(/\/$/, "");
-  if (!origin) throw new HttpsError("invalid-argument", "origin requis.");
+    const session = await stripeRequest(
+      "POST",
+      "/billing_portal/sessions",
+      { customer: billing.stripeCustomerId, return_url: origin },
+      process.env.STRIPE_SECRET_KEY
+    );
+    return { url: session.url };
+  })
+);
 
-  const session = await stripeRequest(
-    "POST",
-    "/billing_portal/sessions",
-    { customer: billing.stripeCustomerId, return_url: origin },
-    process.env.STRIPE_SECRET_KEY
-  );
-  return { url: session.url };
-});
+exports.saveChildren = onCall(
+  CALLABLE,
+  wrapCallable("saveChildren", async (request) => {
+    const { uid } = requireAuth(request);
+    const data = request.data || {};
+    const billing = await assertOwner(uid);
+    if (!hasAppAccess(billing)) {
+      throw new HttpsError("failed-precondition", "Abonnement requis.");
+    }
 
-exports.saveChildren = onCall(CALLABLE, async (request) => {
-  const { uid } = requireAuth(request);
-  const data = request.data || {};
-  const billing = await assertOwner(uid);
-  if (!hasAppAccess(billing)) {
-    throw new HttpsError("failed-precondition", "Abonnement requis.");
-  }
+    const names = Array.isArray(data.childNames) ? data.childNames : [];
+    const cleaned = names.map((n) => String(n || "").trim()).filter(Boolean);
+    if (cleaned.length < 1 || cleaned.length > 6) {
+      throw new HttpsError("invalid-argument", "Indique entre 1 et 6 prénoms.");
+    }
 
-  const names = Array.isArray(data.childNames) ? data.childNames : [];
-  const cleaned = names.map((n) => String(n || "").trim()).filter(Boolean);
-  if (cleaned.length < 1 || cleaned.length > 6) {
-    throw new HttpsError("invalid-argument", "Indique entre 1 et 6 prénoms.");
-  }
+    const people = peopleFromChildNames(cleaned);
+    await db().collection("family_config").doc("settings").set(
+      {
+        people,
+        kidsNamed: true,
+        updatedAt: serverTimestamp(),
+      },
+      { merge: true }
+    );
 
-  const people = peopleFromChildNames(cleaned);
-  await db().collection("family_config").doc("settings").set(
-    {
-      people,
-      kidsNamed: true,
-      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
-    },
-    { merge: true }
-  );
-
-  return serializeState(await readBilling(), await readSettings(), uid);
-});
+    return serializeState(await readBilling(), await readSettings(), uid);
+  })
+);
 
 async function applyBilling(patch) {
   await db()
@@ -246,7 +278,7 @@ async function applyBilling(patch) {
     .set(
       {
         ...patch,
-        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+        updatedAt: serverTimestamp(),
       },
       { merge: true }
     );

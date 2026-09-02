@@ -1,18 +1,24 @@
 "use strict";
 
-const admin = require("firebase-admin");
+const { getApps, initializeApp, getApp } = require("firebase-admin/app");
+const { getFirestore, FieldValue } = require("firebase-admin/firestore");
 
 /** Init only when a function runs — not during `firebase deploy` discovery. */
 function ensureApp() {
-  if (!admin.apps.length) {
-    admin.initializeApp();
+  if (getApps().length === 0) {
+    initializeApp();
   }
-  return admin.app();
+  return getApp();
 }
 
 function db() {
   ensureApp();
-  return admin.firestore();
+  return getFirestore();
 }
 
-module.exports = { admin, ensureApp, db };
+function serverTimestamp() {
+  ensureApp();
+  return FieldValue.serverTimestamp();
+}
+
+module.exports = { ensureApp, db, serverTimestamp, FieldValue };
