@@ -66,7 +66,7 @@ function shouldAppearForDate(task, dateObj) {
    EMAIL_USER / EMAIL_PASSWORD optional at runtime (never defineSecret)
 ========================================================= */
 
-const { emailConfigured, sendMail } = require("./lib/mailer");
+const { emailConfigured, sendMail, logMailFailure } = require("./lib/mailer");
 
 async function sendEmail(subject, htmlContent, toAddress) {
   if (!emailConfigured()) {
@@ -473,7 +473,7 @@ exports.dailyResetAndStats = onSchedule(
         try {
           await sendEmail("⚠️ Erreur Reset Automatique", `<p>Le reset a échoué (${familyId}) : ${String(error?.message || error)}</p>`);
         } catch (e) {
-          console.error("Impossible d'envoyer l'email d'erreur", e);
+          logMailFailure("Impossible d'envoyer l'email d'erreur", e);
         }
       }
     }

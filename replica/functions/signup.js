@@ -17,7 +17,7 @@ const {
   nextExpiry,
   evaluateVerify,
 } = require("./lib/signupCodes");
-const { requireEmailConfigured, sendMail, welcomeVerifyEmailHtml, welcomeVerifyEmailText } = require("./lib/mailer");
+const { requireEmailConfigured, sendMail, logMailFailure, welcomeVerifyEmailHtml, welcomeVerifyEmailText } = require("./lib/mailer");
 const { t, localeFromRequest, normalizeLocale } = require("./lib/i18n");
 
 function auth() {
@@ -131,7 +131,7 @@ exports.requestSignup = onCall(
       await persistAndSendCode({ email, uid: user.uid, now, locale });
     } catch (err) {
       if (err?.code === "EMAIL_NOT_CONFIGURED") fail("failed-precondition", locale, "err.emailNotConfigured");
-      console.error("requestSignup mail failed");
+      logMailFailure("requestSignup mail failed", err);
       await signupCodeRef(email)
         .set({ lastSentAtMs: 0, updatedAt: serverTimestamp() }, { merge: true })
         .catch(() => {});

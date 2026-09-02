@@ -11,7 +11,7 @@ const {
 } = require("./lib/adminPinFormat");
 const { memberRef, settingsRef, readFamilyBilling, readFamilySettings } = require("./lib/families");
 const { loadReplicaState } = require("./lib/replicaLoad");
-const { requireEmailConfigured, sendMail, recoverPinEmailHtml, recoverPinEmailText } = require("./lib/mailer");
+const { requireEmailConfigured, sendMail, logMailFailure, recoverPinEmailHtml, recoverPinEmailText } = require("./lib/mailer");
 const { t, localeFromRequest } = require("./lib/i18n");
 
 const RECOVER_COOLDOWN_MS = 15 * 60 * 1000;
@@ -166,7 +166,7 @@ exports.recoverAdminPin = onCall(
       });
     } catch (err) {
       if (err?.code === "EMAIL_NOT_CONFIGURED") fail("failed-precondition", locale, "err.emailNotConfigured");
-      console.error("recoverAdminPin mail failed");
+      logMailFailure("recoverAdminPin mail failed", err);
       fail("unavailable", locale, "err.mailFailed");
     }
 

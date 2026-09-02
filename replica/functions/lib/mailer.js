@@ -42,6 +42,30 @@ function mailTransportOptions() {
   };
 }
 
+function scrubMailLogValue(value) {
+  if (value == null || value === "") return undefined;
+  let s = typeof value === "string" ? value : String(value);
+  const secrets = [process.env.EMAIL_PASSWORD].filter((part) => String(part || "").trim());
+  for (const secret of secrets) {
+    if (secret && s.includes(secret)) s = s.split(secret).join("[redacted]");
+  }
+  return s;
+}
+
+function safeMailErrorSummary(err) {
+  const src = err && typeof err === "object" ? err : { message: err };
+  const summary = {};
+  for (const field of ["code", "command", "response", "responseCode", "message"]) {
+    if (src[field] == null || src[field] === "") continue;
+    summary[field] = typeof src[field] === "number" ? src[field] : scrubMailLogValue(src[field]);
+  }
+  return summary;
+}
+
+function logMailFailure(label, err) {
+  console.error(label, safeMailErrorSummary(err));
+}
+
 function missingEmailMessage(locale) {
   return t(locale, "err.emailNotConfigured");
 }
@@ -227,6 +251,8 @@ module.exports = {
   mailFromAddress,
   mailReplyTo,
   mailTransportOptions,
+  safeMailErrorSummary,
+  logMailFailure,
   sendMail,
   welcomeVerifyEmailHtml,
   welcomeVerifyEmailText,

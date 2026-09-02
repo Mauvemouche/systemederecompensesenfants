@@ -14,7 +14,7 @@ const {
   nextExpiry,
 } = require("./lib/signupCodes");
 const { evaluateConfirmReset, applyPasswordUpdate, hashResetCode } = require("./lib/passwordReset");
-const { requireEmailConfigured, sendMail, resetPasswordEmailHtml, resetPasswordEmailText } = require("./lib/mailer");
+const { requireEmailConfigured, sendMail, logMailFailure, resetPasswordEmailHtml, resetPasswordEmailText } = require("./lib/mailer");
 const { t, localeFromRequest, normalizeLocale } = require("./lib/i18n");
 
 function auth() {
@@ -104,7 +104,7 @@ exports.requestPasswordReset = onCall(
       });
     } catch (err) {
       if (err?.code === "EMAIL_NOT_CONFIGURED") fail("failed-precondition", locale, "err.emailNotConfigured");
-      console.error("requestPasswordReset mail failed");
+      logMailFailure("requestPasswordReset mail failed", err);
       await ref.set({ lastSentAtMs: 0, updatedAt: serverTimestamp() }, { merge: true }).catch(() => {});
       fail("unavailable", locale, "err.resetMailFailed");
     }
