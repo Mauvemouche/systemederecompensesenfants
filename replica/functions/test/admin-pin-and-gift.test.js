@@ -103,13 +103,15 @@ describe("welcome email copy", () => {
       assert.match(body, /bière/);
       assert.match(body, /kidsrewardsystem@proton\.me/);
       assert.match(body, /résumé quotidien|écran d’accueil/);
-      assert.match(body, /mon nom vous sera dévoilé aux utilisateurs payants/);
+      assert.match(body, /mon nom ne sera dévoilé qu'aux utilisateurs payants/);
       assert.match(body, /Ce code expire après 15 minutes/);
       assert.match(body, /récompense et responsabilités/);
       assert.match(body, /carte enregistrée/);
-      assert.match(body, /À très vite !/);
+      assert.match(body, /À vous de jouer ! 😉/);
+      assert.equal(/À très vite !/.test(body), false);
     }
-    const afterSignoff = html.split("À très vite !")[1] || "";
+    assert.match(html, /<h2 style="margin:22px 0 10px;font-size:22px;">À vous de jouer ! 😉<\/h2>/);
+    const afterSignoff = html.split("À vous de jouer ! 😉")[1] || "";
     assert.equal(afterSignoff.includes("Un papa belge"), false);
   });
 });

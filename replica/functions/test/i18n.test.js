@@ -46,6 +46,7 @@ describe("recovery and welcome emails follow the requested locale", () => {
     assert.match(fr, /Nouveau code Admin/);
     assert.match(recoverPinEmailHtml("1234", "en"), /lang="en"/);
     assert.match(recoverPinEmailHtml("9999", "nl"), /lang="nl"/);
+    assert.match(recoverPinEmailHtml("1234", "fr"), /À très vite !/);
     const defaultRecover = recoverPinEmailHtml("1234");
     assert.match(defaultRecover, /lang="nl"/);
     const defaultWelcome = welcomeVerifyEmailHtml("482910");
@@ -72,9 +73,15 @@ describe("recovery and welcome emails follow the requested locale", () => {
       }
       assert.match(html, /identity theft|identiteitsdiefstal|Identitätsdiebstahl|vol d/i);
       assert.match(text, /identity theft|identiteitsdiefstal|Identitätsdiebstahl|vol d/i);
+      assert.match(
+        html,
+        /ne sera dévoilé qu'aux|alleen onthuld aan betalende|wird nur zahlenden|will only be revealed to paying/
+      );
       assert.match(text, /482910\s+This code expires after 15 minutes|482910\s+Ce code expire après 15 minutes|482910\s+Deze code vervalt na 15 minuten|482910\s+Dieser Code läuft nach 15 Minuten ab/);
-      assert.match(html, /À très vite !|Tot gauw!|Bis gleich!|See you soon!/);
-      const signoff = t(loc, "email.signoff");
+      assert.match(html, /À vous de jouer ! 😉|Aan jou om te spelen! 😉|Jetzt bist du am Zug! 😉|Your turn to play! 😉/);
+      assert.equal(/À très vite !|Tot gauw!|Bis gleich!|See you soon!/.test(html), false, loc);
+      const signoff = t(loc, "email.welcome.signoff");
+      assert.match(html, new RegExp(`<h2 style="margin:22px 0 10px;font-size:22px;">${signoff.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}<\\/h2>`));
       const dad = t(loc, "email.dad");
       const afterSignoff = html.split(signoff)[1] || "";
       assert.equal(afterSignoff.includes(dad), false, loc);

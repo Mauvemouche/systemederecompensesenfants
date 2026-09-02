@@ -56,7 +56,8 @@ const fr = {
   "email.welcome.bodyText":
     "Salut, et merci de nous rejoindre. Je suis un papa belge : j’ai construit cette appli pour que les familles puissent suivre les tâches des enfants, gagner des étoiles, et transformer ça en temps d’écran.",
   "email.welcome.identityNote":
-    "(mon nom vous sera dévoilé aux utilisateurs payants après la période d’essai, pour éviter les spams et vol d’identité)",
+    "(mon nom ne sera dévoilé qu'aux utilisateurs payants après la période d’essai, pour éviter les spams et vol d’identité)",
+  "email.welcome.signoff": "À vous de jouer ! 😉",
   "email.welcome.codeIntro": "Voici ton code de vérification (valable 15 minutes) :",
   "email.welcome.codeExpiry": "Ce code expire après 15 minutes.",
   "email.welcome.afterCode":
@@ -158,7 +159,8 @@ const nl = {
   "email.welcome.bodyText":
     "Hallo, en welkom. Ik ben een Belgische papa: ik heb deze app gemaakt zodat gezinnen de taken van de kinderen kunnen volgen, sterren kunnen verdienen, en dat omzetten in schermtijd.",
   "email.welcome.identityNote":
-    "(mijn naam wordt na de proefperiode onthuld aan betalende gebruikers, om spam en identiteitsdiefstal te vermijden)",
+    "(mijn naam wordt alleen onthuld aan betalende gebruikers na de proefperiode, om spam en identiteitsdiefstal te vermijden)",
+  "email.welcome.signoff": "Aan jou om te spelen! 😉",
   "email.welcome.codeIntro": "Hier is je verificatiecode (15 minuten geldig):",
   "email.welcome.codeExpiry": "Deze code vervalt na 15 minuten.",
   "email.welcome.afterCode":
@@ -260,7 +262,8 @@ const de = {
   "email.welcome.bodyText":
     "Hallo und willkommen. Ich bin ein belgischer Papa: Ich habe diese App gebaut, damit Familien die Aufgaben der Kinder verfolgen, Sterne sammeln und daraus Bildschirmzeit machen können.",
   "email.welcome.identityNote":
-    "(mein Name wird zahlenden Nutzerinnen und Nutzern nach der Testphase genannt, um Spam und Identitätsdiebstahl zu vermeiden)",
+    "(mein Name wird nur zahlenden Nutzerinnen und Nutzern nach der Testphase genannt, um Spam und Identitätsdiebstahl zu vermeiden)",
+  "email.welcome.signoff": "Jetzt bist du am Zug! 😉",
   "email.welcome.codeIntro": "Hier ist dein Bestätigungscode (15 Minuten gültig):",
   "email.welcome.codeExpiry": "Dieser Code läuft nach 15 Minuten ab.",
   "email.welcome.afterCode":
@@ -362,7 +365,8 @@ const en = {
   "email.welcome.bodyText":
     "Hi, and welcome. I’m a Belgian dad: I built this app so families can follow the kids’ tasks, earn stars, and turn that into screen time.",
   "email.welcome.identityNote":
-    "(my name will be revealed to paying users after the trial, to avoid spam and identity theft)",
+    "(my name will only be revealed to paying users after the trial, to avoid spam and identity theft)",
+  "email.welcome.signoff": "Your turn to play! 😉",
   "email.welcome.codeIntro": "Here’s your verification code (valid for 15 minutes):",
   "email.welcome.codeExpiry": "This code expires after 15 minutes.",
   "email.welcome.afterCode":

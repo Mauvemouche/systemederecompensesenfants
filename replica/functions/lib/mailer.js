@@ -124,6 +124,10 @@ function wrapEmail(locale, title, inner, opts = {}) {
   const origin = publicOrigin();
   const legalHtml = t(locale, "email.legalHtml", { origin });
   const dadLine = opts.includeDad === false ? "" : `<br/>${t(locale, "email.dad")}`;
+  const signoffBlock =
+    opts.hideSignoff === true
+      ? ""
+      : `<p style="margin:22px 0 0;color:#888;font-size:13px;">${t(locale, "email.signoff")}${dadLine}</p>`;
   return `<!doctype html>
 <html lang="${lang}">
 <head>
@@ -135,7 +139,7 @@ function wrapEmail(locale, title, inner, opts = {}) {
   <div style="max-width:640px;margin:0 auto;padding:22px;">
     <div style="background:#fff;border-radius:16px;padding:22px 22px 16px;box-shadow:0 10px 26px rgba(0,0,0,.08);">
       ${inner}
-      <p style="margin:22px 0 0;color:#888;font-size:13px;">${t(locale, "email.signoff")}${dadLine}</p>
+      ${signoffBlock}
       <p style="margin:16px 0 0;color:#888;font-size:12px;">${legalHtml}</p>
     </div>
   </div>
@@ -173,8 +177,9 @@ function welcomeVerifyEmailHtml(code, locale) {
     <p style="margin:0 0 12px;color:#333;line-height:1.5;">${t(loc, "email.welcome.prices")}</p>
     <p style="margin:0 0 12px;color:#333;line-height:1.5;">${t(loc, "email.welcome.dailyEmail")}</p>
     <p style="margin:0;color:#333;line-height:1.5;">${t(loc, "email.welcome.contact")}</p>
+    <h2 style="margin:22px 0 10px;font-size:22px;">${t(loc, "email.welcome.signoff")}</h2>
     `,
-    { includeDad: false }
+    { includeDad: false, hideSignoff: true }
   );
 }
 
@@ -200,7 +205,7 @@ ${t(loc, "email.welcome.dailyEmailText")}
 
 ${t(loc, "email.welcome.contactText")}
 
-${t(loc, "email.signoff")}
+${t(loc, "email.welcome.signoff")}
 
 ${legalEmailText(loc)}`;
 }
