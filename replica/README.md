@@ -35,6 +35,10 @@ Signup verification and Admin PIN recovery also use `EMAIL_USER` / `EMAIL_PASSWO
 
 Languages: **nl, fr, de, en** (Dutch first). Unknown locale and default mail locale: **nl**.
 
+## Legal identity (fill before going live)
+
+Edit `public/js/legal-identity.js`. Keep the ALL-CAPS placeholders until you type the real values yourself. Do **not** commit a home address by accident. `CONTACT_EMAIL` already defaults to `kidsrewardsystem@proton.me`. BCE/KBO and VAT are optional. Replica hosting has **no** Firebase Analytics / gtag / cookie banner.
+
 ## Stripe promo / founder codes (sandbox only)
 
 Do **not** invent live coupons. Anthony creates them in the **AnthonyRsca Stripe sandbox** Dashboard:

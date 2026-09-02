@@ -108,6 +108,11 @@ describe("UI locale files share the same keys", () => {
       "task.bonus",
       "ui.modifier",
       "rename.prompt",
+      "gate.acceptLegal",
+      "footer.privacy",
+      "privacy.title",
+      "terms.priceBody",
+      "err.acceptedLegal",
     ]) {
       assert.ok(fr[key], key);
       assert.ok(nl[key], key);

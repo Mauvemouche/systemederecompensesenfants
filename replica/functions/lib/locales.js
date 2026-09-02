@@ -40,6 +40,7 @@ const fr = {
   "err.invalidName": "Le prénom doit faire entre 1 et 40 caractères.",
   "err.personNotFound": "Personne introuvable.",
   "err.internalFamily": "Impossible de créer la famille.",
+  "err.acceptedLegal": "Accepte les conditions et la politique de confidentialité pour créer un compte.",
   "email.fromName": "Système de récompenses",
   "email.signoff": "À très vite,",
   "email.dad": "Un papa belge",
@@ -77,6 +78,9 @@ const fr = {
     "En mode Admin, tu pourras le changer. Si tu n’as pas fait cette demande, change le code dès que tu peux, et écris-nous à <a href=\"mailto:kidsrewardsystem@proton.me\">kidsrewardsystem@proton.me</a>.",
   "email.recover.afterText":
     "En mode Admin, tu pourras le changer. Si tu n’as pas fait cette demande, écris à kidsrewardsystem@proton.me.",
+  "email.legalHtml":
+    "<a href=\"{origin}/privacy.html\">Confidentialité</a> · <a href=\"{origin}/terms.html\">Conditions</a>",
+  "email.legalText": "Confidentialité : {origin}/privacy.html\nConditions : {origin}/terms.html",
 };
 
 const nl = {
@@ -117,6 +121,7 @@ const nl = {
   "err.invalidName": "De voornaam moet 1 tot 40 tekens hebben.",
   "err.personNotFound": "Persoon niet gevonden.",
   "err.internalFamily": "Het gezin kon niet worden aangemaakt.",
+  "err.acceptedLegal": "Aanvaard de voorwaarden en de privacyverklaring om een account aan te maken.",
   "email.fromName": "Beloningssysteem",
   "email.signoff": "Tot gauw,",
   "email.dad": "Een Belgische papa",
@@ -154,6 +159,9 @@ const nl = {
     "In Admin-modus kun je hem wijzigen. Als jij deze aanvraag niet hebt gedaan, wijzig de code zo snel je kunt en schrijf naar <a href=\"mailto:kidsrewardsystem@proton.me\">kidsrewardsystem@proton.me</a>.",
   "email.recover.afterText":
     "In Admin-modus kun je hem wijzigen. Als jij deze aanvraag niet hebt gedaan, schrijf naar kidsrewardsystem@proton.me.",
+  "email.legalHtml":
+    "<a href=\"{origin}/privacy.html\">Privacy</a> · <a href=\"{origin}/terms.html\">Voorwaarden</a>",
+  "email.legalText": "Privacy: {origin}/privacy.html\nVoorwaarden: {origin}/terms.html",
 };
 
 const de = {
@@ -194,6 +202,7 @@ const de = {
   "err.invalidName": "Der Vorname muss 1 bis 40 Zeichen haben.",
   "err.personNotFound": "Person nicht gefunden.",
   "err.internalFamily": "Die Familie konnte nicht erstellt werden.",
+  "err.acceptedLegal": "Bitte akzeptiere die Bedingungen und die Datenschutzerklärung, um ein Konto zu erstellen.",
   "email.fromName": "Belohnungssystem",
   "email.signoff": "Bis gleich,",
   "email.dad": "Ein belgischer Papa",
@@ -231,6 +240,9 @@ const de = {
     "Im Admin-Modus kannst du ihn ändern. Wenn du das nicht angefordert hast, ändere den Code so schnell du kannst und schreib an <a href=\"mailto:kidsrewardsystem@proton.me\">kidsrewardsystem@proton.me</a>.",
   "email.recover.afterText":
     "Im Admin-Modus kannst du ihn ändern. Wenn du das nicht angefordert hast, schreib an kidsrewardsystem@proton.me.",
+  "email.legalHtml":
+    "<a href=\"{origin}/privacy.html\">Datenschutz</a> · <a href=\"{origin}/terms.html\">Bedingungen</a>",
+  "email.legalText": "Datenschutz: {origin}/privacy.html\nBedingungen: {origin}/terms.html",
 };
 
 const en = {
@@ -271,6 +283,7 @@ const en = {
   "err.invalidName": "The first name must be 1 to 40 characters.",
   "err.personNotFound": "Person not found.",
   "err.internalFamily": "Couldn’t create the family.",
+  "err.acceptedLegal": "Accept the Terms and Privacy policy to create an account.",
   "email.fromName": "Rewards system",
   "email.signoff": "See you soon,",
   "email.dad": "A Belgian dad",
@@ -308,6 +321,9 @@ const en = {
     "In Admin mode, you can change it. If you didn’t request this, change the code as soon as you can and write to <a href=\"mailto:kidsrewardsystem@proton.me\">kidsrewardsystem@proton.me</a>.",
   "email.recover.afterText":
     "In Admin mode, you can change it. If you didn’t request this, write to kidsrewardsystem@proton.me.",
+  "email.legalHtml":
+    "<a href=\"{origin}/privacy.html\">Privacy</a> · <a href=\"{origin}/terms.html\">Terms</a>",
+  "email.legalText": "Privacy: {origin}/privacy.html\nTerms: {origin}/terms.html",
 };
 
 function assertSameKeys() {

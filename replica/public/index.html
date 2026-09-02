@@ -6,7 +6,7 @@
   <title>Système de récompenses</title>
 
   <!-- IMPORTANT: garde ton styles.css existant -->
-  <link rel="stylesheet" href="./styles.css?v=112" />
+  <link rel="stylesheet" href="./styles.css?v=113" />
 </head>
 
 <body>
@@ -323,6 +323,10 @@
           <input id="authEmail" class="modal-input" type="email" autocomplete="email" required />
           <label class="modal-label" for="authPassword" data-i18n="gate.password"></label>
           <input id="authPassword" class="modal-input" type="password" autocomplete="current-password" required minlength="6" />
+          <label id="acceptLegalWrap" class="auth-legal-check" hidden>
+            <input id="acceptLegal" type="checkbox" />
+            <span data-i18n-html="gate.acceptLegal"></span>
+          </label>
           <p id="gateError" class="gate-error" role="alert" style="display:none;"></p>
           <div class="modal-footer" style="margin-top:14px;">
             <button id="authSubmit" class="btn btn-primary" type="submit" data-i18n="gate.login"></button>
@@ -414,6 +418,21 @@
     </div>
   </div>
 
+  <footer class="app-legal-footer" id="appLegalFooter">
+    <span>
+      <span data-legal="legalName"></span>
+      · <span data-legal="streetAddress"></span>
+      · <span data-legal="postcodeCity"></span>
+      · <span data-legal="country"></span>
+      · <a data-legal-mail></a>
+    </span>
+    <span>
+      <a href="./privacy.html" data-i18n="footer.privacy"></a>
+      ·
+      <a href="./terms.html" data-i18n="footer.terms"></a>
+    </span>
+  </footer>
+
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getFirestore } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
@@ -421,6 +440,7 @@
     import { getFunctions } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-functions.js";
     import { firebaseConfig, FUNCTIONS_REGION } from "./js/firebase-config.js";
     import { bootI18n } from "./js/i18n.js";
+    import { fillLegalIdentity } from "./js/legal-identity.js";
     import { startReplicaGate } from "./js/family-gate.js";
 
     const app = initializeApp(firebaseConfig);
@@ -428,9 +448,10 @@
     window.auth = getAuth(app);
     window.functions = getFunctions(app, FUNCTIONS_REGION);
     await bootI18n();
+    fillLegalIdentity();
     startReplicaGate();
   </script>
 
-  <script type="module" src="./js/app.js?v=112"></script>
+  <script type="module" src="./js/app.js?v=113"></script>
 </body>
 </html>

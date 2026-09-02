@@ -2,6 +2,7 @@
  * Firebase config for the multi-family replica platform (one URL, many families).
  * Replace every YOUR_* value for this Firebase project (recompenses-test).
  * Never point this at Anthony's live family Firebase project.
+ * Do not add measurementId — replica hosting must not initialize Analytics.
  */
 export const firebaseConfig = {
   apiKey: "YOUR_REPLICA_API_KEY",

@@ -15,6 +15,7 @@ import {
   applyFamilyLocale,
   AUTH_ERROR_KEYS,
 } from "./i18n.js";
+import { fillLegalIdentity } from "./legal-identity.js";
 
 const $ = (id) => document.getElementById(id);
 
@@ -119,6 +120,8 @@ function syncAuthLabels() {
     $("authTitle").setAttribute("data-i18n", titleKey);
     $("authTitle").textContent = t(titleKey);
   }
+  const legalWrap = $("acceptLegalWrap");
+  if (legalWrap) legalWrap.hidden = !signup;
 }
 
 function billingLabel(state) {
@@ -223,10 +226,14 @@ function bindUi() {
     const email = $("authEmail").value.trim();
     const password = $("authPassword").value;
     const mode = authMode();
+    if (mode === "signup" && !$("acceptLegal")?.checked) {
+      setError(t("err.acceptedLegal"), "err.acceptedLegal");
+      return;
+    }
     setAuthBusy(true);
     try {
       if (mode === "signup") {
-        await callFn("requestSignup", { email, password });
+        await callFn("requestSignup", { email, password, acceptedLegal: true });
         pendingSignup = { email, password };
         if ($("verifyEmailHint")) $("verifyEmailHint").textContent = email;
         setGate(true);
@@ -284,7 +291,7 @@ function bindUi() {
       return;
     }
     try {
-      await callFn("requestSignup", { email, password });
+      await callFn("requestSignup", { email, password, acceptedLegal: true });
       pendingSignup = { email, password };
       setError("");
       const hint = $("verifyResent");
@@ -427,6 +434,7 @@ export function startReplicaGate() {
   bindUi();
   onLocaleChange(() => {
     syncAuthLabels();
+    fillLegalIdentity();
     accountBar(window.__replicaState, window.auth?.currentUser);
     if (window.__replicaState?.people) renderFamilyShell(window.__replicaState.people);
     retranslateErrors();

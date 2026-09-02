@@ -84,6 +84,7 @@ exports.requestSignup = onCall(
     const password = request.data?.password;
     if (!isValidEmail(email)) fail("invalid-argument", locale, "err.invalidEmail");
     if (!isValidSignupPassword(password)) fail("invalid-argument", locale, "err.weakPassword");
+    if (request.data?.acceptedLegal !== true) fail("failed-precondition", locale, "err.acceptedLegal");
 
     try {
       requireEmailConfigured(locale);

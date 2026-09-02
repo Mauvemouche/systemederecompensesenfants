@@ -37,8 +37,15 @@ async function sendMail({ to, subject, html, text, locale }) {
   });
 }
 
+function publicOrigin() {
+  const project = process.env.GCLOUD_PROJECT || process.env.GCP_PROJECT || "recompenses-test";
+  return `https://${project}.web.app`;
+}
+
 function wrapEmail(locale, title, inner) {
   const lang = normalizeLocale(locale);
+  const origin = publicOrigin();
+  const legalHtml = t(locale, "email.legalHtml", { origin });
   return `<!doctype html>
 <html lang="${lang}">
 <head>
@@ -51,10 +58,15 @@ function wrapEmail(locale, title, inner) {
     <div style="background:#fff;border-radius:16px;padding:22px 22px 16px;box-shadow:0 10px 26px rgba(0,0,0,.08);">
       ${inner}
       <p style="margin:22px 0 0;color:#888;font-size:13px;">${t(locale, "email.signoff")}<br/>${t(locale, "email.dad")}</p>
+      <p style="margin:16px 0 0;color:#888;font-size:12px;">${legalHtml}</p>
     </div>
   </div>
 </body>
 </html>`;
+}
+
+function legalEmailText(locale) {
+  return t(locale, "email.legalText", { origin: publicOrigin() });
 }
 
 function welcomeVerifyEmailHtml(code, locale) {
@@ -101,7 +113,9 @@ ${t(loc, "email.welcome.pricesText")}
 ${t(loc, "email.welcome.contactText")}
 
 ${t(loc, "email.signoff")}
-${t(loc, "email.dad")}`;
+${t(loc, "email.dad")}
+
+${legalEmailText(loc)}`;
 }
 
 function recoverPinEmailHtml(pin, locale) {
@@ -129,7 +143,9 @@ ${t(loc, "email.recover.body")} ${pin}
 
 ${t(loc, "email.recover.afterText")}
 
-${t(loc, "email.dad")}`;
+${t(loc, "email.dad")}
+
+${legalEmailText(loc)}`;
 }
 
 module.exports = {
@@ -141,5 +157,6 @@ module.exports = {
   welcomeVerifyEmailText,
   recoverPinEmailHtml,
   recoverPinEmailText,
+  publicOrigin,
   bcp47,
 };
