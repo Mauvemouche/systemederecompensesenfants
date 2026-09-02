@@ -145,3 +145,37 @@ describe("replica functions deploy without optional email secrets", () => {
     assert.match(cmd, /firebase deploy %\*/);
   });
 });
+
+describe("replica parent gate UX", () => {
+  it("shows #gateError inside the auth form above submit", () => {
+    const html = fs.readFileSync(path.join(repoRoot, "replica/public/index.html"), "utf8");
+    const form = html.match(/<form id="authForm"[\s\S]*?<\/form>/)[0];
+    assert.match(form, /id="gateError"/);
+    assert.ok(form.indexOf("gateError") < form.indexOf("authSubmit"));
+    const cardStart = html.indexOf('class="auth-card"');
+    const title = html.indexOf("authTitle");
+    const err = html.indexOf('id="gateError"');
+    assert.ok(err > title, "error must sit below the heading, not above the card title");
+    assert.ok(cardStart < title);
+  });
+
+  it("maps Firebase auth codes to French and re-routes after sign-in", () => {
+    const js = fs.readFileSync(path.join(repoRoot, "replica/public/js/family-gate.js"), "utf8");
+    for (const code of [
+      "email-already-in-use",
+      "invalid-credential",
+      "wrong-password",
+      "user-not-found",
+      "weak-password",
+      "invalid-email",
+      "too-many-requests",
+    ]) {
+      assert.match(js, new RegExp(code));
+    }
+    assert.match(js, /Cet email est déjà utilisé/);
+    assert.match(js, /Connexion…/);
+    assert.match(js, /Création…/);
+    assert.match(js, /const state = await refreshState\(\);\s*await routeState\(state\);/);
+    assert.equal(js.includes("setError(err.message || \"Connexion impossible\")"), false);
+  });
+});

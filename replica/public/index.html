@@ -293,8 +293,6 @@
   <!-- ===== Replica gate (auth / Stripe / kids) ===== -->
   <div id="authGate" class="auth-gate" aria-hidden="false">
     <div class="auth-card">
-      <p id="gateError" class="gate-error" style="display:none;"></p>
-
       <section id="gate-auth">
         <h2 id="authTitle">Connexion parent</h2>
         <p class="gate-lead">Cette copie est réservée à votre famille. 1er mois offert, puis 2,50 €/mois ou 25 €/an.</p>
@@ -303,6 +301,7 @@
           <input id="authEmail" class="modal-input" type="email" autocomplete="email" required />
           <label class="modal-label" for="authPassword">Mot de passe</label>
           <input id="authPassword" class="modal-input" type="password" autocomplete="current-password" required minlength="6" />
+          <p id="gateError" class="gate-error" role="alert" style="display:none;"></p>
           <div class="modal-footer" style="margin-top:14px;">
             <button id="authSubmit" class="btn btn-primary" type="submit">Se connecter</button>
           </div>
@@ -313,6 +312,7 @@
       <section id="gate-checkout" class="hidden">
         <h2>Choisir l’abonnement</h2>
         <p class="gate-lead">Essai de 30 jours, carte enregistrée. Ensuite 2,50 € / mois ou 25 € / an (Stripe sandbox).</p>
+        <p class="gate-error" role="alert" style="display:none;"></p>
         <div class="plan-row">
           <button id="checkoutMonthlyBtn" class="plan-card" type="button">
             <strong>Mensuel</strong>
@@ -335,6 +335,7 @@
           <input id="childName2" class="modal-input" type="text" placeholder="Enfant 2 (optionnel)" />
           <input id="childName3" class="modal-input" type="text" placeholder="Enfant 3 (optionnel)" />
           <input id="childName4" class="modal-input" type="text" placeholder="Enfant 4 (optionnel)" />
+          <p class="gate-error" role="alert" style="display:none;"></p>
           <div class="modal-footer" style="margin-top:14px;">
             <button class="btn btn-primary" type="submit">Enregistrer</button>
           </div>

@@ -29,11 +29,49 @@ function setGate(open) {
   gate.setAttribute("aria-hidden", open ? "false" : "true");
 }
 
+const AUTH_ERROR_FR = {
+  "email-already-in-use": "Cet email est déjà utilisé. Connecte-toi.",
+  "invalid-credential": "Email ou mot de passe incorrect.",
+  "wrong-password": "Email ou mot de passe incorrect.",
+  "user-not-found": "Aucun compte pour cet email.",
+  "weak-password": "Mot de passe trop faible (6 caractères min.).",
+  "invalid-email": "Email invalide.",
+  "too-many-requests": "Trop d’essais. Réessaie plus tard.",
+};
+
+function authErrorCode(err) {
+  return String(err?.code || "").replace(/^auth\//, "");
+}
+
+function authErrorMessage(err) {
+  return AUTH_ERROR_FR[authErrorCode(err)] || "Connexion impossible.";
+}
+
 function setError(msg) {
-  const el = $("gateError");
-  if (!el) return;
-  el.textContent = msg || "";
-  el.style.display = msg ? "block" : "none";
+  document.querySelectorAll(".gate-error").forEach((el) => {
+    el.textContent = msg || "";
+    el.style.display = msg ? "block" : "none";
+  });
+}
+
+function authMode() {
+  return $("authForm")?.dataset.mode || "login";
+}
+
+function authIdleLabel(mode = authMode()) {
+  return mode === "signup" ? "Créer mon compte" : "Se connecter";
+}
+
+function authBusyLabel(mode = authMode()) {
+  return mode === "signup" ? "Création…" : "Connexion…";
+}
+
+function setAuthBusy(busy) {
+  const submit = $("authSubmit");
+  if (!submit) return;
+  submit.disabled = !!busy;
+  submit.setAttribute("aria-busy", busy ? "true" : "false");
+  submit.textContent = busy ? authBusyLabel() : authIdleLabel();
 }
 
 function accountBar(state, user) {
@@ -117,15 +155,20 @@ function bindUi() {
     setError("");
     const email = $("authEmail").value.trim();
     const password = $("authPassword").value;
-    const mode = $("authForm").dataset.mode || "login";
+    const mode = authMode();
+    setAuthBusy(true);
     try {
       if (mode === "signup") {
         await createUserWithEmailAndPassword(window.auth, email, password);
       } else {
         await signInWithEmailAndPassword(window.auth, email, password);
       }
+      const state = await refreshState();
+      await routeState(state);
     } catch (err) {
-      setError(err.message || "Connexion impossible");
+      setError(authErrorMessage(err));
+    } finally {
+      setAuthBusy(false);
     }
   });
 
@@ -134,7 +177,9 @@ function bindUi() {
     const form = $("authForm");
     const signup = form.dataset.mode !== "signup";
     form.dataset.mode = signup ? "signup" : "login";
-    $("authSubmit").textContent = signup ? "Créer mon compte" : "Se connecter";
+    if ($("authSubmit") && !$("authSubmit").disabled) {
+      $("authSubmit").textContent = authIdleLabel(signup ? "signup" : "login");
+    }
     $("toggleAuthMode").textContent = signup ? "J’ai déjà un compte" : "Créer un compte";
     $("authTitle").textContent = signup ? "Créer le compte parent" : "Connexion parent";
   });
