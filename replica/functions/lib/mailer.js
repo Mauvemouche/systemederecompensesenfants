@@ -13,7 +13,33 @@ function mailFromAddress() {
 }
 
 function mailReplyTo() {
-  return String(process.env.EMAIL_REPLY_TO || "").trim() || DEFAULT_REPLY_TO;
+  return (
+    String(process.env.EMAIL_REPLY_TO || "").trim() ||
+    String(process.env.EMAIL_FROM || "").trim() ||
+    DEFAULT_REPLY_TO
+  );
+}
+
+function mailTransportOptions() {
+  const user = process.env.EMAIL_USER;
+  const pass = process.env.EMAIL_PASSWORD;
+  const host = String(process.env.EMAIL_SMTP_HOST || "").trim();
+  if (host) {
+    // Proton SMTP tokens require a paid plan + custom domain address, not @proton.me.
+    const portNum = Number(process.env.EMAIL_SMTP_PORT);
+    const port = Number.isFinite(portNum) && portNum > 0 ? portNum : 587;
+    return {
+      host,
+      port,
+      secure: false,
+      requireTLS: true,
+      auth: { user, pass },
+    };
+  }
+  return {
+    service: "gmail",
+    auth: { user, pass },
+  };
 }
 
 function missingEmailMessage(locale) {
@@ -31,14 +57,9 @@ function requireEmailConfigured(locale) {
 async function sendMail({ to, subject, html, text, locale }) {
   requireEmailConfigured(locale);
   const nodemailer = require("nodemailer");
-  const user = process.env.EMAIL_USER;
-  const pass = process.env.EMAIL_PASSWORD;
   const fromName = t(locale, "email.fromName");
   const fromAddr = mailFromAddress();
-  const transporter = nodemailer.createTransport({
-    service: "gmail",
-    auth: { user, pass },
-  });
+  const transporter = nodemailer.createTransport(mailTransportOptions());
   // Gmail “Send mail as” must verify the proton alias or Gmail will rewrite From to the gmail address.
   await transporter.sendMail({
     from: `"${fromName}" <${fromAddr}>`,
@@ -201,6 +222,7 @@ module.exports = {
   requireEmailConfigured,
   mailFromAddress,
   mailReplyTo,
+  mailTransportOptions,
   sendMail,
   welcomeVerifyEmailHtml,
   welcomeVerifyEmailText,

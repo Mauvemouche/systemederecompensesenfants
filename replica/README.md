@@ -33,7 +33,7 @@ Runtime: Node **22**, region **europe-west1**. After deploy, register the Stripe
 
 Signup verification, Admin PIN recovery, and password reset also use `EMAIL_USER` / `EMAIL_PASSWORD` at runtime. They are **not** bound with `defineSecret`, so deploy still works if they are missing. If they are unset, the callables return a localized error instead of sending mail. To actually send mail, set those env vars (or mount the existing secrets) on the Cloud Run services for `requestSignup`, `verifyEmailCode`, `requestPasswordReset`, `confirmPasswordReset`, and `recoverAdminPin`.
 
-Optional: `EMAIL_FROM` (display From, e.g. `kidsrewardsystem@proton.me`) and `EMAIL_REPLY_TO` (default `kidsrewardsystem@proton.me`). SMTP auth stays `EMAIL_USER` / `EMAIL_PASSWORD` (Gmail). Gmail “Send mail as” must verify the proton alias or Gmail will rewrite From to the gmail address.
+Optional: `EMAIL_FROM` (display From) and `EMAIL_REPLY_TO` (falls back to `EMAIL_FROM`, then `kidsrewardsystem@proton.me`). SMTP auth stays `EMAIL_USER` / `EMAIL_PASSWORD`. If `EMAIL_SMTP_HOST` is set (e.g. `smtp.protonmail.ch`), mail goes over STARTTLS on `EMAIL_SMTP_PORT` or 587; Proton SMTP tokens need a paid plan and a custom-domain From, not `@proton.me`. If the host is unset, Gmail `service: "gmail"` is used. Gmail “Send mail as” must verify the From alias or Gmail will rewrite it.
 
 Languages: **nl, fr, de, en** (Dutch first). Unknown locale and default mail locale: **nl**.
 
