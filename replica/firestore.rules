@@ -52,6 +52,11 @@ service cloud.firestore {
       match /reset_config/{docId} {
         allow read, write: if inFamily(familyId);
       }
+
+      match /referral/{docId} {
+        allow read: if inFamily(familyId);
+        allow write: if false;
+      }
     }
 
     match /family_members/{uid} {
@@ -66,9 +71,14 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
-    /* Operator name/street live here or in Cloud Run env — never client-readable. */
-    match /platform/{docId} {
+    match /referrals/{familyId} {
       allow read, write: if false;
+    }
+
+    /* legal_identity stays unreadable. Monthly winner is public-read names+count only. */
+    match /platform/{docId} {
+      allow read: if docId.matches('referral_month_[0-9]{4}-[0-9]{2}');
+      allow write: if false;
     }
 
     match /{document=**} {

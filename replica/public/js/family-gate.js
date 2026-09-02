@@ -179,6 +179,7 @@ async function applyState(state) {
   }
   accountBar(state, window.auth?.currentUser);
   await refreshPaidLegalIdentity(state);
+  renderReferralThanks(state);
 }
 
 async function refreshState(plan) {
@@ -192,9 +193,71 @@ function startBoardIfReady(state) {
   if (state?.hasAccess && !state?.needsKids && !state?.needsAdminPin) {
     setGate(false);
     window.startFamilyBoard?.();
+    maybeShowReferralPrompt(state);
     return true;
   }
   return false;
+}
+
+function renderReferralThanks(state) {
+  const el = $("referralThanks");
+  if (!el) return;
+  const thanks = state?.referralThanks;
+  if (!thanks || !thanks.count || !thanks.displayFirst || !thanks.displayLast) {
+    el.classList.add("hidden");
+    el.textContent = "";
+    return;
+  }
+  el.textContent = t("referral.thanks", {
+    first: thanks.displayFirst,
+    last: thanks.displayLast,
+    count: thanks.count,
+  });
+  el.classList.remove("hidden");
+}
+
+function setReferralOverlay(open) {
+  const overlay = $("referralOverlay");
+  if (!overlay) return;
+  overlay.classList.toggle("hidden", !open);
+  overlay.setAttribute("aria-hidden", open ? "false" : "true");
+  if (open) $("referralFirst")?.focus();
+}
+
+function maybeShowReferralPrompt(state) {
+  if (!state?.needsReferralPrompt) {
+    setReferralOverlay(false);
+    return;
+  }
+  if (!state.hasAccess || state.needsKids || state.needsAdminPin) return;
+  setReferralOverlay(true);
+}
+
+async function finishReferralPrompt(action) {
+  const first = $("referralFirst")?.value || "";
+  const last = $("referralLast")?.value || "";
+  setError("");
+  const skipBtn = $("referralSkipBtn");
+  if (skipBtn) skipBtn.disabled = true;
+  try {
+    const res =
+      action === "save"
+        ? await callFn("submitReferral", { first, last })
+        : await callFn("skipReferral");
+    if (window.__replicaState) window.__replicaState.needsReferralPrompt = false;
+    await applyState(res.data);
+    setReferralOverlay(false);
+  } catch (err) {
+    setError(callableErrorMessage(err), callableErrorKey(err));
+    const box = $("referralError");
+    if (box) {
+      box.style.display = "block";
+      box.dataset.errorKey = callableErrorKey(err) || "err.referralName";
+      box.textContent = callableErrorMessage(err) || t("err.referralName");
+    }
+  } finally {
+    if (skipBtn) skipBtn.disabled = false;
+  }
 }
 
 async function routeState(state) {
@@ -378,6 +441,20 @@ function bindUi() {
   });
 
   $("logoutBtn")?.addEventListener("click", () => signOut(window.auth));
+  $("referralForm")?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const first = $("referralFirst")?.value.trim() || "";
+    const last = $("referralLast")?.value.trim() || "";
+    await finishReferralPrompt(first || last ? "save" : "skip");
+  });
+  $("referralSkipBtn")?.addEventListener("click", (e) => {
+    e.preventDefault();
+    finishReferralPrompt("skip");
+  });
+  $("referralCloseBtn")?.addEventListener("click", (e) => {
+    e.preventDefault();
+    finishReferralPrompt("skip");
+  });
   $("portalBtn")?.addEventListener("click", async () => {
     try {
       const res = await callFn("createPortalSession", { origin: location.origin });
@@ -456,6 +533,7 @@ export function startReplicaGate() {
     fillPublicContact();
     accountBar(window.__replicaState, window.auth?.currentUser);
     if (window.__replicaState?.people) renderFamilyShell(window.__replicaState.people);
+    renderReferralThanks(window.__replicaState);
     retranslateErrors();
   });
   if (!window.auth) {
@@ -472,6 +550,8 @@ export function startReplicaGate() {
       accountBar(null, null);
       hidePaidOperatorIdentity();
       fillPublicContact();
+      setReferralOverlay(false);
+      renderReferralThanks(null);
       setGate(true);
       showPanel(pendingSignup ? "verify" : "auth");
       return;

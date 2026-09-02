@@ -31,6 +31,10 @@ body{
 }
 .main-header h1{ font-size:3rem; margin-bottom:10px; text-shadow:2px 2px 8px rgba(0,0,0,.25); }
 .main-header p{ font-size:1.2rem; opacity:.92; }
+.main-header .referral-thanks{
+  font-size:14px;
+  opacity:1;
+}
 
 .header-row{
   display:flex;
@@ -837,6 +841,16 @@ body{
 .account-bar #changeAdminPinBtn{ padding:8px 12px; font-size:13px; }
 .change-admin-pin-btn{ display:none; }
 .admin-mode-active .change-admin-pin-btn{ display:inline-flex; }
+.referral-thanks{
+  margin:10px 0 0;
+  padding:8px 12px;
+  background:rgba(255,255,255,.16);
+  border-radius:12px;
+  font-weight:800;
+  font-size:14px;
+  line-height:1.4;
+}
+.referral-thanks.hidden{ display:none; }
 
 .lang-switcher{
   position:fixed;

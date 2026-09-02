@@ -2,7 +2,7 @@
 
 const { ensureApp, serverTimestamp } = require("./lib/adminApp");
 const { hasAppAccess, needsCheckout, billingFromSubscription } = require("./lib/access");
-const { serializeState } = require("./lib/replicaState");
+const { loadReplicaState, markReferralPromptPending } = require("./lib/replicaLoad");
 const { peopleFromChildNames, DEFAULT_FAMILY, renamePersonInList } = require("./lib/family");
 const {
   familyRef,
@@ -46,9 +46,7 @@ function instanceId() {
 }
 
 async function loadState(familyId, uid) {
-  return serializeState(familyId, await readFamilyBilling(familyId), await readFamilySettings(familyId), uid, {
-    instanceId: instanceId(),
-  });
+  return loadReplicaState(familyId, uid);
 }
 
 async function requireFamilyOwner(uid, locale) {
@@ -334,6 +332,7 @@ exports.confirmCheckoutSession = onCall(
       await tagStripeSubscription(secret, sub.id, familyId, uid);
       const customerId = typeof session.customer === "string" ? session.customer : session.customer?.id;
       await tagStripeCustomer(secret, customerId, familyId, uid);
+      await markReferralPromptPending(familyId);
     }
 
     return loadState(familyId, uid);
@@ -495,6 +494,7 @@ exports.stripeWebhook = onRequest(
             const customerId = typeof session.customer === "string" ? session.customer : session.customer?.id;
             await tagStripeCustomer(process.env.STRIPE_SECRET_KEY, customerId, familyId, uid);
             await tagStripeSubscription(process.env.STRIPE_SECRET_KEY, sub.id, familyId, uid);
+            await markReferralPromptPending(familyId);
           }
           break;
         }

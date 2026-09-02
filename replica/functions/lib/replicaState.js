@@ -38,6 +38,8 @@ function serializeState(familyId, billing, settings, uid, extras = {}) {
     needsAdminPin: needsAdminPin(settingsData),
     complimentaryForever: !!billingData.complimentaryForever,
     locale: normalizeLocale(settingsData.locale),
+    needsReferralPrompt: extras.referral?.status === "pending",
+    referralThanks: extras.referralThanks && extras.referralThanks.count > 0 ? extras.referralThanks : null,
   };
 }
 

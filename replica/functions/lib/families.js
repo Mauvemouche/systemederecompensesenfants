@@ -19,6 +19,10 @@ function settingsRef(familyId) {
   return familyRef(familyId).collection("settings").doc("current");
 }
 
+function referralRef(familyId) {
+  return familyRef(familyId).collection("referral").doc("current");
+}
+
 function tasksCol(familyId) {
   return familyRef(familyId).collection("tasks");
 }
@@ -144,6 +148,11 @@ async function readFamilyBilling(familyId) {
 
 async function readFamilySettings(familyId) {
   const snap = await settingsRef(familyId).get();
+  return snap.exists ? snap.data() : null;
+}
+
+async function readFamilyReferral(familyId) {
+  const snap = await referralRef(familyId).get();
   return snap.exists ? snap.data() : null;
 }
 
@@ -330,6 +339,7 @@ module.exports = {
   familyRef,
   billingRef,
   settingsRef,
+  referralRef,
   tasksCol,
   usersCol,
   memberRef,
@@ -348,6 +358,7 @@ module.exports = {
   setFamilyClaim,
   readFamilyBilling,
   readFamilySettings,
+  readFamilyReferral,
   backfillLegacyCollections,
   copyCollectionDocs,
   createFamilyForOwner,

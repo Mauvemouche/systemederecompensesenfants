@@ -12,6 +12,7 @@ const billingFns = require("./billing");
 Object.assign(exports, billingFns);
 Object.assign(exports, require("./signup"));
 Object.assign(exports, require("./adminPin"));
+Object.assign(exports, require("./referrals"));
 
 /* =========================================================
    CONFIG

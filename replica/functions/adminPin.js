@@ -10,21 +10,15 @@ const {
   adminTokenValid,
 } = require("./lib/adminPinFormat");
 const { memberRef, settingsRef, readFamilyBilling, readFamilySettings } = require("./lib/families");
-const { serializeState } = require("./lib/replicaState");
+const { loadReplicaState } = require("./lib/replicaLoad");
 const { requireEmailConfigured, sendMail, recoverPinEmailHtml, recoverPinEmailText } = require("./lib/mailer");
 const { t, localeFromRequest } = require("./lib/i18n");
 
 const RECOVER_COOLDOWN_MS = 15 * 60 * 1000;
 const PIN_VERIFY_MAX = 10;
 
-function instanceId() {
-  return process.env.GCLOUD_PROJECT || ensureApp().options.projectId || "replica";
-}
-
 async function loadState(familyId, uid) {
-  return serializeState(familyId, await readFamilyBilling(familyId), await readFamilySettings(familyId), uid, {
-    instanceId: instanceId(),
-  });
+  return loadReplicaState(familyId, uid);
 }
 
 function fail(status, locale, key) {

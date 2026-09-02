@@ -112,6 +112,7 @@ describe("UI locale files share the same keys", () => {
       "footer.privacy",
       "privacy.title",
       "legal.paidNote",
+      "referral.thanks",
       "terms.priceBody",
       "err.acceptedLegal",
     ]) {

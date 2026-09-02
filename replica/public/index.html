@@ -6,7 +6,7 @@
   <title>Système de récompenses</title>
 
   <!-- IMPORTANT: garde ton styles.css existant -->
-  <link rel="stylesheet" href="./styles.css?v=114" />
+  <link rel="stylesheet" href="./styles.css?v=115" />
 </head>
 
 <body>
@@ -32,6 +32,7 @@
           <button class="btn-refresh" id="refreshBtn" type="button" data-i18n="header.refresh"></button>
         </div>
       </div>
+      <p id="referralThanks" class="referral-thanks hidden" role="status"></p>
     </header>
 
     <!-- ===== NAVIGATION DES JOURS ===== -->
@@ -312,6 +313,27 @@
     </div>
   </div>
 
+  <div id="referralOverlay" class="modal-overlay hidden" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="referralTitle">
+      <div class="modal-header">
+        <h3 id="referralTitle" data-i18n="referral.title"></h3>
+        <button id="referralCloseBtn" class="modal-close" type="button" data-i18n-aria="task.close">✕</button>
+      </div>
+      <form id="referralForm" class="modal-body">
+        <p class="modal-hint" data-i18n="referral.lead"></p>
+        <label class="modal-label" for="referralFirst" data-i18n="referral.first"></label>
+        <input id="referralFirst" class="modal-input" type="text" maxlength="40" autocomplete="off" />
+        <label class="modal-label" for="referralLast" data-i18n="referral.last"></label>
+        <input id="referralLast" class="modal-input" type="text" maxlength="40" autocomplete="off" />
+        <p id="referralError" class="gate-error" role="alert" style="display:none;"></p>
+        <div class="modal-footer">
+          <button id="referralSkipBtn" class="btn btn-secondary" type="button" data-i18n="referral.skip"></button>
+          <button class="btn btn-primary" type="submit" data-i18n="referral.submit"></button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- ===== Replica gate (auth / Stripe / kids) ===== -->
   <div id="authGate" class="auth-gate" aria-hidden="false">
     <div class="auth-card">
@@ -450,6 +472,6 @@
     startReplicaGate();
   </script>
 
-  <script type="module" src="./js/app.js?v=114"></script>
+  <script type="module" src="./js/app.js?v=115"></script>
 </body>
 </html>

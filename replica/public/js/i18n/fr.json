@@ -232,5 +232,14 @@
   "footer.belgianDad": "Un papa belge",
   "legal.contactTitle": "Contact",
   "legal.belgianDad": "Un papa belge",
-  "legal.paidNote": "Pour toute question avant ou pendant l’essai : kidsrewardsystem@proton.me. Le nom légal complet et l’adresse géographique s’affichent dans l’appli après la première facture payée (pas pendant l’essai de 30 jours, ni si un code promo rend l’abonnement gratuit)."
+  "legal.paidNote": "Pour toute question avant ou pendant l’essai : kidsrewardsystem@proton.me. Le nom légal complet et l’adresse géographique s’affichent dans l’appli après la première facture payée (pas pendant l’essai de 30 jours, ni si un code promo rend l’abonnement gratuit).",
+  "referral.title": "Qui t’a recommandé l’appli ?",
+  "referral.lead": "FACULTATIF : tu peux indiquer ici le prénom et le nom de la personne qui t’a recommandé cette appli. Les parrainages sont suivis afin que le meilleur du mois apparaisse dans un message de remerciement sur l’écran d’accueil.",
+  "referral.first": "Prénom",
+  "referral.last": "Nom",
+  "referral.submit": "Enregistrer",
+  "referral.skip": "Passer",
+  "referral.thanks": "Merci à notre meilleur parrain du mois : {first} {last}, avec {count} abonnements parrainés ce mois-ci ! ❤️🙏",
+  "err.referralOnce": "Le parrainage de cette famille est déjà enregistré.",
+  "err.referralName": "Indique un prénom et un nom (sans lien ni email), ou passe cette étape."
 }

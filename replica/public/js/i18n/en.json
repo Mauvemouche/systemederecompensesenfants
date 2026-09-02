@@ -232,5 +232,14 @@
   "footer.belgianDad": "A Belgian father",
   "legal.contactTitle": "Contact",
   "legal.belgianDad": "A Belgian father",
-  "legal.paidNote": "For questions before or during the trial: kidsrewardsystem@proton.me. The full legal name and geographic address are displayed in the app after the first paid invoice (not during the 30-day trial, and not if a promo makes the subscription free)."
+  "legal.paidNote": "For questions before or during the trial: kidsrewardsystem@proton.me. The full legal name and geographic address are displayed in the app after the first paid invoice (not during the 30-day trial, and not if a promo makes the subscription free).",
+  "referral.title": "Who referred you?",
+  "referral.lead": "OPTIONAL: You may input here the Firstname and Name of the person who referred you to this webapp. Referrals are monitored so that the month's best referrer is displayed in a thank you message on the webapp home screen.",
+  "referral.first": "First name",
+  "referral.last": "Last name",
+  "referral.submit": "Save",
+  "referral.skip": "Skip",
+  "referral.thanks": "Thank you to our best referrer of the month: {first} {last} with {count} referred subscriptions this month! ❤️🙏",
+  "err.referralOnce": "This family’s referral is already saved.",
+  "err.referralName": "Enter a first and last name (no link or email), or skip this step."
 }
