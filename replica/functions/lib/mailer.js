@@ -20,10 +20,14 @@ function mailReplyTo() {
   );
 }
 
+function customSmtpHost() {
+  return String(process.env.EMAIL_SMTP_HOST || "").trim();
+}
+
 function mailTransportOptions() {
   const user = process.env.EMAIL_USER;
   const pass = process.env.EMAIL_PASSWORD;
-  const host = String(process.env.EMAIL_SMTP_HOST || "").trim();
+  const host = customSmtpHost();
   if (host) {
     // Proton SMTP tokens require a paid plan + custom domain address, not @proton.me.
     const portNum = Number(process.env.EMAIL_SMTP_PORT);
@@ -40,6 +44,30 @@ function mailTransportOptions() {
     service: "gmail",
     auth: { user, pass },
   };
+}
+
+/** Proton rejects a non-ASCII display-name From. Gmail fallback keeps "Name" <addr>. */
+function mailFromHeader(locale) {
+  const fromAddr = mailFromAddress();
+  if (customSmtpHost()) return fromAddr;
+  const fromName = t(locale, "email.fromName");
+  return `"${fromName}" <${fromAddr}>`;
+}
+
+function mailSendOptions({ to, subject, html, text, locale }) {
+  const fromAddr = mailFromAddress();
+  const options = {
+    from: mailFromHeader(locale),
+    replyTo: mailReplyTo(),
+    to,
+    subject,
+    html,
+    text,
+  };
+  if (customSmtpHost()) {
+    options.envelope = { from: fromAddr, to };
+  }
+  return options;
 }
 
 function scrubMailLogValue(value) {
@@ -81,18 +109,9 @@ function requireEmailConfigured(locale) {
 async function sendMail({ to, subject, html, text, locale }) {
   requireEmailConfigured(locale);
   const nodemailer = require("nodemailer");
-  const fromName = t(locale, "email.fromName");
-  const fromAddr = mailFromAddress();
   const transporter = nodemailer.createTransport(mailTransportOptions());
   // Gmail “Send mail as” must verify the proton alias or Gmail will rewrite From to the gmail address.
-  await transporter.sendMail({
-    from: `"${fromName}" <${fromAddr}>`,
-    replyTo: mailReplyTo(),
-    to,
-    subject,
-    html,
-    text,
-  });
+  await transporter.sendMail(mailSendOptions({ to, subject, html, text, locale }));
 }
 
 function publicOrigin() {
@@ -249,6 +268,8 @@ module.exports = {
   missingEmailMessage,
   requireEmailConfigured,
   mailFromAddress,
+  mailFromHeader,
+  mailSendOptions,
   mailReplyTo,
   mailTransportOptions,
   safeMailErrorSummary,

@@ -6,6 +6,8 @@ const fs = require("fs");
 const path = require("path");
 const {
   mailFromAddress,
+  mailFromHeader,
+  mailSendOptions,
   mailReplyTo,
   mailTransportOptions,
   DEFAULT_REPLY_TO,
@@ -89,15 +91,69 @@ describe("mailer From and Reply-To", () => {
     assert.equal(mailTransportOptions().requireTLS, true);
   });
 
+  it("uses a bare From address and envelope when EMAIL_SMTP_HOST is set", () => {
+    process.env.EMAIL_USER = "smtp-user@example.com";
+    process.env.EMAIL_FROM = "contact@example.com";
+    process.env.EMAIL_SMTP_HOST = "smtp.protonmail.ch";
+    assert.equal(mailFromHeader("fr"), "contact@example.com");
+    assert.equal(mailFromHeader("nl"), "contact@example.com");
+    let sent = mailSendOptions({
+      to: "parent@example.com",
+      subject: "code",
+      html: "<p>x</p>",
+      text: "x",
+      locale: "fr",
+    });
+    assert.equal(sent.from, "contact@example.com");
+    assert.equal(sent.from.includes("<"), false);
+    assert.equal(sent.from.includes("\""), false);
+    assert.equal(/[^\x00-\x7F]/.test(sent.from), false);
+    assert.deepEqual(sent.envelope, { from: "contact@example.com", to: "parent@example.com" });
+    assert.equal(sent.envelope.from, process.env.EMAIL_FROM);
+
+    delete process.env.EMAIL_FROM;
+    process.env.EMAIL_USER = "contact@example.com";
+    sent = mailSendOptions({
+      to: "parent@example.com",
+      subject: "code",
+      html: "<p>x</p>",
+      text: "x",
+      locale: "fr",
+    });
+    assert.equal(sent.from, "contact@example.com");
+    assert.equal(sent.envelope.from, process.env.EMAIL_USER);
+  });
+
+  it("keeps a display-name From for the Gmail fallback when EMAIL_SMTP_HOST is unset", () => {
+    process.env.EMAIL_USER = "gmail-smtp@gmail.com";
+    process.env.EMAIL_FROM = "gmail-smtp@gmail.com";
+    delete process.env.EMAIL_SMTP_HOST;
+    const header = mailFromHeader("fr");
+    assert.match(header, /Système de récompenses/);
+    assert.match(header, /<gmail-smtp@gmail.com>/);
+    const sent = mailSendOptions({
+      to: "parent@example.com",
+      subject: "code",
+      html: "<p>x</p>",
+      text: "x",
+      locale: "fr",
+    });
+    assert.equal(sent.from, `"Système de récompenses" <gmail-smtp@gmail.com>`);
+    assert.equal(sent.envelope, undefined);
+  });
+
   it("documents Gmail Send mail as, Proton paid-plan SMTP, and does not log credentials", () => {
     const src = fs.readFileSync(path.join(repoRoot, "replica/functions/lib/mailer.js"), "utf8");
     assert.match(src, /Send mail as/);
     assert.match(src, /paid plan \+ custom domain/);
     assert.match(src, /not @proton\.me/);
     assert.match(src, /mailFromAddress\(\)/);
+    assert.match(src, /mailFromHeader\(/);
+    assert.match(src, /mailSendOptions\(/);
     assert.match(src, /mailReplyTo\(\)/);
     assert.match(src, /mailTransportOptions\(\)/);
     assert.match(src, /replyTo:/);
+    assert.match(src, /options\.envelope/);
     assert.equal(/console\.(log|info|debug|error).*EMAIL_PASSWORD/.test(src), false);
     assert.equal(/console\.(log|info|debug).*EMAIL_USER/.test(src), false);
     assert.equal(src.includes("service: \"gmail\""), true);
