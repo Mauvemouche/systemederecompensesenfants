@@ -33,10 +33,34 @@ describe("Anthony's live family app stays a separate instance", () => {
     assert.match(index, /const PEOPLE = \["papa", "maman", "florent", "harry"\]/);
   });
 
-  it("keeps replica firebase config as placeholders, not Anthony's project", () => {
+  it("picks replica Firebase config by hostname (test vs kidsrewardsystem, never Anthony's project)", async () => {
     const cfg = fs.readFileSync(path.join(repoRoot, "replica/public/js/firebase-config.js"), "utf8");
     assert.equal(cfg.includes("systemederecompensesenfants"), false);
-    assert.match(cfg, /YOUR_REPLICA_PROJECT_ID/);
+    assert.equal(/measurementId\s*:/.test(cfg), false);
+    assert.match(cfg, /kidsrewardsystem\.com/);
+    assert.match(cfg, /www\.kidsrewardsystem\.com/);
+    assert.match(cfg, /kidsrewardsystem\.web\.app/);
+    assert.match(cfg, /kidsrewardsystem\.firebaseapp\.com/);
+    assert.match(cfg, /AIzaSyC28xeJVbWCTZsA8dx8LScBM9qn8M9-nk4/);
+    assert.match(cfg, /1:817182317925:web:65de3d62e5d18d0060d58c/);
+    assert.match(cfg, /AIzaSyB8nedRkn_wTGkIiMKXFioCNm3mQySVCOE/);
+    assert.match(cfg, /projectId: "recompenses-test"/);
+    assert.match(cfg, /projectId: "kidsrewardsystem"/);
+    assert.match(cfg, /firebaseConfigForHostname/);
+    assert.equal(cfg.includes("YOUR_REPLICA_PROJECT_ID"), false);
+
+    const { pathToFileURL } = require("node:url");
+    const mod = await import(pathToFileURL(path.join(repoRoot, "replica/public/js/firebase-config.js")).href);
+    assert.equal(mod.FUNCTIONS_REGION, "europe-west1");
+    assert.equal(mod.firebaseConfigForHostname("kidsrewardsystem.com").projectId, "kidsrewardsystem");
+    assert.equal(mod.firebaseConfigForHostname("www.kidsrewardsystem.com").projectId, "kidsrewardsystem");
+    assert.equal(mod.firebaseConfigForHostname("kidsrewardsystem.web.app").projectId, "kidsrewardsystem");
+    assert.equal(mod.firebaseConfigForHostname("kidsrewardsystem.firebaseapp.com").projectId, "kidsrewardsystem");
+    assert.equal(mod.firebaseConfigForHostname("recompenses-test.web.app").projectId, "recompenses-test");
+    assert.equal(mod.firebaseConfigForHostname("localhost").projectId, "recompenses-test");
+    assert.equal(mod.firebaseConfig.projectId, "recompenses-test");
+    assert.equal(mod.firebaseConfigForHostname("kidsrewardsystem.com").appId, "1:817182317925:web:65de3d62e5d18d0060d58c");
+    assert.equal("measurementId" in mod.firebaseConfigForHostname("kidsrewardsystem.com"), false);
   });
 });
 
@@ -193,6 +217,14 @@ describe("replica functions bind mail and operator secrets without crashing at b
     assert.equal(secretKeys(fns.createCheckoutSession).includes("OPERATOR_LEGAL_NAME"), false);
   });
 
+  it("tracks replica/.firebaserc with test default and kidsrewardsystem prod alias", () => {
+    const rc = JSON.parse(fs.readFileSync(path.join(repoRoot, "replica/.firebaserc"), "utf8"));
+    assert.equal(rc.projects.default, "recompenses-test");
+    assert.equal(rc.projects.prod, "kidsrewardsystem");
+    const ignore = fs.readFileSync(path.join(repoRoot, ".gitignore"), "utf8");
+    assert.equal(/^replica\/\.firebaserc\s*$/m.test(ignore), false);
+  });
+
   it("deploy helpers always run firebase deploy and append extra args", () => {
     const js = fs.readFileSync(path.join(repoRoot, "replica/scripts/deploy.js"), "utf8");
     assert.match(js, /\["deploy", \.\.\.process\.argv\.slice\(2\)\]/);
@@ -210,7 +242,11 @@ describe("replica functions bind mail and operator secrets without crashing at b
     assert.match(readme, /europe-west1/);
     assert.match(readme, /update-env-vars/);
     assert.match(readme, /contact@kidsrewardsystem\.com/);
-    assert.equal(readme.includes("sk_live"), false);
+    assert.match(readme, /kidsrewardsystem\.com/);
+    assert.match(readme, /--project kidsrewardsystem/);
+    assert.match(readme, /placeholders `UNSET`|placeholders UNSET|remain `UNSET`|stay `UNSET`|stay UNSET/);
+    assert.match(readme, /Never.*systemederecompensesenfants/s);
+    assert.equal(/sk_live_[A-Za-z0-9]+/.test(readme), false);
   });
 });
 

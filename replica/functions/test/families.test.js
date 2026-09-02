@@ -186,8 +186,10 @@ describe("replica platform is multi-family on one URL", () => {
   it("keeps provision from creating a second single-tenant Firebase trap", () => {
     const script = fs.readFileSync(path.join(repoRoot, "replica/scripts/provision-replica.js"), "utf8");
     assert.match(script, /recompenses-test/);
+    assert.match(script, /kidsrewardsystem/);
     assert.match(script, /multi-family/);
     assert.match(script, /single-tenant trap/);
+    assert.match(script, /Never deploy replica\/ onto systemederecompensesenfants/);
     assert.equal(script.includes("First parent to sign up owns the instance"), false);
   });
 });

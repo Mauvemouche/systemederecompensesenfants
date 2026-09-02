@@ -1,10 +1,17 @@
 # Replica multi-family platform
 
-Paid copy of the family rewards app. **One Firebase project, one Hosting URL, many families.**
+Paid copy of the family rewards app. **One Hosting URL per Firebase project, many families.** Login + Auth claim `familyId` selects `families/{familyId}/`.
 
-Deploy this folder to `recompenses-test` (https://recompenses-test.web.app). Login + Auth claim `familyId` selects `families/{familyId}/`.
+| | Firebase project | Public URL | Deploy |
+| --- | --- | --- | --- |
+| Test | `recompenses-test` (default alias) | https://recompenses-test.web.app | `firebase deploy --project recompenses-test` |
+| Live paid | `kidsrewardsystem` (`prod` alias) | https://kidsrewardsystem.com | `firebase deploy --project kidsrewardsystem` |
 
-Do **not** create a new Firebase project per paying family. Do not deploy this onto `systemederecompensesenfants.web.app`.
+Region stays **europe-west1**. The same `replica/public` folder is deployed to both hostings. `public/js/firebase-config.js` picks TEST vs PROD from the hostname (`kidsrewardsystem.com`, `www.kidsrewardsystem.com`, `kidsrewardsystem.web.app`, `kidsrewardsystem.firebaseapp.com` → live; everything else including `recompenses-test.web.app` → test).
+
+Do **not** create a new Firebase project per paying family. **Never** deploy this onto `systemederecompensesenfants` / `systemederecompensesenfants.web.app` (Florent & Harry). That is a different product.
+
+Mail and operator secrets already exist on `kidsrewardsystem` (copied from test). Stripe live keys on that project are **not** set (placeholders `UNSET`). Do not invent `sk_live` values.
 
 See the root README for Stripe price IDs, secrets, and the provision command.
 
@@ -16,13 +23,15 @@ Replica functions are **2nd gen** (Cloud Run). They run as the **Compute Engine 
 
 ## Deploy (Windows-friendly)
 
-Required secrets: `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` (sandbox `sk_test` / `whsec` only).
+Required secrets on **test** (`recompenses-test`): `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` (sandbox `sk_test` / `whsec` only). Live (`kidsrewardsystem`) Stripe keys stay `UNSET` until set on purpose — do not invent `sk_live`.
 
 Mail and operator identity live in **Google Secret Manager** (Firebase `defineSecret`). They survive `firebase deploy --only functions`. Do **not** set them with `gcloud run services update --update-env-vars` — those Cloud Run env vars are wiped on every functions deploy.
 
 ### One-time: create/set secrets (project `recompenses-test`, functions region `europe-west1`)
 
 From the `replica/` folder. The CLI prompts for the value; **never** put real values in git or in this README.
+
+On **live** `kidsrewardsystem`, mail/operator secrets are already copied from test. Stripe live keys there remain `UNSET`. Do not invent `sk_live`. Repeat `firebase functions:secrets:set … --project kidsrewardsystem` only if a secret is missing.
 
 ```bat
 firebase functions:secrets:set EMAIL_USER --project recompenses-test
@@ -74,6 +83,14 @@ firebase deploy --only functions --project recompenses-test
 npm --prefix functions install
 node scripts/deploy.js
 ```
+
+Live paid project (same folder, different `--project`):
+
+```bat
+node scripts/deploy.js --project kidsrewardsystem
+```
+
+`replica/.firebaserc` default stays `recompenses-test`, so a bare `firebase deploy` / `node scripts/deploy.js` still hits test. Use `--project kidsrewardsystem` (or `firebase deploy --project prod`) for https://kidsrewardsystem.com. **Never** `--project systemederecompensesenfants`.
 
 Deploy **functions + hosting + firestore:rules**. Claims and per-family paths need both.
 

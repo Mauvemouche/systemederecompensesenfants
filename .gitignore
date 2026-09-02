@@ -13,7 +13,6 @@ functions/systemederecompensesenfants-firebase-adminsdk-fbsvc-*.json
 .env
 .env.*
 !.env.example
-replica/.firebaserc
 replica/functions/.env
 **/.env
 
