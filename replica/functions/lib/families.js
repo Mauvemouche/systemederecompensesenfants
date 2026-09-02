@@ -64,6 +64,34 @@ function shouldMigrateLegacy(legacyBilling, uid, email) {
   return isLegacyOwner(legacyBilling, uid, email);
 }
 
+function shouldKeepExistingMembership(billing, uid) {
+  return !!(uid && billing && billing.ownerUid === uid);
+}
+
+function keepMigratedLegacyFamily(legacyBilling, uid, email) {
+  if (!legacyBilling?.migratedToFamilyId) return null;
+  if (!isLegacyOwner(legacyBilling, uid, email)) return null;
+  return String(legacyBilling.migratedToFamilyId);
+}
+
+/**
+ * A new signup is always a new family. Never join someone else's.
+ * Stolen family_members/{uid} docs (ownerUid !== uid) are ignored.
+ */
+function chooseFamilyResolution({ uid, email, memberFamilyId, memberFamilyBilling, legacyBilling }) {
+  if (memberFamilyId && shouldKeepExistingMembership(memberFamilyBilling, uid)) {
+    return { action: "keep-membership", familyId: memberFamilyId };
+  }
+  const migratedId = keepMigratedLegacyFamily(legacyBilling, uid, email);
+  if (migratedId) {
+    return { action: "attach-legacy", familyId: migratedId };
+  }
+  if (shouldMigrateLegacy(legacyBilling, uid, email)) {
+    return { action: "migrate-legacy" };
+  }
+  return { action: "create-family" };
+}
+
 function familyIdFromStripe(...objects) {
   for (const obj of objects) {
     if (!obj || typeof obj !== "object") continue;
@@ -169,8 +197,13 @@ async function createFamilyForOwner(uid, email, plan) {
   await firestore.runTransaction(async (tx) => {
     const memberSnap = await tx.get(memberDoc);
     if (memberSnap.exists && memberSnap.data().familyId) {
-      familyId = memberSnap.data().familyId;
-      return;
+      const existingId = memberSnap.data().familyId;
+      const billingSnap = await tx.get(billingRef(existingId));
+      const billing = billingSnap.exists ? billingSnap.data() : null;
+      if (shouldKeepExistingMembership(billing, uid)) {
+        familyId = existingId;
+        return;
+      }
     }
     familyId = firestore.collection("families").doc().id;
     tx.set(familyRef(familyId), {
@@ -199,8 +232,10 @@ async function migrateLegacySingleton(uid, email) {
     if (!legacySnap.exists) return;
     const legacy = legacySnap.data() || {};
     if (legacy.migratedToFamilyId) {
-      familyId = legacy.migratedToFamilyId;
-      alreadyMigrated = true;
+      if (isLegacyOwner(legacy, uid, email)) {
+        familyId = legacy.migratedToFamilyId;
+        alreadyMigrated = true;
+      }
       return;
     }
     if (!isLegacyOwner(legacy, uid, email)) return;
@@ -241,23 +276,36 @@ async function migrateLegacySingleton(uid, email) {
 
 async function resolveFamilyForUser(uid, email, plan) {
   const memberSnap = await memberRef(uid).get();
-  if (memberSnap.exists && memberSnap.data().familyId) {
-    const familyId = memberSnap.data().familyId;
-    await backfillLegacyCollections(familyId);
-    return { familyId, created: false, migrated: !!memberSnap.data().migratedFromLegacy };
-  }
+  const memberFamilyId = memberSnap.exists ? memberSnap.data().familyId : null;
+  const memberFamilyBilling = memberFamilyId ? await readFamilyBilling(memberFamilyId) : null;
 
   const legacySnap = await legacyBillingRef().get();
   const legacy = legacySnap.exists ? legacySnap.data() : null;
-  if (legacy?.migratedToFamilyId && isLegacyOwner(legacy, uid, email)) {
-    await backfillLegacyCollections(legacy.migratedToFamilyId);
-    await memberRef(uid).set({ familyId: legacy.migratedToFamilyId, role: "owner" }, { merge: true });
-    return { familyId: legacy.migratedToFamilyId, created: false, migrated: true };
+
+  const choice = chooseFamilyResolution({
+    uid,
+    email,
+    memberFamilyId,
+    memberFamilyBilling,
+    legacyBilling: legacy,
+  });
+
+  if (choice.action === "keep-membership") {
+    await backfillLegacyCollections(choice.familyId);
+    return { familyId: choice.familyId, created: false, migrated: !!memberSnap.data()?.migratedFromLegacy };
   }
 
-  const migrated = await migrateLegacySingleton(uid, email);
-  if (migrated?.familyId) {
-    return { familyId: migrated.familyId, created: false, migrated: true, tasksCopied: migrated.tasksCopied };
+  if (choice.action === "attach-legacy") {
+    await backfillLegacyCollections(choice.familyId);
+    await memberRef(uid).set({ familyId: choice.familyId, role: "owner" }, { merge: true });
+    return { familyId: choice.familyId, created: false, migrated: true };
+  }
+
+  if (choice.action === "migrate-legacy") {
+    const migrated = await migrateLegacySingleton(uid, email);
+    if (migrated?.familyId) {
+      return { familyId: migrated.familyId, created: false, migrated: true, tasksCopied: migrated.tasksCopied };
+    }
   }
 
   const familyId = await createFamilyForOwner(uid, email, plan);
@@ -283,6 +331,9 @@ module.exports = {
   familyTasksPath,
   isLegacyOwner,
   shouldMigrateLegacy,
+  shouldKeepExistingMembership,
+  keepMigratedLegacyFamily,
+  chooseFamilyResolution,
   familyIdFromStripe,
   emptyBilling,
   emptySettings,

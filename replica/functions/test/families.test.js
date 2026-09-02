@@ -9,6 +9,9 @@ const {
   familyTasksPath,
   isLegacyOwner,
   shouldMigrateLegacy,
+  shouldKeepExistingMembership,
+  keepMigratedLegacyFamily,
+  chooseFamilyResolution,
   familyIdFromStripe,
   LEGACY_OWNER_EMAIL,
 } = require("../lib/families");
@@ -29,6 +32,70 @@ describe("multi-family isolation helpers", () => {
       shouldMigrateLegacy({ ...legacy, migratedToFamilyId: "fam_1" }, "uid_anthony", LEGACY_OWNER_EMAIL),
       false
     );
+  });
+
+  it("after a migrated singleton, a different parent creates a new family", () => {
+    const stolen = "IimpGjvPDfZUde7fDm7F";
+    const legacy = {
+      ownerUid: "uid_anthony",
+      ownerEmail: LEGACY_OWNER_EMAIL,
+      migratedToFamilyId: stolen,
+    };
+    assert.equal(keepMigratedLegacyFamily(legacy, "uid_anthony", LEGACY_OWNER_EMAIL), stolen);
+    assert.equal(keepMigratedLegacyFamily(legacy, "uid_b", "qa.family2@example.com"), null);
+
+    const parentB = chooseFamilyResolution({
+      uid: "uid_b",
+      email: "qa.family2@example.com",
+      memberFamilyId: null,
+      memberFamilyBilling: null,
+      legacyBilling: legacy,
+    });
+    assert.equal(parentB.action, "create-family");
+    assert.equal(parentB.familyId, undefined);
+    assert.notEqual(parentB.action, "attach-legacy");
+    assert.notEqual(parentB.action, "keep-membership");
+
+    const parentA = chooseFamilyResolution({
+      uid: "uid_anthony",
+      email: LEGACY_OWNER_EMAIL,
+      memberFamilyId: null,
+      memberFamilyBilling: null,
+      legacyBilling: legacy,
+    });
+    assert.equal(parentA.action, "attach-legacy");
+    assert.equal(parentA.familyId, stolen);
+  });
+
+  it("ignores a stolen family_members doc and creates a new family", () => {
+    const stolen = "IimpGjvPDfZUde7fDm7F";
+    const stolenBilling = { ownerUid: "uid_anthony", ownerEmail: LEGACY_OWNER_EMAIL };
+    assert.equal(shouldKeepExistingMembership(stolenBilling, "uid_b"), false);
+    assert.equal(shouldKeepExistingMembership(stolenBilling, "uid_anthony"), true);
+
+    const parentB = chooseFamilyResolution({
+      uid: "uid_b",
+      email: "qa.family2@example.com",
+      memberFamilyId: stolen,
+      memberFamilyBilling: stolenBilling,
+      legacyBilling: {
+        ownerUid: "uid_anthony",
+        ownerEmail: LEGACY_OWNER_EMAIL,
+        migratedToFamilyId: stolen,
+      },
+    });
+    assert.equal(parentB.action, "create-family");
+    assert.notEqual(parentB.familyId, stolen);
+
+    const owner = chooseFamilyResolution({
+      uid: "uid_anthony",
+      email: LEGACY_OWNER_EMAIL,
+      memberFamilyId: stolen,
+      memberFamilyBilling: stolenBilling,
+      legacyBilling: { migratedToFamilyId: stolen, ownerUid: "uid_anthony" },
+    });
+    assert.equal(owner.action, "keep-membership");
+    assert.equal(owner.familyId, stolen);
   });
 
   it("reads familyId from Stripe session/subscription metadata", () => {
@@ -52,6 +119,10 @@ describe("replica platform is multi-family on one URL", () => {
     assert.match(billing, /families/);
     assert.equal(billing.includes('collection("billing").doc("current")'), false);
     assert.equal(billing.includes('collection("family_config")'), false);
+    const families = fs.readFileSync(path.join(repoRoot, "replica/functions/lib/families.js"), "utf8");
+    assert.match(families, /isLegacyOwner\(legacy, uid, email\)/);
+    assert.match(families, /shouldKeepExistingMembership/);
+    assert.match(families, /chooseFamilyResolution/);
   });
 
   it("scopes Firestore rules to token.familyId and denies root collections", () => {
