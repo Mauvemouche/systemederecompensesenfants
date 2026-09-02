@@ -6,54 +6,65 @@ service cloud.firestore {
       return request.auth != null;
     }
 
-    function billingDoc() {
-      return get(/databases/$(database)/documents/billing/current).data;
+    function inFamily(familyId) {
+      return signedIn() && request.auth.token.familyId == familyId;
     }
 
-    function isOwner() {
-      return signedIn()
-        && exists(/databases/$(database)/documents/billing/current)
-        && billingDoc().ownerUid == request.auth.uid;
-    }
-
-    function hasPaidAccess() {
-      return isOwner() && billingDoc().status in ['trialing', 'active', 'past_due'];
-    }
-
-    match /billing/{docId} {
-      allow read: if isOwner();
+    match /families/{familyId} {
+      allow read: if inFamily(familyId);
       allow write: if false;
+
+      match /billing/{docId} {
+        allow read: if inFamily(familyId);
+        allow write: if false;
+      }
+
+      match /settings/{docId} {
+        allow read: if inFamily(familyId);
+        allow write: if false;
+      }
+
+      match /users/{uid} {
+        allow read: if inFamily(familyId);
+        allow write: if false;
+      }
+
+      match /tasks/{taskId} {
+        allow read: if inFamily(familyId);
+        allow delete: if inFamily(familyId);
+        allow create, update: if inFamily(familyId)
+          && request.resource.data.title is string
+          && request.resource.data.title.size() > 0
+          && request.resource.data.title.size() <= 200
+          && request.resource.data.assignedTo is string
+          && request.resource.data.completed is bool;
+      }
+
+      match /daily_stats/{statsId} {
+        allow read: if inFamily(familyId);
+        allow write: if false;
+      }
+
+      match /cron_runs/{runId} {
+        allow read: if inFamily(familyId);
+        allow write: if false;
+      }
+
+      match /reset_config/{docId} {
+        allow read, write: if inFamily(familyId);
+      }
     }
 
-    match /family_config/{docId} {
-      allow read: if isOwner();
-      allow write: if false;
+    match /family_members/{uid} {
+      allow read, write: if false;
     }
 
-    match /users/{uid} {
-      allow read: if signedIn() && request.auth.uid == uid;
-      allow write: if false;
+    match /stripe_customers/{customerId} {
+      allow read, write: if false;
     }
 
-    match /tasks/{taskId} {
-      allow read: if hasPaidAccess();
-      allow delete: if hasPaidAccess();
-      allow create, update: if hasPaidAccess()
-        && request.resource.data.title is string
-        && request.resource.data.title.size() > 0
-        && request.resource.data.title.size() <= 200
-        && request.resource.data.assignedTo is string
-        && request.resource.data.completed is bool;
-    }
-
-    match /daily_stats/{statsId} {
-      allow read: if hasPaidAccess();
-      allow write: if false;
-    }
-
-    match /cron_runs/{runId} {
-      allow read: if isOwner();
-      allow write: if false;
+    match /{document=**} {
+      allow read, write: if false;
     }
   }
 }

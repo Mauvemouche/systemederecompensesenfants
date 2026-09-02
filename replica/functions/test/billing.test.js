@@ -17,11 +17,12 @@ const { peopleFromChildNames, DEFAULT_FAMILY, renamePersonInList } = require("..
 describe("replica Stripe Checkout (sandbox)", () => {
   it("uses a 30-day trial, not a 0 EUR price", () => {
     const params = buildCheckoutSessionParams({
-      instanceId: "family-dupont",
+      instanceId: "recompenses-test",
+      familyId: "fam_dupont",
       uid: "uid_1",
       email: "parent@example.com",
       plan: "monthly",
-      origin: "https://family-dupont.web.app",
+      origin: "https://recompenses-test.web.app",
     });
     assert.equal(params.mode, "subscription");
     assert.equal(params.subscription_data.trial_period_days, 30);
@@ -33,7 +34,8 @@ describe("replica Stripe Checkout (sandbox)", () => {
 
   it("uses the existing yearly sandbox price", () => {
     const params = buildCheckoutSessionParams({
-      instanceId: "family-dupont",
+      instanceId: "recompenses-test",
+      familyId: "fam_dupont",
       uid: "uid_1",
       email: "parent@example.com",
       plan: "yearly",
@@ -44,17 +46,20 @@ describe("replica Stripe Checkout (sandbox)", () => {
     assert.equal(params.subscription_data.trial_period_days, 30);
   });
 
-  it("tags the session with this replica instance id", () => {
+  it("tags the session, subscription, and client_reference with familyId", () => {
     const params = buildCheckoutSessionParams({
-      instanceId: "family-dupont",
+      instanceId: "recompenses-test",
+      familyId: "fam_dupont",
       uid: "uid_1",
       email: "parent@example.com",
       plan: "monthly",
       origin: "https://example.com",
     });
-    assert.equal(params.client_reference_id, "family-dupont");
-    assert.equal(params.metadata.instanceId, "family-dupont");
-    assert.equal(params.subscription_data.metadata.instanceId, "family-dupont");
+    assert.equal(params.client_reference_id, "fam_dupont");
+    assert.equal(params.metadata.familyId, "fam_dupont");
+    assert.equal(params.metadata.instanceId, "recompenses-test");
+    assert.equal(params.subscription_data.metadata.familyId, "fam_dupont");
+    assert.equal(params.subscription_data.metadata.firebaseUid, "uid_1");
   });
 
   it("rejects live Stripe secret keys", () => {
@@ -74,7 +79,8 @@ describe("replica Stripe Checkout (sandbox)", () => {
 
   it("disables Stripe Managed Payments on Checkout Sessions", () => {
     const params = buildCheckoutSessionParams({
-      instanceId: "family-dupont",
+      instanceId: "recompenses-test",
+      familyId: "fam_dupont",
       uid: "uid_1",
       email: "parent@example.com",
       plan: "monthly",
@@ -84,6 +90,20 @@ describe("replica Stripe Checkout (sandbox)", () => {
     const body = encodeStripeParams(params);
     assert.ok(body.includes("managed_payments%5Benabled%5D=false"));
     assert.equal(params.subscription_data.trial_period_days, 30);
+  });
+
+  it("passes an existing Stripe customer so customer metadata can carry familyId", () => {
+    const params = buildCheckoutSessionParams({
+      instanceId: "recompenses-test",
+      familyId: "fam_dupont",
+      uid: "uid_1",
+      email: "parent@example.com",
+      plan: "monthly",
+      origin: "https://example.com",
+      customerId: "cus_test_1",
+    });
+    assert.equal(params.customer, "cus_test_1");
+    assert.equal(params.customer_email, undefined);
   });
 
   it("verifies webhook signatures", () => {

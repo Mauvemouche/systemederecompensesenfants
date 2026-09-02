@@ -9,6 +9,7 @@ import {
     deleteDoc,
     serverTimestamp
 } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+import { familyTasksCol, familyTaskDoc } from './family-path.js';
 
 // État global
 let currentPerson = 'papa';
@@ -17,16 +18,28 @@ let unsubscribe = null;
 let currentTasks = []; // Pour stocker les tâches chargées
 
 document.addEventListener('DOMContentLoaded', () => {
-    // Vérifier accès admin
     if (sessionStorage.getItem('isAdminMode') !== 'true') {
         window.location.href = 'index.html';
         return;
     }
+});
 
+let manageBooted = false;
+
+function bootManageTasks() {
+    if (manageBooted) return;
+    if (sessionStorage.getItem('isAdminMode') !== 'true') {
+        window.location.href = 'index.html';
+        return;
+    }
+    if (!window.__replicaState?.familyId) return;
+    manageBooted = true;
     initializeControls();
     initializeEditListeners();
-    // Le chargement initial se fera après l'initialisation des contrôles
-});
+}
+
+window.addEventListener('replica-ready', bootManageTasks);
+if (window.__replicaState?.familyId) bootManageTasks();
 
 function initializeControls() {
     const personSelect = document.getElementById('personSelect');
@@ -67,14 +80,14 @@ function loadTasks() {
     // Pour simplifier et être sûr d'avoir tout, on prend toutes les tâches de la personne
     // et on filtre le jour en JS (comme dans app.js apparemment)
     // OU on utilise la query composée si l'index existe.
-    // D'après app.js: const q = query(collection(window.db, 'tasks'), orderBy('assignedTo'), orderBy('order'));
+    // D'après app.js: const q = query(familyTasksCol(), orderBy('assignedTo'), orderBy('order'));
     // Il charge tout.
 
     // On va faire pareil pour être cohérent et éviter les problèmes d'index manquants pour l'instant
     // Mais on filtre par 'assignedTo' pour réduire un peu.
 
     const q = query(
-        collection(window.db, 'tasks'),
+        familyTasksCol(),
         where('assignedTo', '==', currentPerson)
     );
 
@@ -208,7 +221,7 @@ function initializeEditListeners() {
             const taskId = document.getElementById('editTaskId').value;
 
             try {
-                await updateDoc(doc(window.db, 'tasks', taskId), {
+                await updateDoc(familyTaskDoc( taskId), {
                     title: document.getElementById('editTaskTitle').value,
                     description: document.getElementById('editTaskDescription').value,
                     assignedTo: document.getElementById('editAssignedTo').value,
@@ -237,7 +250,7 @@ function initializeEditListeners() {
 window.deleteTask = async function (taskId) {
     if (confirm('Êtes-vous sûr de vouloir supprimer cette tâche ?')) {
         try {
-            await deleteDoc(doc(window.db, 'tasks', taskId));
+            await deleteDoc(familyTaskDoc( taskId));
             showNotification('Tâche supprimée', 'success');
         } catch (error) {
             console.error("Erreur suppression:", error);
@@ -254,7 +267,7 @@ window.toggleTaskActive = async function (taskId, currentStatus) {
     const newStatus = !currentStatus;
 
     try {
-        await updateDoc(doc(window.db, 'tasks', taskId), {
+        await updateDoc(familyTaskDoc( taskId), {
             isActive: newStatus,
             updatedAt: serverTimestamp()
         });
@@ -371,7 +384,7 @@ async function saveNewOrder() {
         // Préparer update Firestore
         // Note: On met à jour toutes les tâches pour garantir une suite propre 0, 1, 2...
         updates.push(
-            updateDoc(doc(window.db, 'tasks', taskId), {
+            updateDoc(familyTaskDoc( taskId), {
                 order: index,
                 updatedAt: serverTimestamp()
             })

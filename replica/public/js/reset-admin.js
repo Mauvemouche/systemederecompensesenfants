@@ -4,6 +4,7 @@
 
 import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, query, orderBy, limit, getDocs, writeBatch, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 import { RESET_NOTIFICATION_EMAIL } from './firebase-config.js';
+import { familyTasksCol, familyCollection, familyDoc } from './family-path.js';
 
 const db = getFirestore();
 
@@ -95,7 +96,7 @@ function closeResetAdmin() {
  */
 async function loadResetConfig() {
     try {
-        const configRef = doc(db, 'reset_config', 'main_config');
+        const configRef = familyDoc('reset_config', 'main_config');
         const configSnap = await getDoc(configRef);
         
         if (configSnap.exists()) {
@@ -160,7 +161,7 @@ function calculateNextReset(time, activeDays) {
 async function loadResetHistory() {
     try {
         const statsQuery = query(
-            collection(db, 'daily_stats'),
+            familyCollection('daily_stats'),
             orderBy('createdAt', 'desc'),
             limit(7)
         );
@@ -215,7 +216,7 @@ function formatDate(dateStr) {
  */
 async function openResetConfigModal() {
     try {
-        const configRef = doc(db, 'reset_config', 'main_config');
+        const configRef = familyDoc('reset_config', 'main_config');
         const configSnap = await getDoc(configRef);
         
         if (configSnap.exists()) {
@@ -295,7 +296,7 @@ async function saveResetConfig(e) {
             updatedAt: serverTimestamp()
         };
         
-        const configRef = doc(db, 'reset_config', 'main_config');
+        const configRef = familyDoc('reset_config', 'main_config');
         await updateDoc(configRef, config);
         
         alert('✅ Configuration sauvegardée avec succès !');
@@ -354,7 +355,7 @@ async function handleForceReset() {
  */
 async function performReset(withEmail) {
     const batch = writeBatch(db);
-    const tasksQuery = query(collection(db, 'tasks'));
+    const tasksQuery = query(familyTasksCol());
     const tasksSnap = await getDocs(tasksQuery);
     
     tasksSnap.forEach((taskDoc) => {
@@ -375,7 +376,7 @@ async function performReset(withEmail) {
  */
 async function saveCurrentStats() {
     try {
-        const tasksSnap = await getDocs(collection(db, 'tasks'));
+        const tasksSnap = await getDocs(familyTasksCol());
         
         const stats = {};
         
@@ -420,7 +421,7 @@ async function saveCurrentStats() {
             createdAt: serverTimestamp()
         };
         
-        await setDoc(doc(db, 'daily_stats', `stats_${today.replace(/-/g, '_')}`), statsDoc);
+        await setDoc(familyDoc('daily_stats', `stats_${today.replace(/-/g, '_')}`), statsDoc);
         console.log('📊 Statistiques sauvegardées');
         
     } catch (error) {

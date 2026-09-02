@@ -1,7 +1,7 @@
 /**
- * Firebase config for THIS family replica instance.
- * Replace every YOUR_* value when provisioning a new family project.
- * Never point a replica at Anthony's live family Firebase project.
+ * Firebase config for the multi-family replica platform (one URL, many families).
+ * Replace every YOUR_* value for this Firebase project (recompenses-test).
+ * Never point this at Anthony's live family Firebase project.
  */
 export const firebaseConfig = {
   apiKey: "YOUR_REPLICA_API_KEY",

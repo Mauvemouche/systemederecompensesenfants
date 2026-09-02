@@ -160,7 +160,7 @@ describe("replica family board rename (paid test instance only)", () => {
     assert.match(gate, /prompt\("Modifier le prénom"/);
     const billing = fs.readFileSync(path.join(repoRoot, "replica/functions/billing.js"), "utf8");
     assert.match(billing, /exports\.renamePerson/);
-    assert.match(billing, /assertOwner\(uid\)/);
+    assert.match(billing, /requireFamilyOwner\(uid\)/);
     assert.match(billing, /renamePersonInList/);
   });
 

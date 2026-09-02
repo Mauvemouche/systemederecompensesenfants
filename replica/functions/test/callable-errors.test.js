@@ -30,14 +30,14 @@ describe("callable error wrapping", () => {
   });
 });
 
-describe("bootstrapInstance does not throw HttpsError inside runTransaction", () => {
-  it("checks ownerUid before/after the transaction", () => {
-    const src = fs.readFileSync(path.join(__dirname, "../billing.js"), "utf8");
-    const tx = src.match(/runTransaction\(async \(tx\) => \{[\s\S]*?\n    \}\);/);
-    assert.ok(tx, "runTransaction block");
-    assert.equal(/new HttpsError/.test(tx[0]), false);
-    assert.match(src, /ownerConflict/);
-    assert.match(src, /ensureApp\(\)/);
-    assert.match(src, /serverTimestamp\(\)/);
+describe("createFamilyForOwner does not throw HttpsError inside runTransaction", () => {
+  it("locks family_members without HttpsError in the transaction", () => {
+    const src = fs.readFileSync(path.join(__dirname, "../lib/families.js"), "utf8");
+    const txBlocks = [...src.matchAll(/runTransaction\(async \(tx\) => \{[\s\S]*?\n  \}\)/g)];
+    assert.ok(txBlocks.length >= 1, "runTransaction block");
+    for (const m of txBlocks) {
+      assert.equal(/HttpsError/.test(m[0]), false);
+    }
+    assert.match(src, /ensureApp/);
   });
 });

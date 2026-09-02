@@ -1,8 +1,10 @@
-# Replica instance template
+# Replica multi-family platform
 
-Paid copy of the family rewards app. Deploy this folder to a **new** Firebase project with its own Firestore.
+Paid copy of the family rewards app. **One Firebase project, one Hosting URL, many families.**
 
-Do not deploy this onto `systemederecompensesenfants.web.app`.
+Deploy this folder to `recompenses-test` (https://recompenses-test.web.app). Login + Auth claim `familyId` selects `families/{familyId}/`.
+
+Do **not** create a new Firebase project per paying family. Do not deploy this onto `systemederecompensesenfants.web.app`.
 
 See the root README for Stripe price IDs, secrets, and the provision command.
 
@@ -22,6 +24,8 @@ Email secrets (`EMAIL_USER`, `EMAIL_PASSWORD`) are **optional**. The daily cron 
 npm --prefix functions install
 node scripts/deploy.js
 ```
+
+Deploy **functions + hosting + firestore:rules**. Claims and per-family paths need both.
 
 `scripts/deploy.js` and `scripts/deploy.cmd` set `FUNCTIONS_DISCOVERY_TIMEOUT=60` so the Firebase CLI does not die after 10s while loading functions (`User code failed to load. Cannot determine backend specification. Timeout after 10000`).
 

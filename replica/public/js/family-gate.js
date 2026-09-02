@@ -7,6 +7,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { renderFamilyShell } from "./family-ui.js";
 import { TRIAL_DAYS } from "./stripe-config.js";
+import { syncFamilyClaim } from "./family-path.js";
 
 const $ = (id) => document.getElementById(id);
 
@@ -99,7 +100,7 @@ function accountBar(state, user) {
 }
 
 async function applyState(state) {
-  window.__replicaState = state;
+  await syncFamilyClaim(state);
   if (state?.people) {
     window.applyReplicaFamily?.(state.people);
     renderFamilyShell(state.people);
@@ -128,12 +129,6 @@ async function routeState(state) {
   if (!window.auth?.currentUser) {
     setGate(true);
     showPanel("auth");
-    return;
-  }
-  if (!state.isOwner && state.ownerUid) {
-    setGate(true);
-    showPanel("blocked");
-    $("blockedText").textContent = "Cette instance est déjà liée à un autre parent.";
     return;
   }
   if (state.needsCheckout) {

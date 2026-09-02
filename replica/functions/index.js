@@ -3,6 +3,7 @@
 const { setGlobalOptions } = require("firebase-functions/v2");
 const { onSchedule } = require("firebase-functions/v2/scheduler");
 const family = require("./lib/family");
+const families = require("./lib/families");
 const { db, serverTimestamp } = require("./lib/adminApp");
 
 setGlobalOptions({ region: "europe-west1" });
@@ -16,8 +17,8 @@ Object.assign(exports, billingFns);
 
 const DAY_NAMES_FR = ["Dimanche", "Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"];
 
-async function loadFamilyPeople() {
-  const snap = await db().collection("family_config").doc("settings").get();
+async function loadFamilyPeople(familyId) {
+  const snap = await families.settingsRef(familyId).get();
   const people = snap.exists && Array.isArray(snap.data().people) ? snap.data().people : family.DEFAULT_FAMILY;
   return people.length ? people : family.DEFAULT_FAMILY;
 }
@@ -65,7 +66,7 @@ function emailConfigured() {
   return !!(String(process.env.EMAIL_USER || "").trim() && String(process.env.EMAIL_PASSWORD || "").trim());
 }
 
-async function sendEmail(subject, htmlContent) {
+async function sendEmail(subject, htmlContent, toAddress) {
   if (!emailConfigured()) {
     console.log("Email skipped (EMAIL_USER / EMAIL_PASSWORD not set). Daily reset still ran.");
     return;
@@ -82,7 +83,7 @@ async function sendEmail(subject, htmlContent) {
 
   await transporter.sendMail({
     from: `"Système Récompenses" <${user}>`,
-    to: process.env.EMAIL_TO || user, // comme dans ton index restauré
+    to: toAddress || process.env.EMAIL_TO || user,
     subject,
     html: htmlContent,
   });
@@ -93,8 +94,8 @@ async function sendEmail(subject, htmlContent) {
    - 1 rapport / date (YYYY-MM-DD)
 ========================================================= */
 
-async function claimRunOrSkip(reportDateStr) {
-  const runRef = db().collection("cron_runs").doc(`daily_${reportDateStr}`);
+async function claimRunOrSkip(familyId, reportDateStr) {
+  const runRef = families.familyRef(familyId).collection("cron_runs").doc(`daily_${reportDateStr}`);
 
   const shouldContinue = await db().runTransaction(async (tx) => {
     const snap = await tx.get(runRef);
@@ -131,8 +132,8 @@ async function markRunDone(runRef) {
   );
 }
 
-async function markRunFailed(reportDateStr, error) {
-  await db().collection("cron_runs").doc(`daily_${reportDateStr}`).set(
+async function markRunFailed(familyId, reportDateStr, error) {
+  await families.familyRef(familyId).collection("cron_runs").doc(`daily_${reportDateStr}`).set(
     {
       status: "failed",
       failedAt: serverTimestamp(),
@@ -243,10 +244,9 @@ stats.global.maxStars += normalMax;
   return stats;
 }
 
-async function saveDailyStatsAligned(stats) {
-  // On garde ta collection daily_stats, mais on met un doc id stable
+async function saveDailyStatsAligned(familyId, stats) {
   const docId = `stats_${stats.date}`;
-  await db().collection("daily_stats").doc(docId).set(
+  await families.familyRef(familyId).collection("daily_stats").doc(docId).set(
     {
       date: stats.date,
       dayName: stats.dayName.toLowerCase(),
@@ -394,104 +394,93 @@ exports.dailyResetAndStats = onSchedule(
     reportDate.setDate(reportDate.getDate() - 1);
 
     const reportDateStr = ymdLocal(reportDate);
-    const reportDow = reportDate.getDay();
-
     const isFirstDayOfMonth = execNow.getDate() === 1;
 
-    let runRef = null;
-
-    try {
-      // 0) Anti double
-      const claim = await claimRunOrSkip(reportDateStr);
-      runRef = claim.runRef;
-
-      if (!claim.shouldContinue) {
-        console.log(`⏭️ Rapport ${reportDateStr} déjà généré (ou exécution en cours).`);
-        return null;
-      }
-
-      // 1) Charger toutes les tâches (collection petite => simple + évite index)
-      const snapshot = await db().collection("tasks").get();
-      const allDocs = snapshot.docs;
-
-      // 2) Tâches "affichées" à la date du rapport (veille)
-      const tasksForReport = allDocs.filter((doc) => shouldAppearForDate(doc.data(), reportDate));
-
-      const people = await loadFamilyPeople();
-      const peopleIds = family.personIds(people);
-
-      // 3) Stats alignées UI + sauvegarde
-      const stats = computeStatsForTasks(tasksForReport, reportDate, peopleIds);
-      await saveDailyStatsAligned(stats);
-
-      // 4) Reset / cleanup
-      // - On supprime les ponctuelles de la veille (elles ont "servi")
-      // - On reset completed des tâches quotidiennes/hebdo de la veille
-      // - Mensuel : reset seulement le 1er jour du mois (date d'exécution)
-      const batch = db().batch();
-      let resetCount = 0;
-      let deleteCount = 0;
-
-      tasksForReport.forEach((docSnap) => {
-        const data = docSnap.data();
-        const category = String(data.category || "").toLowerCase().trim();
-
-        if (category === "ponctuel") {
-          batch.delete(docSnap.ref);
-          deleteCount++;
-          return;
-        }
-
-        if (data.completed === true) {
-          let shouldReset = false;
-
-          if (category === "mensuel") {
-            if (isFirstDayOfMonth) shouldReset = true;
-          } else {
-            // quotidien + hebdo: reset après le rapport
-            shouldReset = true;
-          }
-
-          if (shouldReset) {
-            batch.update(docSnap.ref, {
-              completed: false,
-              updatedAt: serverTimestamp(),
-            });
-            resetCount++;
-          }
-        }
-      });
-
-      if (resetCount > 0 || deleteCount > 0) {
-        await batch.commit();
-        console.log(`✅ Nettoyage fini : ${resetCount} reset, ${deleteCount} supprimées.`);
-      } else {
-        console.log("ℹ️ Aucun reset / suppression à effectuer.");
-      }
-
-      // 5) Email
-      const html = generateEmailHtml(stats, resetCount, deleteCount, isFirstDayOfMonth, people);
-      await sendEmail(`✅ Rapport Quotidien - ${stats.dayName} ${stats.date}`, html);
-
-      // 6) Done
-      await markRunDone(runRef);
-
-      console.log("✅ Cycle terminé (mail envoyé).");
-      return null;
-    } catch (error) {
-      console.error("❌ Erreur critique :", error);
-
-      try {
-        await markRunFailed(reportDateStr, error);
-      } catch (e2) {
-        console.error("Impossible de marquer failed", e2);
-      }
-
-      try {
-        await sendEmail("⚠️ Erreur Reset Automatique", `<p>Le reset a échoué : ${String(error?.message || error)}</p>`);
-      } catch (e) {
-        console.error("Impossible d'envoyer l'email d'erreur", e);
-      }
+    const familyIds = await families.listFamilyIds();
+    if (!familyIds.length) {
+      console.log("ℹ️ Aucune famille à traiter.");
       return null;
     }
+
+    for (const familyId of familyIds) {
+      let runRef = null;
+      try {
+        const claim = await claimRunOrSkip(familyId, reportDateStr);
+        runRef = claim.runRef;
+
+        if (!claim.shouldContinue) {
+          console.log(`⏭️ Famille ${familyId} : rapport ${reportDateStr} déjà généré.`);
+          continue;
+        }
+
+        const snapshot = await families.tasksCol(familyId).get();
+        const tasksForReport = snapshot.docs.filter((docSnap) => shouldAppearForDate(docSnap.data(), reportDate));
+
+        const people = await loadFamilyPeople(familyId);
+        const peopleIds = family.personIds(people);
+
+        const stats = computeStatsForTasks(tasksForReport, reportDate, peopleIds);
+        await saveDailyStatsAligned(familyId, stats);
+
+        const batch = db().batch();
+        let resetCount = 0;
+        let deleteCount = 0;
+
+        tasksForReport.forEach((docSnap) => {
+          const data = docSnap.data();
+          const category = String(data.category || "").toLowerCase().trim();
+
+          if (category === "ponctuel") {
+            batch.delete(docSnap.ref);
+            deleteCount++;
+            return;
+          }
+
+          if (data.completed === true) {
+            let shouldReset = false;
+
+            if (category === "mensuel") {
+              if (isFirstDayOfMonth) shouldReset = true;
+            } else {
+              shouldReset = true;
+            }
+
+            if (shouldReset) {
+              batch.update(docSnap.ref, {
+                completed: false,
+                updatedAt: serverTimestamp(),
+              });
+              resetCount++;
+            }
+          }
+        });
+
+        if (resetCount > 0 || deleteCount > 0) {
+          await batch.commit();
+          console.log(`✅ Famille ${familyId} : ${resetCount} reset, ${deleteCount} supprimées.`);
+        }
+
+        const familySnap = await families.familyRef(familyId).get();
+        const ownerEmail = familySnap.exists ? familySnap.data().ownerEmail : "";
+        const html = generateEmailHtml(stats, resetCount, deleteCount, isFirstDayOfMonth, people);
+        await sendEmail(`✅ Rapport Quotidien - ${stats.dayName} ${stats.date}`, html, ownerEmail);
+
+        await markRunDone(runRef);
+      } catch (error) {
+        console.error(`❌ Famille ${familyId} :`, error);
+        try {
+          await markRunFailed(familyId, reportDateStr, error);
+        } catch (e2) {
+          console.error("Impossible de marquer failed", e2);
+        }
+        try {
+          await sendEmail("⚠️ Erreur Reset Automatique", `<p>Le reset a échoué (${familyId}) : ${String(error?.message || error)}</p>`);
+        } catch (e) {
+          console.error("Impossible d'envoyer l'email d'erreur", e);
+        }
+      }
+    }
+
+    console.log("✅ Cycle terminé.");
+    return null;
   });

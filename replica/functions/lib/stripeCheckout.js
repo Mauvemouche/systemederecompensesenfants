@@ -20,37 +20,46 @@ function resolvePriceId(plan, env = process.env) {
   return env.STRIPE_PRICE_MONTHLY || PRICE_MONTHLY;
 }
 
-function buildCheckoutSessionParams({ instanceId, uid, email, plan, origin }) {
+function buildCheckoutSessionParams({ instanceId, familyId, uid, email, plan, origin, customerId }) {
   if (!instanceId) throw new Error("instanceId required");
+  if (!familyId) throw new Error("familyId required");
   if (!uid) throw new Error("uid required");
   if (!origin) throw new Error("origin required");
   const priceId = resolvePriceId(plan);
   const base = String(origin).replace(/\/$/, "");
+  const familyMeta = {
+    familyId,
+    instanceId,
+    firebaseUid: uid,
+  };
 
-  return {
+  const params = {
     mode: "subscription",
-    customer_email: email || undefined,
-    client_reference_id: instanceId,
+    client_reference_id: familyId,
     payment_method_collection: "always",
     allow_promotion_codes: "true",
     locale: "fr",
     line_items: [{ price: priceId, quantity: 1 }],
     subscription_data: {
       trial_period_days: TRIAL_DAYS,
-      metadata: {
-        instanceId,
-        firebaseUid: uid,
-      },
+      metadata: familyMeta,
     },
     metadata: {
-      instanceId,
-      firebaseUid: uid,
+      ...familyMeta,
       plan: plan === "yearly" ? "yearly" : "monthly",
     },
     success_url: `${base}/?checkout=success&session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${base}/?checkout=cancel`,
     managed_payments: { enabled: false },
   };
+
+  if (customerId) {
+    params.customer = customerId;
+  } else if (email) {
+    params.customer_email = email;
+  }
+
+  return params;
 }
 
 function encodeStripeParams(params) {

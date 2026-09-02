@@ -6,6 +6,7 @@
 import { getFirestore, doc, getDoc, updateDoc, collection, query, orderBy, limit, getDocs, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 import { httpsCallable } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-functions.js';
 import { RESET_NOTIFICATION_EMAIL } from './firebase-config.js';
+import { familyCollection, familyDoc } from './family-path.js';
 
 const db = getFirestore();
 const functions = window.functions;
@@ -66,7 +67,7 @@ export function initResetAdmin() {
  */
 async function loadResetConfig() {
     try {
-        const configRef = doc(db, 'reset_config', 'main_config');
+        const configRef = familyDoc('reset_config', 'main_config');
         const configSnap = await getDoc(configRef);
         
         if (configSnap.exists()) {
@@ -131,7 +132,7 @@ function calculateNextReset(time, activeDays) {
 async function loadResetHistory() {
     try {
         const statsQuery = query(
-            collection(db, 'daily_stats'),
+            familyCollection('daily_stats'),
             orderBy('createdAt', 'desc'),
             limit(7)
         );
@@ -186,7 +187,7 @@ function formatDate(dateStr) {
  */
 async function openResetConfigModal() {
     try {
-        const configRef = doc(db, 'reset_config', 'main_config');
+        const configRef = familyDoc('reset_config', 'main_config');
         const configSnap = await getDoc(configRef);
         
         if (configSnap.exists()) {
@@ -266,7 +267,7 @@ async function saveResetConfig(e) {
             updatedAt: serverTimestamp()
         };
         
-        const configRef = doc(db, 'reset_config', 'main_config');
+        const configRef = familyDoc('reset_config', 'main_config');
         await updateDoc(configRef, config);
         
         alert('✅ Configuration sauvegardée avec succès !');

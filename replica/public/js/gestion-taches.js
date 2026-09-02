@@ -11,6 +11,7 @@ import {
   where,
   serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { familyTasksCol, familyTaskDoc } from "./family-path.js";
 
 let PEOPLE = ["papa", "maman", "kid-1", "kid-2"];
 const ADMIN_PIN = "1571";
@@ -101,7 +102,7 @@ function startListening() {
   const dow = getSelectedDow();
   const person = getPersonFilter();
 
-  const base = query(collection(window.db, "tasks"), where("dayOfWeek", "==", dow));
+  const base = query(familyTasksCol(), where("dayOfWeek", "==", dow));
   // Filtre personne côté client pour éviter index composé inutile
   unsubscribe = onSnapshot(base, (snap) => {
     let tasks = [];
@@ -143,7 +144,7 @@ function render(tasks) {
     chk.textContent = t.completed ? "✓" : "";
     chk.title = "Cocher / décocher";
     chk.addEventListener("click", async () => {
-      await updateDoc(doc(window.db, "tasks", t.id), {
+      await updateDoc(familyTaskDoc( t.id), {
         completed: !t.completed,
         updatedAt: serverTimestamp()
       });
@@ -221,7 +222,7 @@ async function submitTask(e) {
   // Calcul ordre = nombre de tâches existantes pour ce jour/personne (comme ton app)
   const dowForOrder = getSelectedDow();
   const snap = await getDocs(
-    query(collection(window.db, "tasks"), where("assignedTo", "==", assignedTo), where("dayOfWeek", "==", dowForOrder))
+    query(familyTasksCol(), where("assignedTo", "==", assignedTo), where("dayOfWeek", "==", dowForOrder))
   );
   const nextOrder = snap.size;
 
@@ -242,7 +243,7 @@ async function submitTask(e) {
 
   // hebdomadaire => dimanche
   if (category === "hebdomadaire") {
-    await addDoc(collection(window.db, "tasks"), {
+    await addDoc(familyTasksCol(), {
       ...base,
       dayOfWeek: 0,
       fullDate: null,
@@ -259,7 +260,7 @@ async function submitTask(e) {
     if (!dateVal) return showToast("Sélectionne une date");
     const d = new Date(dateVal);
 
-    await addDoc(collection(window.db, "tasks"), {
+    await addDoc(familyTasksCol(), {
       ...base,
       dayOfWeek: d.getDay(),
       fullDate: category === "ponctuel" ? dateVal : null,
@@ -278,7 +279,7 @@ async function submitTask(e) {
 
   await Promise.all(
     selectedDays.map((day) =>
-      addDoc(collection(window.db, "tasks"), { ...base, dayOfWeek: day, fullDate: null, dayOfMonth: null })
+      addDoc(familyTasksCol(), { ...base, dayOfWeek: day, fullDate: null, dayOfMonth: null })
     )
   );
 
@@ -299,12 +300,12 @@ function resetForm() {
 ========================= */
 async function deleteTask(id) {
   if (!confirm("Supprimer cette tâche ?")) return;
-  await deleteDoc(doc(window.db, "tasks", id));
+  await deleteDoc(familyTaskDoc( id));
   showToast("Supprimée");
 }
 
 async function editTask(id) {
-  const snap = await getDoc(doc(window.db, "tasks", id));
+  const snap = await getDoc(familyTaskDoc( id));
   if (!snap.exists()) return showToast("Introuvable");
   openEditModal(id, snap.data());
 }
@@ -411,7 +412,7 @@ async function saveEditModal(e) {
   }
   // quotidien : on ne touche pas dayOfWeek/fullDate/dayOfMonth ici
 
-  await updateDoc(doc(window.db, "tasks", id), payload);
+  await updateDoc(familyTaskDoc( id), payload);
   showToast("Modifiée ✅");
   closeEditModal();
 }
@@ -419,7 +420,7 @@ async function saveEditModal(e) {
 async function deleteFromModal() {
   const id = $("editId").value;
   if (!confirm("Supprimer cette tâche ?")) return;
-  await deleteDoc(doc(window.db, "tasks", id));
+  await deleteDoc(familyTaskDoc( id));
   showToast("Supprimée 🗑️");
   closeEditModal();
 }
@@ -433,7 +434,7 @@ async function deleteFromModal() {
 ========================= */
 async function duplicateFromModal() {
   const id = $("editId").value;
-  const snap = await getDoc(doc(window.db, "tasks", id));
+  const snap = await getDoc(familyTaskDoc( id));
   if (!snap.exists()) return showToast("Introuvable");
   const t = snap.data();
 
@@ -448,7 +449,7 @@ async function duplicateFromModal() {
   // Pour un order propre, on calcule l'ordre par (assignedTo + dayOfWeek)
   async function nextOrderFor(day) {
     const s = await getDocs(
-      query(collection(window.db, "tasks"),
+      query(familyTasksCol(),
         where("assignedTo", "==", assignedTo),
         where("dayOfWeek", "==", day)
       )
@@ -474,7 +475,7 @@ async function duplicateFromModal() {
 
   for (const day of days) {
     const order = await nextOrderFor(day);
-    await addDoc(collection(window.db, "tasks"), { ...base, dayOfWeek: day, order });
+    await addDoc(familyTasksCol(), { ...base, dayOfWeek: day, order });
   }
 
   showToast(`Dupliquée (${days.length}) 📌`);

@@ -11,6 +11,7 @@ import {
   where,
   serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { familyTasksCol, familyTaskDoc } from "./family-path.js";
 
 /* =========================================================
    CONFIG / GLOBAL
@@ -317,7 +318,7 @@ function loadTasks() {
 
   // ✅ On écoute TOUTES les tâches, puis on filtre côté client.
   // Avantage: mensuel/ponctuel restent corrects même quand le jour de semaine change.
-  const q = query(collection(window.db, "tasks"));
+  const q = query(familyTasksCol());
 
   unsubscribe = onSnapshot(
     q,
@@ -647,7 +648,7 @@ function createTaskElement(t) {
 
 async function toggleTaskCompletion(taskId, completed) {
   try {
-    await updateDoc(doc(window.db, "tasks", taskId), { completed, updatedAt: serverTimestamp() });
+    await updateDoc(familyTaskDoc( taskId), { completed, updatedAt: serverTimestamp() });
   } catch (e) {
     console.error(e);
     showNotification("Erreur mise à jour", "error");
@@ -659,7 +660,7 @@ async function deleteTask(taskId) {
   if (!confirm("Supprimer cette tâche ?")) return;
 
   try {
-    await deleteDoc(doc(window.db, "tasks", taskId));
+    await deleteDoc(familyTaskDoc( taskId));
     showNotification("Tâche supprimée", "success");
   } catch (e) {
     console.error(e);
@@ -703,7 +704,7 @@ function onDragEnd(e) {
 async function updateOrders(container) {
   const items = Array.from(container.querySelectorAll(".task-item"));
   const writes = items.map((el, idx) =>
-    updateDoc(doc(window.db, "tasks", el.dataset.taskId), { order: idx, updatedAt: serverTimestamp() })
+    updateDoc(familyTaskDoc( el.dataset.taskId), { order: idx, updatedAt: serverTimestamp() })
   );
   try {
     await Promise.all(writes);
@@ -722,14 +723,14 @@ window.checkAllTasks = async function (person, completed) {
 
   try {
     // ✅ On charge les tâches de la personne puis on filtre côté client (mensuel/ponctuel inclus)
-    const snap = await getDocs(query(collection(window.db, "tasks"), where("assignedTo", "==", person)));
+    const snap = await getDocs(query(familyTasksCol(), where("assignedTo", "==", person)));
 
     const date = computeSelectedDate();
     const writes = [];
     snap.forEach((d) => {
       const t = d.data();
       if (!taskAppliesToDate(t, date)) return;
-      writes.push(updateDoc(doc(window.db, "tasks", d.id), { completed, updatedAt: serverTimestamp() }));
+      writes.push(updateDoc(familyTaskDoc( d.id), { completed, updatedAt: serverTimestamp() }));
     });
 
     if (writes.length === 0) return showNotification("Aucune tâche à modifier", "info");
@@ -787,7 +788,7 @@ async function submitTask(e) {
 
     // hebdomadaire => dimanche
     if (category === "hebdomadaire") {
-      await addDoc(collection(window.db, "tasks"), {
+      await addDoc(familyTasksCol(), {
         ...base,
         dayOfWeek: 0,
         fullDate: null,
@@ -804,7 +805,7 @@ async function submitTask(e) {
       if (!dateVal) return showNotification("Sélectionne une date", "error");
       const d = new Date(dateVal);
 
-      await addDoc(collection(window.db, "tasks"), {
+      await addDoc(familyTasksCol(), {
         ...base,
         // dayOfWeek n'est plus utilisé pour mensuel/ponctuel mais on le garde pour compat
         dayOfWeek: -1,
@@ -826,7 +827,7 @@ async function submitTask(e) {
 
     await Promise.all(
       selectedDays.map((day, idx) =>
-        addDoc(collection(window.db, "tasks"), {
+        addDoc(familyTasksCol(), {
           ...base,
           category: "quotidien",
           dayOfWeek: day,
@@ -983,7 +984,7 @@ async function saveEditModal() {
     // ✅ si pas de templateId, on en crée un pour ce doc (au moins pour le futur)
     if (!templateId) {
       templateId = id; // stable
-      await updateDoc(doc(window.db, "tasks", id), { templateId });
+      await updateDoc(familyTaskDoc( id), { templateId });
       overlay.dataset.templateId = templateId;
     }
 
@@ -1000,7 +1001,7 @@ async function saveEditModal() {
 
     // ====== helpers ======
     const getGroupDocs = async () => {
-      const q = query(collection(window.db, "tasks"), where("templateId", "==", templateId));
+      const q = query(familyTasksCol(), where("templateId", "==", templateId));
       const snap = await getDocs(q);
       const docs = [];
       snap.forEach((d) => docs.push({ id: d.id, ...d.data() }));
@@ -1008,7 +1009,7 @@ async function saveEditModal() {
     };
 
     const deleteGroup = async (docs) => {
-      const deletes = docs.map((t) => deleteDoc(doc(window.db, "tasks", t.id)));
+      const deletes = docs.map((t) => deleteDoc(familyTaskDoc( t.id)));
       await Promise.all(deletes);
     };
 
@@ -1018,7 +1019,7 @@ async function saveEditModal() {
         templateId,
         title,
         description,
-        assignedTo: overlay?.dataset.assignedTo || (await getDoc(doc(window.db, "tasks", id))).data().assignedTo,
+        assignedTo: overlay?.dataset.assignedTo || (await getDoc(familyTaskDoc( id))).data().assignedTo,
         stars,
         isBonus,
         isPenalty,
@@ -1033,7 +1034,7 @@ async function saveEditModal() {
 
       await Promise.all(
         days.map((day, idx) =>
-          addDoc(collection(window.db, "tasks"), {
+          addDoc(familyTasksCol(), {
             ...base,
             category: "quotidien",
             dayOfWeek: day,
@@ -1050,7 +1051,7 @@ async function saveEditModal() {
         templateId,
         title,
         description,
-        assignedTo: overlay?.dataset.assignedTo || (await getDoc(doc(window.db, "tasks", id))).data().assignedTo,
+        assignedTo: overlay?.dataset.assignedTo || (await getDoc(familyTaskDoc( id))).data().assignedTo,
         stars,
         isBonus,
         isPenalty,
@@ -1061,7 +1062,7 @@ async function saveEditModal() {
         order: Date.now()
       };
 
-      await addDoc(collection(window.db, "tasks"), {
+      await addDoc(familyTasksCol(), {
         ...base,
         category: "hebdomadaire",
         dayOfWeek: 0,
@@ -1079,7 +1080,7 @@ async function saveEditModal() {
         templateId,
         title,
         description,
-        assignedTo: overlay?.dataset.assignedTo || (await getDoc(doc(window.db, "tasks", id))).data().assignedTo,
+        assignedTo: overlay?.dataset.assignedTo || (await getDoc(familyTaskDoc( id))).data().assignedTo,
         stars,
         isBonus,
         isPenalty,
@@ -1090,7 +1091,7 @@ async function saveEditModal() {
         order: Date.now()
       };
 
-      await addDoc(collection(window.db, "tasks"), {
+      await addDoc(familyTasksCol(), {
         ...base,
         category: "mensuel",
         dayOfWeek: -1,
@@ -1107,7 +1108,7 @@ async function saveEditModal() {
         templateId,
         title,
         description,
-        assignedTo: overlay?.dataset.assignedTo || (await getDoc(doc(window.db, "tasks", id))).data().assignedTo,
+        assignedTo: overlay?.dataset.assignedTo || (await getDoc(familyTaskDoc( id))).data().assignedTo,
         stars,
         isBonus,
         isPenalty,
@@ -1118,7 +1119,7 @@ async function saveEditModal() {
         order: Date.now()
       };
 
-      await addDoc(collection(window.db, "tasks"), {
+      await addDoc(familyTasksCol(), {
         ...base,
         category: "ponctuel",
         dayOfWeek: -1,
@@ -1140,7 +1141,7 @@ async function saveEditModal() {
         payload.dayOfMonth = null;
         payload.dayOfWeek = -1;
 
-        await updateDoc(doc(window.db, "tasks", id), payload);
+        await updateDoc(familyTaskDoc( id), payload);
         closeEditModal();
         showNotification("✅ Tâche modifiée", "success");
         return;
@@ -1169,7 +1170,7 @@ async function saveEditModal() {
         // ✅ on ne force jamais completed/order ici
         delete payload.completed;
         delete payload.order;
-        writes.push(updateDoc(doc(window.db, "tasks", t.id), payload));
+        writes.push(updateDoc(familyTaskDoc( t.id), payload));
       });
 
       await Promise.all(writes);
@@ -1213,7 +1214,7 @@ async function editTask(taskId) {
   if (!isAdminMode) return showNotification("Mode admin requis", "error");
 
   try {
-    const snap = await getDoc(doc(window.db, "tasks", taskId));
+    const snap = await getDoc(familyTaskDoc( taskId));
     if (!snap.exists()) return showNotification("Tâche introuvable", "error");
     openEditModalWithTask(taskId, snap.data());
   } catch (e) {
