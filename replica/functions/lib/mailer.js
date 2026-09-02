@@ -76,10 +76,11 @@ function publicOrigin() {
   return `https://${project}.web.app`;
 }
 
-function wrapEmail(locale, title, inner) {
+function wrapEmail(locale, title, inner, opts = {}) {
   const lang = normalizeLocale(locale);
   const origin = publicOrigin();
   const legalHtml = t(locale, "email.legalHtml", { origin });
+  const dadLine = opts.includeDad === false ? "" : `<br/>${t(locale, "email.dad")}`;
   return `<!doctype html>
 <html lang="${lang}">
 <head>
@@ -91,7 +92,7 @@ function wrapEmail(locale, title, inner) {
   <div style="max-width:640px;margin:0 auto;padding:22px;">
     <div style="background:#fff;border-radius:16px;padding:22px 22px 16px;box-shadow:0 10px 26px rgba(0,0,0,.08);">
       ${inner}
-      <p style="margin:22px 0 0;color:#888;font-size:13px;">${t(locale, "email.signoff")}<br/>${t(locale, "email.dad")}</p>
+      <p style="margin:22px 0 0;color:#888;font-size:13px;">${t(locale, "email.signoff")}${dadLine}</p>
       <p style="margin:16px 0 0;color:#888;font-size:12px;">${legalHtml}</p>
     </div>
   </div>
@@ -112,6 +113,7 @@ function welcomeVerifyEmailHtml(code, locale) {
     `
     <h2 style="margin:0 0 10px;font-size:22px;">${t(loc, "email.welcome.title")}</h2>
     <p style="margin:0 0 12px;color:#333;line-height:1.5;">${t(loc, "email.welcome.body")}</p>
+    <p style="margin:0 0 12px;color:#555;line-height:1.5;font-size:14px;">${t(loc, "email.welcome.identityNote")}</p>
     <p style="margin:0 0 8px;color:#333;font-weight:700;">${t(loc, "email.welcome.codeIntro")}</p>
     <div style="font-size:32px;letter-spacing:8px;font-weight:800;text-align:center;padding:14px 0 18px;font-family:Arial,Helvetica,sans-serif;">
       ${digits}
@@ -127,7 +129,8 @@ function welcomeVerifyEmailHtml(code, locale) {
     <p style="margin:0 0 12px;color:#333;line-height:1.5;">${t(loc, "email.welcome.prices")}</p>
     <p style="margin:0 0 12px;color:#333;line-height:1.5;">${t(loc, "email.welcome.dailyEmail")}</p>
     <p style="margin:0;color:#333;line-height:1.5;">${t(loc, "email.welcome.contact")}</p>
-    `
+    `,
+    { includeDad: false }
   );
 }
 
@@ -136,6 +139,8 @@ function welcomeVerifyEmailText(code, locale) {
   return `${t(loc, "email.welcome.title")}
 
 ${t(loc, "email.welcome.bodyText")}
+
+${t(loc, "email.welcome.identityNote")}
 
 ${t(loc, "email.welcome.codeIntro")} ${code}
 
@@ -150,7 +155,6 @@ ${t(loc, "email.welcome.dailyEmailText")}
 ${t(loc, "email.welcome.contactText")}
 
 ${t(loc, "email.signoff")}
-${t(loc, "email.dad")}
 
 ${legalEmailText(loc)}`;
 }

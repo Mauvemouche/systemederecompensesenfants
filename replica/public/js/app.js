@@ -40,6 +40,19 @@ function dayName(i) {
   return i18n(`day.${i}`);
 }
 
+function starsForTask(isSeriousFault, raw) {
+  if (isSeriousFault) return 0;
+  const n = parseInt(raw, 10);
+  if (!Number.isFinite(n)) return 3;
+  return Math.max(1, Math.min(5, n));
+}
+
+function syncStarsGroup(checkboxId, groupId) {
+  const serious = !!document.getElementById(checkboxId)?.checked;
+  const group = document.getElementById(groupId);
+  if (group) group.hidden = serious;
+}
+
 function storeAdminToken(token) {
   if (token) sessionStorage.setItem("adminToken", token);
 }
@@ -146,6 +159,9 @@ function setupEvents() {
 
   // Submit form
   document.getElementById("taskForm")?.addEventListener("submit", submitTask);
+  document.getElementById("isSeriousFault")?.addEventListener("change", () => {
+    syncStarsGroup("isSeriousFault", "starsGroup");
+  });
 
   // Filters (delegation: replica rebuilds these buttons when kids are named)
   document.querySelector(".filters")?.addEventListener("click", (e) => {
@@ -711,7 +727,7 @@ function createTaskElement(t) {
 
   const meta = [
     `<span class="task-category">${escapeHtml(categoryLabel(t.category))}</span>`,
-    `<span class="task-stars">${starsDisplay}</span>`,
+    t.isSeriousFault ? "" : `<span class="task-stars">${starsDisplay}</span>`,
     t.fullDate ? `<span class="badge" style="background:#eee;color:#333;">📅 ${escapeHtml(t.fullDate)}</span>` : "",
     t.dayOfMonth ? `<span class="badge" style="background:#eee;color:#333;">🗓️ ${escapeHtml(String(t.dayOfMonth))}</span>` : ""
   ].join("");
@@ -872,12 +888,11 @@ async function submitTask(e) {
   const title = document.getElementById("taskTitle")?.value?.trim() || "";
   const description = document.getElementById("taskDescription")?.value?.trim() || "";
   const assignedTo = document.getElementById("assignedTo")?.value || "";
-  const stars = parseInt(document.getElementById("stars")?.value || "3", 10);
   const category = document.getElementById("category")?.value || "quotidien";
-
   const isBonus = (document.getElementById("isBonus")?.checked || /bonus/i.test(title));
   const isPenalty = !!document.getElementById("isPenalty")?.checked;
   const isSeriousFault = !!document.getElementById("isSeriousFault")?.checked;
+  const stars = starsForTask(isSeriousFault, document.getElementById("stars")?.value);
 
   if (!title || !assignedTo) return showNotification(i18n("notify.needTitlePerson"), "error");
 
@@ -890,7 +905,7 @@ async function submitTask(e) {
       title,
       description,
       assignedTo,
-      stars: Number.isFinite(stars) ? stars : 3,
+      stars: stars,
       category,
       isBonus,
       isPenalty,
@@ -968,6 +983,7 @@ function resetAndCloseForm() {
 
   form.reset();
   form.classList.add("hidden");
+  syncStarsGroup("isSeriousFault", "starsGroup");
 
   const specific = document.getElementById("specificDateGroup");
   const daysGroup = document.getElementById("daysSelectionGroup");
@@ -1023,6 +1039,9 @@ function bindEditModalOnce() {
   category?.addEventListener("change", () => {
     syncEditDateUI();
   });
+  document.getElementById("editIsSeriousFault")?.addEventListener("change", () => {
+    syncStarsGroup("editIsSeriousFault", "editStarsGroup");
+  });
 
   form?.addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -1039,6 +1058,7 @@ function openEditModalWithTask(taskId, taskData) {
   document.getElementById("editIsBonus").checked = !!taskData.isBonus;
   document.getElementById("editIsPenalty").checked = !!taskData.isPenalty;
   document.getElementById("editIsSeriousFault").checked = !!taskData.isSeriousFault;
+  syncStarsGroup("editIsSeriousFault", "editStarsGroup");
 
   // date input: keep fullDate if ponctuel
   const d = document.getElementById("editSpecificDate");
@@ -1082,12 +1102,11 @@ async function saveEditModal() {
   const id = document.getElementById("editTaskId").value;
   const title = document.getElementById("editTitle").value.trim();
   const description = document.getElementById("editDescription").value.trim();
-  const stars = Math.max(1, Math.min(5, parseInt(document.getElementById("editStars").value, 10) || 3));
   const newCategory = (document.getElementById("editCategory").value || "quotidien").toLowerCase();
-
   const isBonusChecked = document.getElementById("editIsBonus").checked;
   const isPenalty = document.getElementById("editIsPenalty").checked;
   const isSeriousFault = document.getElementById("editIsSeriousFault").checked;
+  const stars = starsForTask(isSeriousFault, document.getElementById("editStars").value);
 
   const bonusFromTitle = /bonus/i.test(title);
   const isBonus = isBonusChecked || bonusFromTitle;

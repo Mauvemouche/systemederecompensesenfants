@@ -161,7 +161,7 @@ function render(tasks) {
       ${t.description ? `<div class="task-desc">${escapeHtml(t.description)}</div>` : ""}
       <div class="meta">
         <span class="tag">👤 ${escapeHtml(t.assignedTo || "?")}</span>
-        <span class="tag">⭐ ${Number(t.stars || 3)}</span>
+        ${t.isSeriousFault ? "" : `<span class="tag">⭐ ${Number(t.stars || 3)}</span>`}
         <span class="tag">🏷️ ${escapeHtml(t.category || "")}</span>
         ${t.isBonus ? `<span class="tag">🎁 ${i18n("task.bonus")}</span>` : ``}
         ${t.isPenalty ? `<span class="tag">⛔ ${i18n("task.penalty")}</span>` : ``}
@@ -202,6 +202,19 @@ function escapeHtml(x) {
   return d.innerHTML;
 }
 
+function starsForTask(isSeriousFault, raw) {
+  if (isSeriousFault) return 0;
+  const n = parseInt(raw, 10);
+  if (!Number.isFinite(n)) return 3;
+  return Math.max(1, Math.min(5, n));
+}
+
+function syncStarsGroup(checkboxId, groupId) {
+  const serious = !!$(checkboxId)?.checked;
+  const group = $(groupId);
+  if (group) group.hidden = serious;
+}
+
 /* =========================
    ADD TASK (mêmes règles que ton app)
 ========================= */
@@ -211,12 +224,11 @@ async function submitTask(e) {
   const title = $("taskTitle").value.trim();
   const description = $("taskDescription").value.trim();
   const assignedTo = $("assignedTo").value;
-  const stars = parseInt($("stars").value || "3", 10);
   const category = $("category").value;
-
   const isBonus = $("isBonus").checked || /bonus/i.test(title);
   const isPenalty = $("isPenalty").checked;
   const isSeriousFault = $("isSeriousFault").checked;
+  const stars = starsForTask(isSeriousFault, $("stars").value);
 
   if (!title || !assignedTo) return showToast("Titre + personne obligatoires");
 
@@ -231,7 +243,7 @@ async function submitTask(e) {
     title,
     description,
     assignedTo,
-    stars: Number.isFinite(stars) ? stars : 3,
+    stars,
     category,
     isBonus,
     isPenalty,
@@ -294,6 +306,7 @@ function resetForm() {
   $("daysSelectionGroup").style.display = "block";
   $("allDays").checked = true;
   for (let i = 0; i <= 6; i++) if ($(`day${i}`)) $(`day${i}`).checked = true;
+  syncStarsGroup("isSeriousFault", "starsGroup");
 }
 
 /* =========================
@@ -325,6 +338,7 @@ function openEditModal(id, t) {
   $("editIsBonus").checked = !!t.isBonus;
   $("editIsPenalty").checked = !!t.isPenalty;
   $("editIsSeriousFault").checked = !!t.isSeriousFault;
+  syncStarsGroup("editIsSeriousFault", "editStarsGroup");
 
   // date fields
   $("editSpecificDate").value = t.fullDate ?? "";
@@ -370,13 +384,12 @@ async function saveEditModal(e) {
   const title = $("editTaskTitle").value.trim();
   const description = $("editDescription").value.trim();
   const assignedTo = $("editAssignedTo").value;
-  const stars = Math.max(1, Math.min(5, parseInt($("editStars").value, 10) || 3));
   const category = $("editCategory").value;
-
   const bonusFromTitle = /bonus/i.test(title);
   const isBonus = $("editIsBonus").checked || bonusFromTitle;
   const isPenalty = $("editIsPenalty").checked;
   const isSeriousFault = $("editIsSeriousFault").checked;
+  const stars = starsForTask(isSeriousFault, $("editStars").value);
 
   if (!title || !assignedTo) return showToast("Titre + personne obligatoires");
 
@@ -569,6 +582,8 @@ function bootManagePage() {
   // Form
   $("taskForm").addEventListener("submit", submitTask);
   $("resetFormBtn").addEventListener("click", resetForm);
+  $("isSeriousFault")?.addEventListener("change", () => syncStarsGroup("isSeriousFault", "starsGroup"));
+  $("editIsSeriousFault")?.addEventListener("change", () => syncStarsGroup("editIsSeriousFault", "editStarsGroup"));
   setupCategoryUI();
 
   // Filters

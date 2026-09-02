@@ -10,6 +10,9 @@ const {
   nextExpiry,
   generateSixDigitCode,
   isValidSixDigitCode,
+  isValidSignupPassword,
+  MIN_SIGNUP_PASSWORD_LENGTH,
+  MAX_SIGNUP_PASSWORD_LENGTH,
 } = require("../lib/signupCodes");
 
 describe("signup verification codes", () => {
@@ -43,5 +46,14 @@ describe("signup verification codes", () => {
     const code = generateSixDigitCode();
     assert.equal(isValidSixDigitCode(code), true);
     assert.equal(code.length, 6);
+  });
+
+  it("requires a signup password of 6 to 200 characters", () => {
+    assert.equal(MIN_SIGNUP_PASSWORD_LENGTH, 6);
+    assert.equal(MAX_SIGNUP_PASSWORD_LENGTH, 200);
+    assert.equal(isValidSignupPassword("12345"), false);
+    assert.equal(isValidSignupPassword("123456"), true);
+    assert.equal(isValidSignupPassword("x".repeat(200)), true);
+    assert.equal(isValidSignupPassword("x".repeat(201)), false);
   });
 });

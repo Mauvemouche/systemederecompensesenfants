@@ -12,7 +12,7 @@ const {
   makeNormKey,
   REFERRAL_BEST_DOC_ID,
 } = require("../lib/referrals");
-const { serializeState } = require("../lib/replicaState");
+const { serializeState, familyNeedsReferralPrompt } = require("../lib/replicaState");
 
 const repoRoot = path.join(__dirname, "..", "..", "..");
 
@@ -82,18 +82,16 @@ describe("all-time best referrer", () => {
 });
 
 describe("replica board referral prompt wiring", () => {
-  it("asks after checkout success, not after the first paid invoice", () => {
+  it("asks after a real paid invoice, not after trial checkout", () => {
     const billing = fs.readFileSync(path.join(repoRoot, "replica/functions/billing.js"), "utf8");
-    assert.match(billing, /markReferralPromptPending\(familyId\)/);
-    assert.match(billing, /confirmCheckoutSession/);
-    assert.match(billing, /checkout\.session\.completed/);
-    const pending = billing.split("markReferralPromptPending");
-    assert.ok(pending.length >= 3);
-    assert.equal(billing.includes("hasPaidInvoice") && billing.includes("markReferralPromptPending"), true);
-    const afterPaid = billing.indexOf("hasPaidInvoice");
-    const firstPending = billing.indexOf("markReferralPromptPending");
-    assert.ok(firstPending >= 0);
-    void afterPaid;
+    const checkoutFn = billing.split("exports.confirmCheckoutSession")[1].split("exports.createPortalSession")[0];
+    assert.equal(checkoutFn.includes("markReferralPromptPending"), false);
+    const checkoutHook = billing.split('case "checkout.session.completed"')[1].split("case \"customer.subscription.created\"")[0];
+    assert.equal(checkoutHook.includes("markReferralPromptPending"), false);
+    const invoiceHook = billing.split('case "invoice.paid"')[1].split("default:")[0];
+    assert.match(invoiceHook, /amount_paid/);
+    assert.match(invoiceHook, /markReferralPromptPending\(familyId\)/);
+    assert.match(billing, /hasPaidInvoice/);
   });
 
   it("recomputes the all-time public winner immediately after save, not a month doc", () => {
@@ -125,7 +123,18 @@ describe("replica board referral prompt wiring", () => {
       referral: { status: "pending" },
       referralThanks: null,
     });
-    assert.equal(stateEmpty.needsReferralPrompt, true);
+    assert.equal(stateEmpty.needsReferralPrompt, false);
+    assert.equal(familyNeedsReferralPrompt({ status: "pending" }, { hasPaidInvoice: true }), true);
+    assert.equal(familyNeedsReferralPrompt({ status: "pending" }, {}), false);
+
+    const afterPaid = serializeState(
+      "fam1",
+      { status: "active", ownerUid: "u1", stripeSubscriptionId: "sub_1", hasPaidInvoice: true },
+      { kidsNamed: true, adminPinHash: "x" },
+      "u1",
+      { referral: { status: "pending" }, referralThanks: null }
+    );
+    assert.equal(afterPaid.needsReferralPrompt, true);
     assert.equal(stateEmpty.referralThanks, null);
 
     const skipped = serializeState("fam1", { status: "trialing", ownerUid: "u1", stripeSubscriptionId: "sub_1" }, { kidsNamed: true, adminPinHash: "x" }, "u1", {
@@ -154,9 +163,9 @@ describe("replica board referral prompt wiring", () => {
     const en = JSON.parse(fs.readFileSync(path.join(repoRoot, "replica/public/js/i18n/en.json"), "utf8"));
     assert.equal(
       en["referral.thanks"],
-      "Thank you to our best referrer currently: {first} {last} with {count} referred subscriptions! ❤️🙏"
+      "Thank you to our best recruiter currently: {first} {last} with {count} recruited subscriptions! ❤️🙏"
     );
-    assert.match(en["referral.lead"], /current best referrer/);
+    assert.match(en["referral.lead"], /current best recruiter/);
     assert.equal(/month/i.test(en["referral.thanks"]), false);
     assert.equal(/month/i.test(en["referral.lead"]), false);
     for (const loc of ["nl", "fr", "de"]) {
@@ -170,6 +179,8 @@ describe("replica board referral prompt wiring", () => {
     const liveIndex = fs.readFileSync(path.join(repoRoot, "public/index.html"), "utf8");
     assert.equal(liveIndex.includes("referralOverlay"), false);
     assert.equal(liveIndex.includes("referralThanks"), false);
+    assert.equal(liveIndex.includes("gate.checkoutCancel"), false);
+    assert.equal(liveIndex.includes("gate.passwordHint"), false);
     const liveFns = fs.readFileSync(path.join(repoRoot, "functions/index.js"), "utf8");
     assert.equal(liveFns.includes("submitReferral"), false);
   });

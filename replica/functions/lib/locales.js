@@ -45,7 +45,7 @@ const fr = {
   "err.referralName": "Indique un prénom et un nom (sans lien ni email), ou passe cette étape.",
   "err.resetMailFailed": "Impossible d’envoyer l’email de réinitialisation. Réessaie dans un instant.",
   "email.fromName": "Système de récompenses",
-  "email.signoff": "À très vite,",
+  "email.signoff": "À très vite !",
   "email.dad": "Un papa belge",
   "email.welcome.subject": "Bienvenue — ton code de vérification",
   "email.welcome.title": "Bienvenue 👋",
@@ -53,6 +53,8 @@ const fr = {
     "Salut, et merci de nous rejoindre. Je suis un papa belge : j’ai construit cette appli pour que les familles puissent suivre les <b>tâches des enfants</b>, gagner des <b>étoiles</b>, et transformer ça en <b>temps d’écran</b> — sans se battre tous les soirs.",
   "email.welcome.bodyText":
     "Salut, et merci de nous rejoindre. Je suis un papa belge : j’ai construit cette appli pour que les familles puissent suivre les tâches des enfants, gagner des étoiles, et transformer ça en temps d’écran.",
+  "email.welcome.identityNote":
+    "(nom dévoilé aux utilisateurs payants après la période d’essai, pour éviter les spams et vol d’identité)",
   "email.welcome.codeIntro": "Voici ton code de vérification (valable 15 minutes) :",
   "email.welcome.afterCode":
     "Entre-le dans l’appli <b>avant</b> de te connecter. Tant que ce n’est pas validé, le compte reste fermé.",
@@ -67,9 +69,9 @@ const fr = {
     "Mode Admin :\n- Au premier accès, tu choisis un code Admin à 4 chiffres. Garde-le précieusement : on ne te l’envoie pas maintenant.\n- En mode Admin, tu peux le changer (« Changer le code Admin »).\n- Si tu n’es pas en mode Admin et que tu as oublié le code, utilise « Récupérer le code Admin ». On t’envoie un nouveau code à 4 chiffres par email, et l’ancien ne fonctionne plus.",
   "email.welcome.pricesTitle": "Les prix",
   "email.welcome.prices":
-    "<b>2,50 €/mois</b> (ça ferait 30 €/an si tu restes au mois) ou <b>25 €/an</b>. Premier mois d’essai, avec carte. J’ai mis le prix autour d’une bière (ou d’un café) par mois, parce que c’est un père belge qui l’a construite — pas pour s’acheter une Ferrari, juste pour payer le serveur.",
+    "<b>2,50 €/mois</b> (ça ferait 30 €/an si tu restes au mois) ou <b>25 €/an</b>. Premier mois d’essai, avec carte enregistrée. J’ai mis le prix autour d’une bière (ou d’un café) par mois, parce que c’est un père belge qui l’a construite — pas pour s’acheter une Ferrari, juste pour payer le serveur.",
   "email.welcome.pricesText":
-    "Prix : 2,50 €/mois (30 €/an si payé mois par mois) ou 25 €/an. Premier mois d’essai, avec carte. Prix autour d’une bière (ou d’un café) par mois, parce qu’un père belge l’a construite.",
+    "Prix : 2,50 €/mois (30 €/an si payé mois par mois) ou 25 €/an. Premier mois d’essai, avec carte enregistrée. Prix autour d’une bière (ou d’un café) par mois, parce qu’un père belge l’a construite.",
   "email.welcome.contact":
     "Une idée, une plainte, un « ça bug » ? Écris à <a href=\"mailto:kidsrewardsystem@proton.me\">kidsrewardsystem@proton.me</a>.",
   "email.welcome.contactText": "Suggestions / plaintes : kidsrewardsystem@proton.me",
@@ -141,7 +143,7 @@ const nl = {
   "err.referralName": "Vul een voornaam en naam in (geen link of e-mail), of sla deze stap over.",
   "err.resetMailFailed": "De herstelmail kon niet worden verstuurd. Probeer zo meteen opnieuw.",
   "email.fromName": "Beloningssysteem",
-  "email.signoff": "Tot gauw,",
+  "email.signoff": "Tot gauw!",
   "email.dad": "Een Belgische papa",
   "email.welcome.subject": "Welkom — je verificatiecode",
   "email.welcome.title": "Welkom 👋",
@@ -149,6 +151,8 @@ const nl = {
     "Hallo, en welkom. Ik ben een Belgische papa: ik heb deze app gemaakt zodat gezinnen de <b>taken van de kinderen</b> kunnen volgen, <b>sterren</b> kunnen verdienen, en dat omzetten in <b>schermtijd</b> — zonder elke avond ruzie.",
   "email.welcome.bodyText":
     "Hallo, en welkom. Ik ben een Belgische papa: ik heb deze app gemaakt zodat gezinnen de taken van de kinderen kunnen volgen, sterren kunnen verdienen, en dat omzetten in schermtijd.",
+  "email.welcome.identityNote":
+    "(naam wordt na de proefperiode getoond aan betalende gebruikers, om spam en identiteitsdiefstal te vermijden)",
   "email.welcome.codeIntro": "Hier is je verificatiecode (15 minuten geldig):",
   "email.welcome.afterCode":
     "Vul hem in de app in <b>vóór</b> je inlogt. Tot die tijd blijft het account gesloten.",
@@ -163,9 +167,9 @@ const nl = {
     "Admin-modus:\n- Bij de eerste toegang kies je een Admin-code van 4 cijfers. Onthoud hem goed: we sturen hem nu niet per mail.\n- In Admin-modus kun je hem wijzigen (« Admin-code wijzigen »).\n- Als je niet in Admin-modus bent en de code vergeten bent, gebruik « Admin-code terughalen ». We mailen een nieuwe code van 4 cijfers, en de oude werkt niet meer.",
   "email.welcome.pricesTitle": "De prijzen",
   "email.welcome.prices":
-    "<b>2,50 €/maand</b> (dat zou 30 €/jaar zijn als je maandelijks betaalt) of <b>25 €/jaar</b>. Eerste maand proef, met kaart. Ik heb de prijs rond een pintje (of een koffie) per maand gezet, omdat een Belgische vader dit gebouwd heeft — niet voor een Ferrari, gewoon om de server te betalen.",
+    "<b>2,50 €/maand</b> (dat zou 30 €/jaar zijn als je maandelijks betaalt) of <b>25 €/jaar</b>. Eerste maand proef, met geregistreerde kaart. Ik heb de prijs rond een pintje (of een koffie) per maand gezet, omdat een Belgische vader dit gebouwd heeft — niet voor een Ferrari, gewoon om de server te betalen.",
   "email.welcome.pricesText":
-    "Prijzen: 2,50 €/maand (30 €/jaar als je maandelijks betaalt) of 25 €/jaar. Eerste maand proef, met kaart. Prijs rond een pintje (of een koffie) per maand, omdat een Belgische vader dit gebouwd heeft.",
+    "Prijzen: 2,50 €/maand (30 €/jaar als je maandelijks betaalt) of 25 €/jaar. Eerste maand proef, met geregistreerde kaart. Prijs rond een pintje (of een koffie) per maand, omdat een Belgische vader dit gebouwd heeft.",
   "email.welcome.contact":
     "Een idee, een klacht, een « het bugt »? Schrijf naar <a href=\"mailto:kidsrewardsystem@proton.me\">kidsrewardsystem@proton.me</a>.",
   "email.welcome.contactText": "Suggesties / klachten: kidsrewardsystem@proton.me",
@@ -237,7 +241,7 @@ const de = {
   "err.referralName": "Gib Vor- und Nachnamen ein (kein Link und keine E-Mail), oder überspringe diesen Schritt.",
   "err.resetMailFailed": "Die Zurücksetz-E-Mail konnte nicht gesendet werden. Versuch es gleich noch einmal.",
   "email.fromName": "Belohnungssystem",
-  "email.signoff": "Bis gleich,",
+  "email.signoff": "Bis gleich!",
   "email.dad": "Ein belgischer Papa",
   "email.welcome.subject": "Willkommen — dein Bestätigungscode",
   "email.welcome.title": "Willkommen 👋",
@@ -245,6 +249,8 @@ const de = {
     "Hallo und willkommen. Ich bin ein belgischer Papa: Ich habe diese App gebaut, damit Familien die <b>Aufgaben der Kinder</b> verfolgen, <b>Sterne</b> sammeln und daraus <b>Bildschirmzeit</b> machen können — ohne jeden Abend Streit.",
   "email.welcome.bodyText":
     "Hallo und willkommen. Ich bin ein belgischer Papa: Ich habe diese App gebaut, damit Familien die Aufgaben der Kinder verfolgen, Sterne sammeln und daraus Bildschirmzeit machen können.",
+  "email.welcome.identityNote":
+    "(Name wird zahlenden Nutzerinnen und Nutzern nach der Testphase genannt, um Spam und Identitätsdiebstahl zu vermeiden)",
   "email.welcome.codeIntro": "Hier ist dein Bestätigungscode (15 Minuten gültig):",
   "email.welcome.afterCode":
     "Gib ihn in der App ein, <b>bevor</b> du dich anmeldest. Bis dahin bleibt das Konto gesperrt.",
@@ -259,9 +265,9 @@ const de = {
     "Admin-Modus:\n- Beim ersten Zugang wählst du einen Admin-Code mit 4 Ziffern. Merk ihn dir gut: Wir schicken ihn jetzt nicht per E-Mail.\n- Im Admin-Modus kannst du ihn ändern (« Admin-Code ändern »).\n- Wenn du nicht im Admin-Modus bist und den Code vergessen hast, nutze « Admin-Code wiederherstellen ». Wir mailen einen neuen 4-stelligen Code, und der alte gilt nicht mehr.",
   "email.welcome.pricesTitle": "Die Preise",
   "email.welcome.prices":
-    "<b>2,50 €/Monat</b> (das wären 30 €/Jahr bei monatlicher Zahlung) oder <b>25 €/Jahr</b>. Erster Monat zur Probe, mit Karte. Ich habe den Preis um ein Bier (oder einen Kaffee) pro Monat gesetzt, weil ein belgischer Vater das gebaut hat — nicht für einen Ferrari, nur um den Server zu zahlen.",
+    "<b>2,50 €/Monat</b> (das wären 30 €/Jahr bei monatlicher Zahlung) oder <b>25 €/Jahr</b>. Erster Monat zur Probe, mit hinterlegter Karte. Ich habe den Preis um ein Bier (oder einen Kaffee) pro Monat gesetzt, weil ein belgischer Vater das gebaut hat — nicht für einen Ferrari, nur um den Server zu zahlen.",
   "email.welcome.pricesText":
-    "Preise: 2,50 €/Monat (30 €/Jahr bei monatlicher Zahlung) oder 25 €/Jahr. Erster Monat zur Probe, mit Karte. Preis um ein Bier (oder einen Kaffee) pro Monat, weil ein belgischer Vater das gebaut hat.",
+    "Preise: 2,50 €/Monat (30 €/Jahr bei monatlicher Zahlung) oder 25 €/Jahr. Erster Monat zur Probe, mit hinterlegter Karte. Preis um ein Bier (oder einen Kaffee) pro Monat, weil ein belgischer Vater das gebaut hat.",
   "email.welcome.contact":
     "Eine Idee, eine Beschwerde, ein « das bugt »? Schreib an <a href=\"mailto:kidsrewardsystem@proton.me\">kidsrewardsystem@proton.me</a>.",
   "email.welcome.contactText": "Ideen / Beschwerden: kidsrewardsystem@proton.me",
@@ -333,7 +339,7 @@ const en = {
   "err.referralName": "Enter a first and last name (no link or email), or skip this step.",
   "err.resetMailFailed": "Couldn’t send the reset email. Try again in a moment.",
   "email.fromName": "Rewards system",
-  "email.signoff": "See you soon,",
+  "email.signoff": "See you soon!",
   "email.dad": "A Belgian dad",
   "email.welcome.subject": "Welcome — your verification code",
   "email.welcome.title": "Welcome 👋",
@@ -341,6 +347,8 @@ const en = {
     "Hi, and welcome. I’m a Belgian dad: I built this app so families can follow the <b>kids’ tasks</b>, earn <b>stars</b>, and turn that into <b>screen time</b> — without a fight every evening.",
   "email.welcome.bodyText":
     "Hi, and welcome. I’m a Belgian dad: I built this app so families can follow the kids’ tasks, earn stars, and turn that into screen time.",
+  "email.welcome.identityNote":
+    "(name revealed to paying users after the trial, to avoid spam and identity theft)",
   "email.welcome.codeIntro": "Here’s your verification code (valid for 15 minutes):",
   "email.welcome.afterCode":
     "Enter it in the app <b>before</b> you sign in. Until then, the account stays locked.",
@@ -355,9 +363,9 @@ const en = {
     "Admin mode:\n- On first access, you choose a 4-digit Admin code. Remember it: we don’t email it now.\n- In Admin mode, you can change it (“Change Admin code”).\n- If you’re not in Admin mode and you forgot the code, use “Recover Admin code”. We email a new 4-digit code, and the old one stops working.",
   "email.welcome.pricesTitle": "Prices",
   "email.welcome.prices":
-    "<b>€2.50/month</b> (that would be €30/year if you stay monthly) or <b>€25/year</b>. First month trial, with a card. I set the price around a beer (or a coffee) a month, because a Belgian father built it — not to buy a Ferrari, just to pay for the server.",
+    "<b>€2.50/month</b> (that would be €30/year if you stay monthly) or <b>€25/year</b>. First month trial, with a card on file. I set the price around a beer (or a coffee) a month, because a Belgian father built it — not to buy a Ferrari, just to pay for the server.",
   "email.welcome.pricesText":
-    "Prices: €2.50/month (€30/year if paid monthly) or €25/year. First month trial, with a card. Price around a beer (or a coffee) a month, because a Belgian father built it.",
+    "Prices: €2.50/month (€30/year if paid monthly) or €25/year. First month trial, with a card on file. Price around a beer (or a coffee) a month, because a Belgian father built it.",
   "email.welcome.contact":
     "An idea, a complaint, a “it’s buggy”? Write to <a href=\"mailto:kidsrewardsystem@proton.me\">kidsrewardsystem@proton.me</a>.",
   "email.welcome.contactText": "Suggestions / complaints: kidsrewardsystem@proton.me",

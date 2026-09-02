@@ -152,7 +152,8 @@ describe("privacy and terms copy covers the required GDPR / e-commerce points", 
       assert.match(ui["privacy.deletionHtml"], /data-legal-mail/);
       assert.match(ui["legal.paidNote"], /kidsrewardsystem@proton\.me/);
       assert.match(ui["legal.paidNote"], /30/);
-      assert.match(ui["legal.paidNote"], /promo/i);
+      assert.equal(/promo/i.test(ui["legal.paidNote"]), false, code);
+      assert.equal(/gratuit pour toujours|free forever|voor altijd gratis|für immer kostenlos/i.test(ui["terms.priceBody"]), false, code);
       assert.match(ui["terms.priceBody"], /2,50|€2\.50/);
       assert.match(ui["terms.priceBody"], /25/);
       assert.match(ui["terms.priceBody"], /30/);

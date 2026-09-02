@@ -14,8 +14,15 @@ function isValidEmail(email) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizeEmail(email));
 }
 
+const MIN_SIGNUP_PASSWORD_LENGTH = 6;
+const MAX_SIGNUP_PASSWORD_LENGTH = 200;
+
 function isValidSignupPassword(password) {
-  return typeof password === "string" && password.length >= 6 && password.length <= 200;
+  return (
+    typeof password === "string" &&
+    password.length >= MIN_SIGNUP_PASSWORD_LENGTH &&
+    password.length <= MAX_SIGNUP_PASSWORD_LENGTH
+  );
 }
 
 function emailDocId(email) {
@@ -64,6 +71,8 @@ module.exports = {
   RESEND_COOLDOWN_MS,
   normalizeEmail,
   isValidEmail,
+  MIN_SIGNUP_PASSWORD_LENGTH,
+  MAX_SIGNUP_PASSWORD_LENGTH,
   isValidSignupPassword,
   emailDocId,
   generateSixDigitCode,

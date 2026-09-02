@@ -350,7 +350,6 @@ exports.confirmCheckoutSession = onCall(
       await tagStripeSubscription(secret, sub.id, familyId, uid);
       const customerId = typeof session.customer === "string" ? session.customer : session.customer?.id;
       await tagStripeCustomer(secret, customerId, familyId, uid);
-      await markReferralPromptPending(familyId);
     }
 
     return loadState(familyId, uid);
@@ -524,7 +523,6 @@ exports.stripeWebhook = onRequest(
             const customerId = typeof session.customer === "string" ? session.customer : session.customer?.id;
             await tagStripeCustomer(process.env.STRIPE_SECRET_KEY, customerId, familyId, uid);
             await tagStripeSubscription(process.env.STRIPE_SECRET_KEY, sub.id, familyId, uid);
-            await markReferralPromptPending(familyId);
           }
           break;
         }
@@ -560,6 +558,9 @@ exports.stripeWebhook = onRequest(
               ...billingFromSubscription(sub),
               ...(Number(invoice.amount_paid) > 0 ? { hasPaidInvoice: true } : {}),
             });
+            if (Number(invoice.amount_paid) > 0) {
+              await markReferralPromptPending(familyId);
+            }
           }
           break;
         }

@@ -107,7 +107,7 @@
           </select>
         </div>
 
-        <div class="form-group">
+        <div id="starsGroup" class="form-group">
           <label for="stars" data-i18n="task.stars"></label>
           <select id="stars">
             <option value="1">1 ⭐</option>
@@ -262,7 +262,7 @@
         <textarea id="editDescription" class="modal-textarea" rows="3"></textarea>
 
         <div class="modal-row">
-          <div class="modal-col">
+          <div id="editStarsGroup" class="modal-col">
             <label class="modal-label" data-i18n="task.stars"></label>
             <select id="editStars" class="modal-input">
               <option value="1">1 ⭐</option>
@@ -348,7 +348,8 @@
           <label class="modal-label" for="authEmail" data-i18n="gate.email"></label>
           <input id="authEmail" class="modal-input" type="email" autocomplete="email" required />
           <label class="modal-label" for="authPassword" data-i18n="gate.password"></label>
-          <input id="authPassword" class="modal-input" type="password" autocomplete="current-password" required minlength="6" />
+          <input id="authPassword" class="modal-input" type="password" autocomplete="current-password" required minlength="6" maxlength="200" />
+          <p class="modal-hint" data-i18n="gate.passwordHint"></p>
           <label id="acceptLegalWrap" class="auth-legal-check" hidden>
             <input id="acceptLegal" type="checkbox" />
             <span data-i18n-html="gate.acceptLegal"></span>
@@ -385,7 +386,8 @@
           <label class="modal-label" for="resetCode" data-i18n="gate.verifyCode"></label>
           <input id="resetCode" class="modal-input" type="text" inputmode="numeric" pattern="\d{6}" maxlength="6" autocomplete="one-time-code" required />
           <label class="modal-label" for="resetPassword" data-i18n="gate.resetPassword"></label>
-          <input id="resetPassword" class="modal-input" type="password" autocomplete="new-password" required minlength="6" />
+          <input id="resetPassword" class="modal-input" type="password" autocomplete="new-password" required minlength="6" maxlength="200" />
+          <p class="modal-hint" data-i18n="gate.passwordHint"></p>
           <p class="gate-error" role="alert" style="display:none;"></p>
           <p id="resetResent" class="modal-hint" style="display:none; color:#2e7d32;"></p>
           <div class="modal-footer" style="margin-top:14px;">
@@ -417,6 +419,7 @@
       <section id="gate-checkout" class="hidden">
         <h2 data-i18n="gate.checkoutTitle"></h2>
         <p class="gate-lead" data-i18n="gate.checkoutLead"></p>
+        <p class="gate-lead" data-i18n="gate.checkoutCancel"></p>
         <p class="gate-error" role="alert" style="display:none;"></p>
         <div class="plan-row">
           <button id="checkoutMonthlyBtn" class="plan-card" type="button">

@@ -4,6 +4,10 @@ const { hasAppAccess, needsCheckout, needsKidsSetup, needsAdminPin } = require("
 const { DEFAULT_FAMILY } = require("./family");
 const { normalizeLocale } = require("./i18n");
 
+function familyNeedsReferralPrompt(referral, billing) {
+  return referral?.status === "pending" && !!billing?.hasPaidInvoice;
+}
+
 function serializeState(familyId, billing, settings, uid, extras = {}) {
   const billingData = billing && typeof billing === "object" ? { ...billing } : { status: "incomplete" };
   const settingsData = settings && typeof settings === "object" ? settings : { people: DEFAULT_FAMILY, kidsNamed: true };
@@ -38,10 +42,10 @@ function serializeState(familyId, billing, settings, uid, extras = {}) {
     needsAdminPin: needsAdminPin(settingsData),
     complimentaryForever: !!billingData.complimentaryForever,
     locale: normalizeLocale(settingsData.locale),
-    needsReferralPrompt: extras.referral?.status === "pending",
+    needsReferralPrompt: familyNeedsReferralPrompt(extras.referral, billingData),
     referralThanks: extras.referralThanks && extras.referralThanks.count > 0 ? extras.referralThanks : null,
     dailyEmailOptIn: settingsData.dailyEmailOptIn !== false,
   };
 }
 
-module.exports = { serializeState };
+module.exports = { serializeState, familyNeedsReferralPrompt };

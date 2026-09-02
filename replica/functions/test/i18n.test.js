@@ -65,7 +65,16 @@ describe("recovery and welcome emails follow the requested locale", () => {
         assert.match(body, /café|koffie|Kaffee|coffee/i);
         assert.match(body, /kidsrewardsystem@proton\.me/);
         assert.match(body, /daily summary|samenvatting|résumé quotidien|tägliche Zusammenfassung/i);
+        assert.match(body, /card on file|carte enregistrée|geregistreerde kaart|hinterlegter Karte/i);
       }
+      assert.match(html, /identity theft|identiteitsdiefstal|Identitätsdiebstahl|vol d/i);
+      assert.match(text, /identity theft|identiteitsdiefstal|Identitätsdiebstahl|vol d/i);
+      assert.match(html, /À très vite !|Tot gauw!|Bis gleich!|See you soon!/);
+      const signoff = t(loc, "email.signoff");
+      const dad = t(loc, "email.dad");
+      const afterSignoff = html.split(signoff)[1] || "";
+      assert.equal(afterSignoff.includes(dad), false, loc);
+      assert.equal(text.split(signoff)[1]?.includes(dad) || false, false, loc);
     }
   });
 });
@@ -87,6 +96,16 @@ describe("replica client uses one HTML file plus locale dicts", () => {
       i18n,
       /<option value="nl">NL<\/option>\s*<option value="fr">FR<\/option>\s*<option value="de">DE<\/option>\s*<option value="en">EN<\/option>/
     );
+    assert.match(html, /id="authPassword"/);
+    assert.match(html, /data-i18n="gate.passwordHint"/);
+    assert.match(html, /id="resetPassword"/);
+    assert.match(html, /data-i18n="gate.checkoutCancel"/);
+    assert.match(html, /id="starsGroup"/);
+    assert.match(html, /id="editStarsGroup"/);
+    const authChunk = html.match(/id="authPassword"[\s\S]{0,280}/)[0];
+    assert.match(authChunk, /gate.passwordHint/);
+    const resetChunk = html.match(/id="resetPassword"[\s\S]{0,280}/)[0];
+    assert.match(resetChunk, /gate.passwordHint/);
   });
 });
 
@@ -115,6 +134,8 @@ describe("UI locale files share the same keys", () => {
       "legal.paidNote",
       "referral.thanks",
       "gate.forgotPassword",
+      "gate.passwordHint",
+      "gate.checkoutCancel",
       "header.dailyEmail",
       "terms.priceBody",
       "err.acceptedLegal",
@@ -124,8 +145,28 @@ describe("UI locale files share the same keys", () => {
       assert.ok(de[key], key);
       assert.ok(en[key], key);
     }
-    assert.match(en["referral.thanks"], /^Thank you to our best referrer currently:/);
+    assert.match(en["referral.thanks"], /^Thank you to our best recruiter currently:/);
+    assert.match(en["referral.thanks"], /^Thank you /);
+    assert.match(fr["referral.thanks"], /^Merci /);
+    assert.match(fr["referral.thanks"], /recruteur \(ou recrutrice\)/);
+    assert.equal(/parrain/i.test(fr["referral.thanks"]), false);
+    assert.equal(/parrain/i.test(fr["referral.lead"]), false);
     assert.equal(/month/i.test(en["referral.thanks"]), false);
     assert.equal(/month/i.test(en["referral.lead"]), false);
+    assert.match(en["gate.passwordHint"], /6/);
+    assert.match(fr["gate.passwordHint"], /6/);
+  });
+});
+
+describe("serious fault tasks omit stars", () => {
+  it("hides the stars field and display for faute grave on the replica board only", () => {
+    const app = fs.readFileSync(path.join(repoRoot, "replica/public/js/app.js"), "utf8");
+    assert.match(app, /function starsForTask/);
+    assert.match(app, /syncStarsGroup\("isSeriousFault", "starsGroup"\)/);
+    assert.match(app, /syncStarsGroup\("editIsSeriousFault", "editStarsGroup"\)/);
+    assert.match(app, /t\.isSeriousFault \? "" : `<span class="task-stars">/);
+    const live = fs.readFileSync(path.join(repoRoot, "public/js/app.js"), "utf8");
+    assert.equal(live.includes("starsForTask"), false);
+    assert.equal(live.includes("starsGroup"), false);
   });
 });

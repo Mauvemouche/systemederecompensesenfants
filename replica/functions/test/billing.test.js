@@ -31,6 +31,7 @@ describe("replica Stripe Checkout (sandbox)", () => {
     assert.equal(params.mode, "subscription");
     assert.equal(params.subscription_data.trial_period_days, 30);
     assert.equal(TRIAL_DAYS, 30);
+    assert.equal(params.payment_method_collection, "always");
     assert.equal(params.line_items[0].price, PRICE_MONTHLY);
     assert.equal(params.line_items[0].price, "price_1UAzwjA8Dakj1Sdel8QCE7II");
     assert.ok(!JSON.stringify(params).includes('"unit_amount":0'));
@@ -96,7 +97,7 @@ describe("replica Stripe Checkout (sandbox)", () => {
     assert.equal(params.subscription_data.trial_period_days, 30);
   });
 
-  it("lets the customer type a promotion code and skips the card when the total is 0", () => {
+  it("lets the customer type a promotion code and still collects a payment method", () => {
     const params = buildCheckoutSessionParams({
       instanceId: "recompenses-test",
       familyId: "fam_dupont",
@@ -106,10 +107,10 @@ describe("replica Stripe Checkout (sandbox)", () => {
       origin: "https://example.com",
     });
     assert.equal(params.allow_promotion_codes, "true");
-    assert.equal(params.payment_method_collection, "if_required");
+    assert.equal(params.payment_method_collection, "always");
     const body = encodeStripeParams(params);
     assert.ok(body.includes("allow_promotion_codes=true"));
-    assert.ok(body.includes("payment_method_collection=if_required"));
+    assert.ok(body.includes("payment_method_collection=always"));
   });
 
   it("omits the trial on a second checkout for the same family", () => {

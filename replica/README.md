@@ -61,7 +61,7 @@ Do **not** invent live coupons. Anthony creates them in the **AnthonyRsca Stripe
 1. **Coupons** — percent or amount off, and a duration.
 2. **Promotion codes** — the customer-facing code typed on the Stripe Checkout page.
 
-Checkout Sessions set `allow_promotion_codes` and `payment_method_collection: if_required`, so a 100% forever coupon does not demand a card.
+Checkout Sessions set `allow_promotion_codes` and `payment_method_collection: always`, so monthly/yearly trial checkout collects a card (not charged until the trial ends). A 100% forever coupon may still be 0 € — Stripe still collects a card when `always` allows it.
 
 | Coupon | Meaning |
 | --- | --- |
