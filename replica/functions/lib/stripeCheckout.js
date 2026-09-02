@@ -49,6 +49,7 @@ function buildCheckoutSessionParams({ instanceId, uid, email, plan, origin }) {
     },
     success_url: `${base}/?checkout=success&session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${base}/?checkout=cancel`,
+    managed_payments: { enabled: false },
   };
 }
 

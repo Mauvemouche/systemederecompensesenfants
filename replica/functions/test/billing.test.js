@@ -72,6 +72,20 @@ describe("replica Stripe Checkout (sandbox)", () => {
     assert.ok(body.includes("subscription_data%5Btrial_period_days%5D=30"));
   });
 
+  it("disables Stripe Managed Payments on Checkout Sessions", () => {
+    const params = buildCheckoutSessionParams({
+      instanceId: "family-dupont",
+      uid: "uid_1",
+      email: "parent@example.com",
+      plan: "monthly",
+      origin: "https://example.com",
+    });
+    assert.equal(params.managed_payments.enabled, false);
+    const body = encodeStripeParams(params);
+    assert.ok(body.includes("managed_payments%5Benabled%5D=false"));
+    assert.equal(params.subscription_data.trial_period_days, 30);
+  });
+
   it("verifies webhook signatures", () => {
     const payload = JSON.stringify({ id: "evt_test", livemode: false, type: "checkout.session.completed" });
     const secret = "whsec_test_secret";
