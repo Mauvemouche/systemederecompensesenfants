@@ -120,7 +120,13 @@ describe("replica platform is multi-family on one URL", () => {
     assert.equal(billing.includes('collection("billing").doc("current")'), false);
     assert.equal(billing.includes('collection("family_config")'), false);
     const families = fs.readFileSync(path.join(repoRoot, "replica/functions/lib/families.js"), "utf8");
-    assert.match(families, /isLegacyOwner\(legacy, uid, email\)/);
+    const migrate = families.match(/async function migrateLegacySingleton[\s\S]*?async function resolveFamilyForUser/)[0];
+    assert.match(migrate, /if \(legacy\.migratedToFamilyId\)/);
+    assert.match(migrate, /if \(!isLegacyOwner\(legacy, uid, email\)\) \{\s*denyBecauseNotOwner = true/);
+    assert.match(migrate, /if \(denyBecauseNotOwner\) return null/);
+    const ownerCheck = migrate.indexOf("if (!isLegacyOwner(legacy, uid, email))");
+    const assign = migrate.indexOf("familyId = legacy.migratedToFamilyId");
+    assert.ok(ownerCheck >= 0 && assign > ownerCheck, "must not return migratedToFamilyId before the owner check");
     assert.match(families, /shouldKeepExistingMembership/);
     assert.match(families, /chooseFamilyResolution/);
   });

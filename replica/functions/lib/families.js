@@ -226,16 +226,19 @@ async function migrateLegacySingleton(uid, email) {
   const now = serverTimestamp();
   let familyId = null;
   let alreadyMigrated = false;
+  let denyBecauseNotOwner = false;
 
   await firestore.runTransaction(async (tx) => {
     const legacySnap = await tx.get(legacyBillingRef());
     if (!legacySnap.exists) return;
     const legacy = legacySnap.data() || {};
     if (legacy.migratedToFamilyId) {
-      if (isLegacyOwner(legacy, uid, email)) {
-        familyId = legacy.migratedToFamilyId;
-        alreadyMigrated = true;
+      if (!isLegacyOwner(legacy, uid, email)) {
+        denyBecauseNotOwner = true;
+        return;
       }
+      familyId = legacy.migratedToFamilyId;
+      alreadyMigrated = true;
       return;
     }
     if (!isLegacyOwner(legacy, uid, email)) return;
@@ -261,6 +264,7 @@ async function migrateLegacySingleton(uid, email) {
     );
   });
 
+  if (denyBecauseNotOwner) return null;
   if (!familyId) return null;
   const tasksCopied = await backfillLegacyCollections(familyId);
   await memberRef(uid).set({ familyId, role: "owner", migratedFromLegacy: true, createdAt: now }, { merge: true });
