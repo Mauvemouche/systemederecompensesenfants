@@ -103,7 +103,7 @@ describe("welcome email copy", () => {
       assert.match(body, /bière/);
       assert.match(body, /kidsrewardsystem@proton\.me/);
       assert.match(body, /résumé quotidien|écran d’accueil/);
-      assert.match(body, /nom dévoilé aux utilisateurs payants/);
+      assert.match(body, /mon nom vous sera dévoilé aux utilisateurs payants/);
       assert.match(body, /carte enregistrée/);
       assert.match(body, /À très vite !/);
     }

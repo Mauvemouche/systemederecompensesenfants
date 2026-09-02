@@ -56,7 +56,7 @@ const fr = {
   "email.welcome.bodyText":
     "Salut, et merci de nous rejoindre. Je suis un papa belge : j’ai construit cette appli pour que les familles puissent suivre les tâches des enfants, gagner des étoiles, et transformer ça en temps d’écran.",
   "email.welcome.identityNote":
-    "(nom dévoilé aux utilisateurs payants après la période d’essai, pour éviter les spams et vol d’identité)",
+    "(mon nom vous sera dévoilé aux utilisateurs payants après la période d’essai, pour éviter les spams et vol d’identité)",
   "email.welcome.codeIntro": "Voici ton code de vérification (valable 15 minutes) :",
   "email.welcome.afterCode":
     "Entre-le dans l’appli <b>avant</b> de te connecter. Tant que ce n’est pas validé, le compte reste fermé.",
@@ -157,7 +157,7 @@ const nl = {
   "email.welcome.bodyText":
     "Hallo, en welkom. Ik ben een Belgische papa: ik heb deze app gemaakt zodat gezinnen de taken van de kinderen kunnen volgen, sterren kunnen verdienen, en dat omzetten in schermtijd.",
   "email.welcome.identityNote":
-    "(naam wordt na de proefperiode getoond aan betalende gebruikers, om spam en identiteitsdiefstal te vermijden)",
+    "(mijn naam wordt na de proefperiode onthuld aan betalende gebruikers, om spam en identiteitsdiefstal te vermijden)",
   "email.welcome.codeIntro": "Hier is je verificatiecode (15 minuten geldig):",
   "email.welcome.afterCode":
     "Vul hem in de app in <b>vóór</b> je inlogt. Tot die tijd blijft het account gesloten.",
@@ -258,7 +258,7 @@ const de = {
   "email.welcome.bodyText":
     "Hallo und willkommen. Ich bin ein belgischer Papa: Ich habe diese App gebaut, damit Familien die Aufgaben der Kinder verfolgen, Sterne sammeln und daraus Bildschirmzeit machen können.",
   "email.welcome.identityNote":
-    "(Name wird zahlenden Nutzerinnen und Nutzern nach der Testphase genannt, um Spam und Identitätsdiebstahl zu vermeiden)",
+    "(mein Name wird zahlenden Nutzerinnen und Nutzern nach der Testphase genannt, um Spam und Identitätsdiebstahl zu vermeiden)",
   "email.welcome.codeIntro": "Hier ist dein Bestätigungscode (15 Minuten gültig):",
   "email.welcome.afterCode":
     "Gib ihn in der App ein, <b>bevor</b> du dich anmeldest. Bis dahin bleibt das Konto gesperrt.",
@@ -359,7 +359,7 @@ const en = {
   "email.welcome.bodyText":
     "Hi, and welcome. I’m a Belgian dad: I built this app so families can follow the kids’ tasks, earn stars, and turn that into screen time.",
   "email.welcome.identityNote":
-    "(name revealed to paying users after the trial, to avoid spam and identity theft)",
+    "(my name will be revealed to paying users after the trial, to avoid spam and identity theft)",
   "email.welcome.codeIntro": "Here’s your verification code (valid for 15 minutes):",
   "email.welcome.afterCode":
     "Enter it in the app <b>before</b> you sign in. Until then, the account stays locked.",
