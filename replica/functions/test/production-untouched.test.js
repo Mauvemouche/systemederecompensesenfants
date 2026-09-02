@@ -136,4 +136,12 @@ describe("replica functions deploy without optional email secrets", () => {
     const admin = require("firebase-admin");
     assert.equal(admin.apps.length, 0);
   });
+
+  it("deploy helpers always run firebase deploy and append extra args", () => {
+    const js = fs.readFileSync(path.join(repoRoot, "replica/scripts/deploy.js"), "utf8");
+    assert.match(js, /\["deploy", \.\.\.process\.argv\.slice\(2\)\]/);
+    assert.equal(js.includes('args.length ? args : ["deploy"]'), false);
+    const cmd = fs.readFileSync(path.join(repoRoot, "replica/scripts/deploy.cmd"), "utf8");
+    assert.match(cmd, /firebase deploy %\*/);
+  });
 });

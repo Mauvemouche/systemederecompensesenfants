@@ -16,8 +16,7 @@ const path = require("path");
 process.env.FUNCTIONS_DISCOVERY_TIMEOUT = process.env.FUNCTIONS_DISCOVERY_TIMEOUT || "60";
 
 const replicaRoot = path.join(__dirname, "..");
-const args = process.argv.slice(2);
-const firebaseArgs = args.length ? args : ["deploy"];
+const firebaseArgs = ["deploy", ...process.argv.slice(2)];
 
 const result = spawnSync("firebase", firebaseArgs, {
   cwd: replicaRoot,
