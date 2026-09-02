@@ -59,10 +59,26 @@ function callableErrorKey(err) {
   return err?.details?.key || err?.customData?.details?.key || "";
 }
 
+function looksLikeI18nKey(value) {
+  return /^(err|auth|gate)\.[A-Za-z0-9]+$/.test(String(value || ""));
+}
+
+function translateErrorKey(key) {
+  if (!key) return "";
+  const translated = t(key);
+  if (!translated || translated === key) return "";
+  return translated;
+}
+
 function callableErrorMessage(err) {
   const key = callableErrorKey(err);
-  if (key) return t(key);
-  return err?.message || t("err.generic");
+  const fromKey = translateErrorKey(key);
+  if (fromKey) return fromKey;
+  const msg = String(err?.message || "").trim();
+  const fromMsg = translateErrorKey(msg);
+  if (fromMsg) return fromMsg;
+  if (msg && !looksLikeI18nKey(msg)) return msg;
+  return t("err.generic");
 }
 
 function setError(msg, key) {
@@ -76,7 +92,7 @@ function setError(msg, key) {
 
 function retranslateErrors() {
   document.querySelectorAll("[data-error-key]").forEach((el) => {
-    el.textContent = t(el.dataset.errorKey);
+    el.textContent = translateErrorKey(el.dataset.errorKey) || t("err.generic");
   });
 }
 

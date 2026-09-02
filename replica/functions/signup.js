@@ -110,7 +110,7 @@ exports.requestSignup = onCall(
       } catch (err) {
         const mapped = mappedAuthError(err, locale);
         if (mapped) throw mapped;
-        throw err;
+        fail("internal", locale, "err.createUserFailed");
       }
     } else {
       try {
@@ -123,7 +123,7 @@ exports.requestSignup = onCall(
       } catch (err) {
         const mapped = mappedAuthError(err, locale);
         if (mapped) throw mapped;
-        throw err;
+        fail("internal", locale, "err.createUserFailed");
       }
     }
 

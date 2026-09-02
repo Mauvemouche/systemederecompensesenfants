@@ -231,6 +231,14 @@ describe("replica parent gate UX", () => {
     assert.match(js, /requestPasswordReset/);
     assert.match(js, /confirmPasswordReset/);
     assert.equal(js.includes("createUserWithEmailAndPassword"), false);
+    assert.match(js, /function translateErrorKey/);
+    assert.match(js, /looksLikeI18nKey/);
+    const en = JSON.parse(fs.readFileSync(path.join(repoRoot, "replica/public/js/i18n/en.json"), "utf8"));
+    for (const key of ["err.verifyMailFailed", "err.emailInUse", "err.tosNotAccepted", "err.createUserFailed"]) {
+      assert.notEqual(en[key], key, key);
+    }
+    const signup = fs.readFileSync(path.join(repoRoot, "replica/functions/signup.js"), "utf8");
+    assert.match(signup, /err\.createUserFailed/);
   });
 });
 

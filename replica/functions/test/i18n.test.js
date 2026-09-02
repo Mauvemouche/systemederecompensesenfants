@@ -139,6 +139,10 @@ describe("UI locale files share the same keys", () => {
       "header.dailyEmail",
       "terms.priceBody",
       "err.acceptedLegal",
+      "err.verifyMailFailed",
+      "err.emailInUse",
+      "err.tosNotAccepted",
+      "err.createUserFailed",
     ]) {
       assert.ok(fr[key], key);
       assert.ok(nl[key], key);
@@ -155,6 +159,13 @@ describe("UI locale files share the same keys", () => {
     assert.equal(/month/i.test(en["referral.lead"]), false);
     assert.match(en["gate.passwordHint"], /6/);
     assert.match(fr["gate.passwordHint"], /6/);
+    for (const key of ["err.verifyMailFailed", "err.emailInUse", "err.tosNotAccepted", "err.createUserFailed"]) {
+      for (const dict of [nl, fr, de, en]) {
+        assert.ok(dict[key], key);
+        assert.notEqual(dict[key], key);
+        assert.match(dict[key], /./);
+      }
+    }
   });
 });
 
