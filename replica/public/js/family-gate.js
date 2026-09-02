@@ -8,15 +8,22 @@ import {
 import { renderFamilyShell } from "./family-ui.js";
 import { TRIAL_DAYS } from "./stripe-config.js";
 import { syncFamilyClaim } from "./family-path.js";
+import {
+  t,
+  getLocale,
+  onLocaleChange,
+  applyFamilyLocale,
+  AUTH_ERROR_KEYS,
+} from "./i18n.js";
 
 const $ = (id) => document.getElementById(id);
 
 let pendingSignup = null;
 let pendingGiftMessage = false;
 
-function callFn(name, payload) {
-  if (!window.functions) throw new Error("Firebase Functions non initialisé");
-  return httpsCallable(window.functions, name)(payload);
+function callFn(name, payload = {}) {
+  if (!window.functions) throw new Error(t("err.functionsMissing"));
+  return httpsCallable(window.functions, name)({ ...payload, locale: getLocale() });
 }
 
 function showPanel(name) {
@@ -33,33 +40,37 @@ function setGate(open) {
   gate.setAttribute("aria-hidden", open ? "false" : "true");
 }
 
-const AUTH_ERROR_FR = {
-  "email-already-in-use": "Cet email est déjà utilisé. Connecte-toi.",
-  "invalid-credential": "Email ou mot de passe incorrect.",
-  "wrong-password": "Email ou mot de passe incorrect.",
-  "user-not-found": "Aucun compte pour cet email.",
-  "weak-password": "Mot de passe trop faible (6 caractères min.).",
-  "invalid-email": "Email invalide.",
-  "too-many-requests": "Trop d’essais. Réessaie plus tard.",
-  "user-disabled": "Compte pas encore vérifié. Utilise « Créer un compte » avec le même email pour renvoyer le code.",
-};
-
 function authErrorCode(err) {
   return String(err?.code || "").replace(/^auth\//, "");
 }
 
-function authErrorMessage(err) {
-  return AUTH_ERROR_FR[authErrorCode(err)] || "Connexion impossible.";
+function authErrorKey(err) {
+  const code = authErrorCode(err);
+  return AUTH_ERROR_KEYS.includes(code) ? `auth.${code}` : "auth.generic";
+}
+
+function callableErrorKey(err) {
+  return err?.details?.key || err?.customData?.details?.key || "";
 }
 
 function callableErrorMessage(err) {
-  return err?.message || "Une erreur est survenue.";
+  const key = callableErrorKey(err);
+  if (key) return t(key);
+  return err?.message || t("err.generic");
 }
 
-function setError(msg) {
+function setError(msg, key) {
   document.querySelectorAll(".gate-error").forEach((el) => {
+    if (key) el.dataset.errorKey = key;
+    else delete el.dataset.errorKey;
     el.textContent = msg || "";
     el.style.display = msg ? "block" : "none";
+  });
+}
+
+function retranslateErrors() {
+  document.querySelectorAll("[data-error-key]").forEach((el) => {
+    el.textContent = t(el.dataset.errorKey);
   });
 }
 
@@ -67,12 +78,12 @@ function authMode() {
   return $("authForm")?.dataset.mode || "login";
 }
 
-function authIdleLabel(mode = authMode()) {
-  return mode === "signup" ? "Créer mon compte" : "Se connecter";
+function authIdleKey(mode = authMode()) {
+  return mode === "signup" ? "gate.signup" : "gate.login";
 }
 
-function authBusyLabel(mode = authMode()) {
-  return mode === "signup" ? "Création…" : "Connexion…";
+function authBusyKey(mode = authMode()) {
+  return mode === "signup" ? "gate.busySignup" : "gate.busyLogin";
 }
 
 function setAuthBusy(busy) {
@@ -80,7 +91,47 @@ function setAuthBusy(busy) {
   if (!submit) return;
   submit.disabled = !!busy;
   submit.setAttribute("aria-busy", busy ? "true" : "false");
-  submit.textContent = busy ? authBusyLabel() : authIdleLabel();
+  const key = busy ? authBusyKey() : authIdleKey();
+  submit.setAttribute("data-i18n", key);
+  submit.textContent = t(key);
+}
+
+function syncAuthLabels() {
+  const form = $("authForm");
+  const signup = form?.dataset.mode === "signup";
+  const submit = $("authSubmit");
+  if (submit && submit.getAttribute("aria-busy") !== "true") {
+    const key = authIdleKey(signup ? "signup" : "login");
+    submit.setAttribute("data-i18n", key);
+    submit.textContent = t(key);
+  } else if (submit) {
+    const key = authBusyKey(signup ? "signup" : "login");
+    submit.setAttribute("data-i18n", key);
+    submit.textContent = t(key);
+  }
+  if ($("toggleAuthMode")) {
+    const toggleKey = signup ? "gate.toggleLogin" : "gate.toggleSignup";
+    $("toggleAuthMode").setAttribute("data-i18n", toggleKey);
+    $("toggleAuthMode").textContent = t(toggleKey);
+  }
+  if ($("authTitle")) {
+    const titleKey = signup ? "gate.signupTitle" : "gate.loginTitle";
+    $("authTitle").setAttribute("data-i18n", titleKey);
+    $("authTitle").textContent = t(titleKey);
+  }
+}
+
+function billingLabel(state) {
+  if (state?.complimentaryForever) return t("header.billingGift");
+  const status = state?.billing?.status || "";
+  const labels = {
+    trialing: t("header.billingTrial", { days: TRIAL_DAYS }),
+    active: t("header.billingActive"),
+    past_due: t("header.billingPastDue"),
+    incomplete: t("header.billingIncomplete"),
+    canceled: t("header.billingCanceled"),
+  };
+  return labels[status] || "";
 }
 
 function accountBar(state, user) {
@@ -94,24 +145,12 @@ function accountBar(state, user) {
   const emailEl = $("accountEmail");
   if (emailEl) emailEl.textContent = user.email || "";
   const billEl = $("accountBilling");
-  if (billEl) {
-    if (state?.complimentaryForever) {
-      billEl.textContent = "Offert pour toujours";
-    } else {
-      const status = state?.billing?.status || "";
-      const labels = {
-        trialing: `Essai (${TRIAL_DAYS} j.)`,
-        active: "Abonnement actif",
-        past_due: "Paiement en retard",
-        incomplete: "Paiement requis",
-        canceled: "Annulé",
-      };
-      billEl.textContent = labels[status] || "";
-    }
-  }
+  if (billEl) billEl.textContent = billingLabel(state);
 }
 
 async function applyState(state) {
+  window.__replicaState = state;
+  await applyFamilyLocale(state?.locale);
   await syncFamilyClaim(state);
   if (state?.people) {
     window.applyReplicaFamily?.(state.people);
@@ -199,8 +238,8 @@ function bindUi() {
       const state = await refreshState();
       await routeState(state);
     } catch (err) {
-      if (mode === "signup") setError(callableErrorMessage(err));
-      else setError(authErrorMessage(err));
+      if (mode === "signup") setError(callableErrorMessage(err), callableErrorKey(err));
+      else setError(t(authErrorKey(err)), authErrorKey(err));
     } finally {
       setAuthBusy(false);
     }
@@ -211,11 +250,7 @@ function bindUi() {
     const form = $("authForm");
     const signup = form.dataset.mode !== "signup";
     form.dataset.mode = signup ? "signup" : "login";
-    if ($("authSubmit") && !$("authSubmit").disabled) {
-      $("authSubmit").textContent = authIdleLabel(signup ? "signup" : "login");
-    }
-    $("toggleAuthMode").textContent = signup ? "J’ai déjà un compte" : "Créer un compte";
-    $("authTitle").textContent = signup ? "Créer le compte parent" : "Connexion parent";
+    syncAuthLabels();
     pendingSignup = null;
     showPanel("auth");
   });
@@ -232,7 +267,7 @@ function bindUi() {
       const res = await callFn("verifyEmailCode", { email, code });
       await finishVerifiedLogin(email, password, res.data?.token);
     } catch (err) {
-      setError(callableErrorMessage(err));
+      setError(callableErrorMessage(err), callableErrorKey(err));
     } finally {
       if (submit) submit.disabled = false;
     }
@@ -244,7 +279,7 @@ function bindUi() {
     const email = pendingSignup?.email || $("authEmail")?.value.trim();
     const password = pendingSignup?.password || $("authPassword")?.value;
     if (!email || !password) {
-      setError("Repars de « Créer un compte » avec le même email pour renvoyer le code.");
+      setError(t("gate.resendNeedSignup"), "gate.resendNeedSignup");
       showPanel("auth");
       return;
     }
@@ -255,10 +290,11 @@ function bindUi() {
       const hint = $("verifyResent");
       if (hint) {
         hint.style.display = "block";
-        hint.textContent = "Nouveau code envoyé. Vérifie ta boîte mail.";
+        hint.dataset.errorKey = "gate.resent";
+        hint.textContent = t("gate.resent");
       }
     } catch (err) {
-      setError(callableErrorMessage(err));
+      setError(callableErrorMessage(err), callableErrorKey(err));
     }
   });
 
@@ -273,11 +309,11 @@ function bindUi() {
     const pin = $("setupPin")?.value.trim() || "";
     const confirm = $("setupPinConfirm")?.value.trim() || "";
     if (!/^\d{4}$/.test(pin)) {
-      setError("Le code Admin doit contenir 4 chiffres.");
+      setError(t("admin.pinFourDigits"), "admin.pinFourDigits");
       return;
     }
     if (pin !== confirm) {
-      setError("Les deux codes ne correspondent pas.");
+      setError(t("admin.pinMismatch"), "admin.pinMismatch");
       return;
     }
     const submit = $("setupPinSubmit");
@@ -286,7 +322,7 @@ function bindUi() {
       const res = await callFn("setAdminPin", { pin });
       await routeState(res.data);
     } catch (err) {
-      setError(callableErrorMessage(err));
+      setError(callableErrorMessage(err), callableErrorKey(err));
     } finally {
       if (submit) submit.disabled = false;
     }
@@ -311,7 +347,7 @@ function bindUi() {
       const res = await callFn("saveChildren", { childNames: names });
       await routeState(res.data);
     } catch (err) {
-      setError(err.message || "Impossible d’enregistrer les prénoms");
+      setError(callableErrorMessage(err) || t("err.kids"), callableErrorKey(err) || "err.kids");
     }
   });
 
@@ -321,7 +357,7 @@ function bindUi() {
       const res = await callFn("createPortalSession", { origin: location.origin });
       if (res.data?.url) location.href = res.data.url;
     } catch (err) {
-      setError(err.message || "Portail Stripe indisponible");
+      setError(callableErrorMessage(err) || t("err.portal"), callableErrorKey(err) || "err.portal");
     }
   });
 
@@ -337,11 +373,11 @@ async function renamePersonFromBoard(btn) {
   if (!window.__replicaState?.isOwner || !window.__replicaState?.hasAccess) return;
   const personId = btn.dataset.personId;
   const current = (window.__replicaState?.people || []).find((p) => p.id === personId);
-  const next = window.prompt("Modifier le prénom", current?.name || "");
+  const next = window.prompt(t("rename.prompt"), current?.name || "");
   if (next == null) return;
   const name = String(next).trim();
   if (!name || name.length > 40) {
-    window.alert("Le prénom doit faire entre 1 et 40 caractères.");
+    window.alert(t("err.renameLength"));
     return;
   }
   btn.disabled = true;
@@ -350,7 +386,7 @@ async function renamePersonFromBoard(btn) {
     await applyState(res.data);
     window.startFamilyBoard?.();
   } catch (err) {
-    window.alert(err.message || "Impossible de modifier ce prénom.");
+    window.alert(callableErrorMessage(err) || t("err.rename"));
   } finally {
     btn.disabled = false;
   }
@@ -363,7 +399,7 @@ async function startCheckout(plan) {
     const res = await callFn("createCheckoutSession", { plan, origin: location.origin });
     if (res.data?.url) location.href = res.data.url;
   } catch (err) {
-    setError(err.message || "Checkout Stripe impossible");
+    setError(callableErrorMessage(err) || t("err.checkout"), callableErrorKey(err) || "err.checkout");
   }
 }
 
@@ -389,8 +425,14 @@ async function handleCheckoutReturn(user) {
 
 export function startReplicaGate() {
   bindUi();
+  onLocaleChange(() => {
+    syncAuthLabels();
+    accountBar(window.__replicaState, window.auth?.currentUser);
+    if (window.__replicaState?.people) renderFamilyShell(window.__replicaState.people);
+    retranslateErrors();
+  });
   if (!window.auth) {
-    setError("Firebase Auth n’est pas initialisé. Vérifie replica/public/js/firebase-config.js");
+    setError(t("err.authMissing"), "err.authMissing");
     setGate(true);
     showPanel("auth");
     return;
@@ -410,7 +452,7 @@ export function startReplicaGate() {
       const state = returned || (await refreshState());
       await routeState(state);
     } catch (err) {
-      setError(err.message || "Impossible de charger cette instance");
+      setError(callableErrorMessage(err) || t("err.loadFailed"), callableErrorKey(err) || "err.loadFailed");
       setGate(true);
       showPanel("auth");
     }

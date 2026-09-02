@@ -1,0 +1,329 @@
+"use strict";
+
+const DEFAULT_LOCALE = "fr";
+
+const fr = {
+  "err.unauthenticated": "Connecte-toi pour continuer.",
+  "err.emailInUse": "Cet email est déjà utilisé. Connecte-toi.",
+  "err.invalidEmail": "Email invalide.",
+  "err.weakPassword": "Mot de passe trop faible (6 caractères min.).",
+  "err.emailNotConfigured":
+    "L’envoi d’email n’est pas encore configuré. Réessaie plus tard, ou écris à kidsrewardsystem@proton.me.",
+  "err.resendWait": "Attends une minute avant de renvoyer le code.",
+  "err.mailFailed": "Impossible d’envoyer l’email. Réessaie dans un instant.",
+  "err.verifyMailFailed": "Impossible d’envoyer l’email de vérification. Réessaie dans un instant.",
+  "err.codeSixDigits": "Le code doit contenir 6 chiffres.",
+  "err.codeExpired": "Ce code a expiré. Demande-en un nouveau.",
+  "err.codeLocked": "Trop d’essais. Demande un nouveau code.",
+  "err.codeWrong": "Code incorrect.",
+  "err.accountMissing": "Compte introuvable. Recommence l’inscription.",
+  "err.familyMissing": "Famille non initialisée.",
+  "err.ownerOnly": "Seul le parent titulaire peut faire ça.",
+  "err.pinFourDigits": "Le code Admin doit contenir 4 chiffres.",
+  "err.pinExists": "Un code Admin existe déjà. Utilise « Changer le code Admin ».",
+  "err.pinChooseFirst": "Choisis d’abord un code Admin.",
+  "err.pinLocked": "Trop d’essais. Utilise « Récupérer le code Admin » ou réessaie plus tard.",
+  "err.pinWrong": "Code incorrect.",
+  "err.pinCurrentWrong": "Code actuel incorrect.",
+  "err.noOwnerEmail": "Aucun email titulaire pour envoyer le code.",
+  "err.recoverWait": "Un email de récupération a déjà été envoyé. Réessaie dans 15 minutes.",
+  "err.subscriptionActive": "Un abonnement est déjà actif.",
+  "err.originHttps": "origin HTTPS requis.",
+  "err.sessionSandbox": "sessionId sandbox (cs_test_…) requis. Les sessions live sont refusées.",
+  "err.liveEvent": "Événement live refusé (sandbox only).",
+  "err.sessionOtherFamily": "Cette session Stripe appartient à une autre famille.",
+  "err.noStripeCustomer": "Pas encore de client Stripe.",
+  "err.originRequired": "origin requis.",
+  "err.subscriptionRequired": "Abonnement requis.",
+  "err.childNames": "Indique entre 1 et 6 prénoms.",
+  "err.personRequired": "Personne requise.",
+  "err.invalidName": "Le prénom doit faire entre 1 et 40 caractères.",
+  "err.personNotFound": "Personne introuvable.",
+  "err.internalFamily": "Impossible de créer la famille.",
+  "email.fromName": "Système de récompenses",
+  "email.signoff": "À très vite,",
+  "email.dad": "Un papa belge",
+  "email.welcome.subject": "Bienvenue — ton code de vérification",
+  "email.welcome.title": "Bienvenue 👋",
+  "email.welcome.body":
+    "Salut, et merci de nous rejoindre. Je suis un papa belge : j’ai construit cette appli pour que les familles puissent suivre les <b>tâches des enfants</b>, gagner des <b>étoiles</b>, et transformer ça en <b>temps d’écran</b> — sans se battre tous les soirs.",
+  "email.welcome.bodyText":
+    "Salut, et merci de nous rejoindre. Je suis un papa belge : j’ai construit cette appli pour que les familles puissent suivre les tâches des enfants, gagner des étoiles, et transformer ça en temps d’écran.",
+  "email.welcome.codeIntro": "Voici ton code de vérification (valable 15 minutes) :",
+  "email.welcome.afterCode":
+    "Entre-le dans l’appli <b>avant</b> de te connecter. Tant que ce n’est pas validé, le compte reste fermé.",
+  "email.welcome.afterCodeText": "Entre-le dans l’appli avant de te connecter.",
+  "email.welcome.adminTitle": "Le mode Admin, en deux mots",
+  "email.welcome.admin1":
+    "Au <b>premier accès</b>, tu choisis un code Admin à <b>4 chiffres</b>. Garde-le précieusement : on ne te l’envoie pas maintenant.",
+  "email.welcome.admin2": "En mode Admin, tu peux le changer (« <b>Changer le code Admin</b> »).",
+  "email.welcome.admin3":
+    "Si tu n’es pas en mode Admin et que tu as oublié le code, utilise « <b>Récupérer le code Admin</b> ». On t’envoie un <b>nouveau</b> code à 4 chiffres par email, et l’ancien ne fonctionne plus.",
+  "email.welcome.adminText":
+    "Mode Admin :\n- Au premier accès, tu choisis un code Admin à 4 chiffres. Garde-le précieusement : on ne te l’envoie pas maintenant.\n- En mode Admin, tu peux le changer (« Changer le code Admin »).\n- Si tu n’es pas en mode Admin et que tu as oublié le code, utilise « Récupérer le code Admin ». On t’envoie un nouveau code à 4 chiffres par email, et l’ancien ne fonctionne plus.",
+  "email.welcome.pricesTitle": "Les prix",
+  "email.welcome.prices":
+    "<b>2,50 €/mois</b> (ça ferait 30 €/an si tu restes au mois) ou <b>25 €/an</b>. Premier mois d’essai, avec carte. J’ai mis le prix autour d’une bière (ou d’un café) par mois, parce que c’est un père belge qui l’a construite — pas pour s’acheter une Ferrari, juste pour payer le serveur.",
+  "email.welcome.pricesText":
+    "Prix : 2,50 €/mois (30 €/an si payé mois par mois) ou 25 €/an. Premier mois d’essai, avec carte. Prix autour d’une bière (ou d’un café) par mois, parce qu’un père belge l’a construite.",
+  "email.welcome.contact":
+    "Une idée, une plainte, un « ça bug » ? Écris à <a href=\"mailto:kidsrewardsystem@proton.me\">kidsrewardsystem@proton.me</a>.",
+  "email.welcome.contactText": "Suggestions / plaintes : kidsrewardsystem@proton.me",
+  "email.recover.subject": "Nouveau code Admin",
+  "email.recover.title": "Nouveau code Admin",
+  "email.recover.body":
+    "Quelqu’un a demandé à récupérer le code Admin de ta famille. L’ancien code ne fonctionne plus. Voici le nouveau (4 chiffres) :",
+  "email.recover.after":
+    "En mode Admin, tu pourras le changer. Si tu n’as pas fait cette demande, change le code dès que tu peux, et écris-nous à <a href=\"mailto:kidsrewardsystem@proton.me\">kidsrewardsystem@proton.me</a>.",
+  "email.recover.afterText":
+    "En mode Admin, tu pourras le changer. Si tu n’as pas fait cette demande, écris à kidsrewardsystem@proton.me.",
+};
+
+const nl = {
+  "err.unauthenticated": "Meld je aan om verder te gaan.",
+  "err.emailInUse": "Dit e-mailadres is al in gebruik. Log in.",
+  "err.invalidEmail": "Ongeldig e-mailadres.",
+  "err.weakPassword": "Wachtwoord te zwak (minstens 6 tekens).",
+  "err.emailNotConfigured":
+    "E-mail is nog niet ingesteld. Probeer later opnieuw, of schrijf naar kidsrewardsystem@proton.me.",
+  "err.resendWait": "Wacht een minuut voor je de code opnieuw verstuurt.",
+  "err.mailFailed": "De e-mail kon niet worden verstuurd. Probeer zo meteen opnieuw.",
+  "err.verifyMailFailed": "De verificatiemail kon niet worden verstuurd. Probeer zo meteen opnieuw.",
+  "err.codeSixDigits": "De code moet 6 cijfers hebben.",
+  "err.codeExpired": "Deze code is verlopen. Vraag een nieuwe aan.",
+  "err.codeLocked": "Te veel pogingen. Vraag een nieuwe code aan.",
+  "err.codeWrong": "Onjuiste code.",
+  "err.accountMissing": "Account niet gevonden. Begin de inschrijving opnieuw.",
+  "err.familyMissing": "Gezin nog niet ingesteld.",
+  "err.ownerOnly": "Alleen de ouder-titularis mag dit doen.",
+  "err.pinFourDigits": "De Admin-code moet 4 cijfers hebben.",
+  "err.pinExists": "Er is al een Admin-code. Gebruik « Admin-code wijzigen ».",
+  "err.pinChooseFirst": "Kies eerst een Admin-code.",
+  "err.pinLocked": "Te veel pogingen. Gebruik « Admin-code terughalen » of probeer later opnieuw.",
+  "err.pinWrong": "Onjuiste code.",
+  "err.pinCurrentWrong": "Huidige code onjuist.",
+  "err.noOwnerEmail": "Geen e-mailadres van de titularis om de code naartoe te sturen.",
+  "err.recoverWait": "Er is al een herstelmail verstuurd. Probeer over 15 minuten opnieuw.",
+  "err.subscriptionActive": "Er is al een abonnement actief.",
+  "err.originHttps": "HTTPS-origin vereist.",
+  "err.sessionSandbox": "Sandbox-sessionId (cs_test_…) vereist. Live sessies worden geweigerd.",
+  "err.liveEvent": "Live-event geweigerd (alleen sandbox).",
+  "err.sessionOtherFamily": "Deze Stripe-sessie hoort bij een ander gezin.",
+  "err.noStripeCustomer": "Nog geen Stripe-klant.",
+  "err.originRequired": "origin vereist.",
+  "err.subscriptionRequired": "Abonnement vereist.",
+  "err.childNames": "Geef 1 tot 6 voornamen op.",
+  "err.personRequired": "Persoon vereist.",
+  "err.invalidName": "De voornaam moet 1 tot 40 tekens hebben.",
+  "err.personNotFound": "Persoon niet gevonden.",
+  "err.internalFamily": "Het gezin kon niet worden aangemaakt.",
+  "email.fromName": "Beloningssysteem",
+  "email.signoff": "Tot gauw,",
+  "email.dad": "Een Belgische papa",
+  "email.welcome.subject": "Welkom — je verificatiecode",
+  "email.welcome.title": "Welkom 👋",
+  "email.welcome.body":
+    "Hallo, en welkom. Ik ben een Belgische papa: ik heb deze app gemaakt zodat gezinnen de <b>taken van de kinderen</b> kunnen volgen, <b>sterren</b> kunnen verdienen, en dat omzetten in <b>schermtijd</b> — zonder elke avond ruzie.",
+  "email.welcome.bodyText":
+    "Hallo, en welkom. Ik ben een Belgische papa: ik heb deze app gemaakt zodat gezinnen de taken van de kinderen kunnen volgen, sterren kunnen verdienen, en dat omzetten in schermtijd.",
+  "email.welcome.codeIntro": "Hier is je verificatiecode (15 minuten geldig):",
+  "email.welcome.afterCode":
+    "Vul hem in de app in <b>vóór</b> je inlogt. Tot die tijd blijft het account gesloten.",
+  "email.welcome.afterCodeText": "Vul hem in de app in vóór je inlogt.",
+  "email.welcome.adminTitle": "De Admin-modus, in het kort",
+  "email.welcome.admin1":
+    "Bij de <b>eerste toegang</b> kies je een Admin-code van <b>4 cijfers</b>. Onthoud hem goed: we sturen hem nu niet per mail.",
+  "email.welcome.admin2": "In Admin-modus kun je hem wijzigen (« <b>Admin-code wijzigen</b> »).",
+  "email.welcome.admin3":
+    "Als je niet in Admin-modus bent en de code vergeten bent, gebruik « <b>Admin-code terughalen</b> ». We mailen een <b>nieuwe</b> code van 4 cijfers, en de oude werkt niet meer.",
+  "email.welcome.adminText":
+    "Admin-modus:\n- Bij de eerste toegang kies je een Admin-code van 4 cijfers. Onthoud hem goed: we sturen hem nu niet per mail.\n- In Admin-modus kun je hem wijzigen (« Admin-code wijzigen »).\n- Als je niet in Admin-modus bent en de code vergeten bent, gebruik « Admin-code terughalen ». We mailen een nieuwe code van 4 cijfers, en de oude werkt niet meer.",
+  "email.welcome.pricesTitle": "De prijzen",
+  "email.welcome.prices":
+    "<b>2,50 €/maand</b> (dat zou 30 €/jaar zijn als je maandelijks betaalt) of <b>25 €/jaar</b>. Eerste maand proef, met kaart. Ik heb de prijs rond een pintje (of een koffie) per maand gezet, omdat een Belgische vader dit gebouwd heeft — niet voor een Ferrari, gewoon om de server te betalen.",
+  "email.welcome.pricesText":
+    "Prijzen: 2,50 €/maand (30 €/jaar als je maandelijks betaalt) of 25 €/jaar. Eerste maand proef, met kaart. Prijs rond een pintje (of een koffie) per maand, omdat een Belgische vader dit gebouwd heeft.",
+  "email.welcome.contact":
+    "Een idee, een klacht, een « het bugt »? Schrijf naar <a href=\"mailto:kidsrewardsystem@proton.me\">kidsrewardsystem@proton.me</a>.",
+  "email.welcome.contactText": "Suggesties / klachten: kidsrewardsystem@proton.me",
+  "email.recover.subject": "Nieuwe Admin-code",
+  "email.recover.title": "Nieuwe Admin-code",
+  "email.recover.body":
+    "Iemand heeft gevraagd de Admin-code van je gezin terug te halen. De oude code werkt niet meer. Hier is de nieuwe (4 cijfers):",
+  "email.recover.after":
+    "In Admin-modus kun je hem wijzigen. Als jij deze aanvraag niet hebt gedaan, wijzig de code zo snel je kunt en schrijf naar <a href=\"mailto:kidsrewardsystem@proton.me\">kidsrewardsystem@proton.me</a>.",
+  "email.recover.afterText":
+    "In Admin-modus kun je hem wijzigen. Als jij deze aanvraag niet hebt gedaan, schrijf naar kidsrewardsystem@proton.me.",
+};
+
+const de = {
+  "err.unauthenticated": "Melde dich an, um fortzufahren.",
+  "err.emailInUse": "Diese E-Mail wird bereits verwendet. Melde dich an.",
+  "err.invalidEmail": "Ungültige E-Mail-Adresse.",
+  "err.weakPassword": "Passwort zu schwach (mindestens 6 Zeichen).",
+  "err.emailNotConfigured":
+    "E-Mail ist noch nicht eingerichtet. Versuch es später erneut oder schreib an kidsrewardsystem@proton.me.",
+  "err.resendWait": "Warte eine Minute, bevor du den Code erneut sendest.",
+  "err.mailFailed": "Die E-Mail konnte nicht gesendet werden. Versuch es gleich noch einmal.",
+  "err.verifyMailFailed": "Die Bestätigungs-E-Mail konnte nicht gesendet werden. Versuch es gleich noch einmal.",
+  "err.codeSixDigits": "Der Code muss 6 Ziffern haben.",
+  "err.codeExpired": "Dieser Code ist abgelaufen. Fordere einen neuen an.",
+  "err.codeLocked": "Zu viele Versuche. Fordere einen neuen Code an.",
+  "err.codeWrong": "Falscher Code.",
+  "err.accountMissing": "Konto nicht gefunden. Starte die Registrierung erneut.",
+  "err.familyMissing": "Familie noch nicht eingerichtet.",
+  "err.ownerOnly": "Nur der hauptverantwortliche Elternteil darf das tun.",
+  "err.pinFourDigits": "Der Admin-Code muss 4 Ziffern haben.",
+  "err.pinExists": "Es gibt bereits einen Admin-Code. Nutze « Admin-Code ändern ».",
+  "err.pinChooseFirst": "Wähle zuerst einen Admin-Code.",
+  "err.pinLocked": "Zu viele Versuche. Nutze « Admin-Code wiederherstellen » oder versuch es später.",
+  "err.pinWrong": "Falscher Code.",
+  "err.pinCurrentWrong": "Aktueller Code falsch.",
+  "err.noOwnerEmail": "Keine Inhaber-E-Mail, um den Code zu senden.",
+  "err.recoverWait": "Es wurde bereits eine Wiederherstellungs-E-Mail gesendet. Versuch es in 15 Minuten erneut.",
+  "err.subscriptionActive": "Ein Abo ist bereits aktiv.",
+  "err.originHttps": "HTTPS-Origin erforderlich.",
+  "err.sessionSandbox": "Sandbox-sessionId (cs_test_…) erforderlich. Live-Sitzungen werden abgelehnt.",
+  "err.liveEvent": "Live-Ereignis abgelehnt (nur Sandbox).",
+  "err.sessionOtherFamily": "Diese Stripe-Sitzung gehört zu einer anderen Familie.",
+  "err.noStripeCustomer": "Noch kein Stripe-Kunde.",
+  "err.originRequired": "origin erforderlich.",
+  "err.subscriptionRequired": "Abo erforderlich.",
+  "err.childNames": "Gib 1 bis 6 Vornamen an.",
+  "err.personRequired": "Person erforderlich.",
+  "err.invalidName": "Der Vorname muss 1 bis 40 Zeichen haben.",
+  "err.personNotFound": "Person nicht gefunden.",
+  "err.internalFamily": "Die Familie konnte nicht erstellt werden.",
+  "email.fromName": "Belohnungssystem",
+  "email.signoff": "Bis gleich,",
+  "email.dad": "Ein belgischer Papa",
+  "email.welcome.subject": "Willkommen — dein Bestätigungscode",
+  "email.welcome.title": "Willkommen 👋",
+  "email.welcome.body":
+    "Hallo und willkommen. Ich bin ein belgischer Papa: Ich habe diese App gebaut, damit Familien die <b>Aufgaben der Kinder</b> verfolgen, <b>Sterne</b> sammeln und daraus <b>Bildschirmzeit</b> machen können — ohne jeden Abend Streit.",
+  "email.welcome.bodyText":
+    "Hallo und willkommen. Ich bin ein belgischer Papa: Ich habe diese App gebaut, damit Familien die Aufgaben der Kinder verfolgen, Sterne sammeln und daraus Bildschirmzeit machen können.",
+  "email.welcome.codeIntro": "Hier ist dein Bestätigungscode (15 Minuten gültig):",
+  "email.welcome.afterCode":
+    "Gib ihn in der App ein, <b>bevor</b> du dich anmeldest. Bis dahin bleibt das Konto gesperrt.",
+  "email.welcome.afterCodeText": "Gib ihn in der App ein, bevor du dich anmeldest.",
+  "email.welcome.adminTitle": "Der Admin-Modus in Kürze",
+  "email.welcome.admin1":
+    "Beim <b>ersten Zugang</b> wählst du einen Admin-Code mit <b>4 Ziffern</b>. Merk ihn dir gut: Wir schicken ihn jetzt nicht per E-Mail.",
+  "email.welcome.admin2": "Im Admin-Modus kannst du ihn ändern (« <b>Admin-Code ändern</b> »).",
+  "email.welcome.admin3":
+    "Wenn du nicht im Admin-Modus bist und den Code vergessen hast, nutze « <b>Admin-Code wiederherstellen</b> ». Wir mailen einen <b>neuen</b> 4-stelligen Code, und der alte gilt nicht mehr.",
+  "email.welcome.adminText":
+    "Admin-Modus:\n- Beim ersten Zugang wählst du einen Admin-Code mit 4 Ziffern. Merk ihn dir gut: Wir schicken ihn jetzt nicht per E-Mail.\n- Im Admin-Modus kannst du ihn ändern (« Admin-Code ändern »).\n- Wenn du nicht im Admin-Modus bist und den Code vergessen hast, nutze « Admin-Code wiederherstellen ». Wir mailen einen neuen 4-stelligen Code, und der alte gilt nicht mehr.",
+  "email.welcome.pricesTitle": "Die Preise",
+  "email.welcome.prices":
+    "<b>2,50 €/Monat</b> (das wären 30 €/Jahr bei monatlicher Zahlung) oder <b>25 €/Jahr</b>. Erster Monat zur Probe, mit Karte. Ich habe den Preis um ein Bier (oder einen Kaffee) pro Monat gesetzt, weil ein belgischer Vater das gebaut hat — nicht für einen Ferrari, nur um den Server zu zahlen.",
+  "email.welcome.pricesText":
+    "Preise: 2,50 €/Monat (30 €/Jahr bei monatlicher Zahlung) oder 25 €/Jahr. Erster Monat zur Probe, mit Karte. Preis um ein Bier (oder einen Kaffee) pro Monat, weil ein belgischer Vater das gebaut hat.",
+  "email.welcome.contact":
+    "Eine Idee, eine Beschwerde, ein « das bugt »? Schreib an <a href=\"mailto:kidsrewardsystem@proton.me\">kidsrewardsystem@proton.me</a>.",
+  "email.welcome.contactText": "Ideen / Beschwerden: kidsrewardsystem@proton.me",
+  "email.recover.subject": "Neuer Admin-Code",
+  "email.recover.title": "Neuer Admin-Code",
+  "email.recover.body":
+    "Jemand hat den Admin-Code deiner Familie angefordert. Der alte Code gilt nicht mehr. Hier ist der neue (4 Ziffern):",
+  "email.recover.after":
+    "Im Admin-Modus kannst du ihn ändern. Wenn du das nicht angefordert hast, ändere den Code so schnell du kannst und schreib an <a href=\"mailto:kidsrewardsystem@proton.me\">kidsrewardsystem@proton.me</a>.",
+  "email.recover.afterText":
+    "Im Admin-Modus kannst du ihn ändern. Wenn du das nicht angefordert hast, schreib an kidsrewardsystem@proton.me.",
+};
+
+const en = {
+  "err.unauthenticated": "Sign in to continue.",
+  "err.emailInUse": "This email is already in use. Sign in.",
+  "err.invalidEmail": "Invalid email.",
+  "err.weakPassword": "Password too weak (6 characters min.).",
+  "err.emailNotConfigured":
+    "Email isn’t set up yet. Try again later, or write to kidsrewardsystem@proton.me.",
+  "err.resendWait": "Wait a minute before sending the code again.",
+  "err.mailFailed": "Couldn’t send the email. Try again in a moment.",
+  "err.verifyMailFailed": "Couldn’t send the verification email. Try again in a moment.",
+  "err.codeSixDigits": "The code must be 6 digits.",
+  "err.codeExpired": "This code has expired. Request a new one.",
+  "err.codeLocked": "Too many attempts. Request a new code.",
+  "err.codeWrong": "Incorrect code.",
+  "err.accountMissing": "Account not found. Start signup again.",
+  "err.familyMissing": "Family not set up yet.",
+  "err.ownerOnly": "Only the account holder can do that.",
+  "err.pinFourDigits": "The Admin code must be 4 digits.",
+  "err.pinExists": "An Admin code already exists. Use “Change Admin code”.",
+  "err.pinChooseFirst": "Choose an Admin code first.",
+  "err.pinLocked": "Too many attempts. Use “Recover Admin code” or try again later.",
+  "err.pinWrong": "Incorrect code.",
+  "err.pinCurrentWrong": "Current code is incorrect.",
+  "err.noOwnerEmail": "No holder email to send the code to.",
+  "err.recoverWait": "A recovery email was already sent. Try again in 15 minutes.",
+  "err.subscriptionActive": "A subscription is already active.",
+  "err.originHttps": "HTTPS origin required.",
+  "err.sessionSandbox": "Sandbox sessionId (cs_test_…) required. Live sessions are refused.",
+  "err.liveEvent": "Live event refused (sandbox only).",
+  "err.sessionOtherFamily": "This Stripe session belongs to another family.",
+  "err.noStripeCustomer": "No Stripe customer yet.",
+  "err.originRequired": "origin required.",
+  "err.subscriptionRequired": "Subscription required.",
+  "err.childNames": "Enter between 1 and 6 first names.",
+  "err.personRequired": "Person required.",
+  "err.invalidName": "The first name must be 1 to 40 characters.",
+  "err.personNotFound": "Person not found.",
+  "err.internalFamily": "Couldn’t create the family.",
+  "email.fromName": "Rewards system",
+  "email.signoff": "See you soon,",
+  "email.dad": "A Belgian dad",
+  "email.welcome.subject": "Welcome — your verification code",
+  "email.welcome.title": "Welcome 👋",
+  "email.welcome.body":
+    "Hi, and welcome. I’m a Belgian dad: I built this app so families can follow the <b>kids’ tasks</b>, earn <b>stars</b>, and turn that into <b>screen time</b> — without a fight every evening.",
+  "email.welcome.bodyText":
+    "Hi, and welcome. I’m a Belgian dad: I built this app so families can follow the kids’ tasks, earn stars, and turn that into screen time.",
+  "email.welcome.codeIntro": "Here’s your verification code (valid for 15 minutes):",
+  "email.welcome.afterCode":
+    "Enter it in the app <b>before</b> you sign in. Until then, the account stays locked.",
+  "email.welcome.afterCodeText": "Enter it in the app before you sign in.",
+  "email.welcome.adminTitle": "Admin mode, in short",
+  "email.welcome.admin1":
+    "On <b>first access</b>, you choose a <b>4-digit</b> Admin code. Remember it: we don’t email it now.",
+  "email.welcome.admin2": "In Admin mode, you can change it (“<b>Change Admin code</b>”).",
+  "email.welcome.admin3":
+    "If you’re not in Admin mode and you forgot the code, use “<b>Recover Admin code</b>”. We email a <b>new</b> 4-digit code, and the old one stops working.",
+  "email.welcome.adminText":
+    "Admin mode:\n- On first access, you choose a 4-digit Admin code. Remember it: we don’t email it now.\n- In Admin mode, you can change it (“Change Admin code”).\n- If you’re not in Admin mode and you forgot the code, use “Recover Admin code”. We email a new 4-digit code, and the old one stops working.",
+  "email.welcome.pricesTitle": "Prices",
+  "email.welcome.prices":
+    "<b>€2.50/month</b> (that would be €30/year if you stay monthly) or <b>€25/year</b>. First month trial, with a card. I set the price around a beer (or a coffee) a month, because a Belgian father built it — not to buy a Ferrari, just to pay for the server.",
+  "email.welcome.pricesText":
+    "Prices: €2.50/month (€30/year if paid monthly) or €25/year. First month trial, with a card. Price around a beer (or a coffee) a month, because a Belgian father built it.",
+  "email.welcome.contact":
+    "An idea, a complaint, a “it’s buggy”? Write to <a href=\"mailto:kidsrewardsystem@proton.me\">kidsrewardsystem@proton.me</a>.",
+  "email.welcome.contactText": "Suggestions / complaints: kidsrewardsystem@proton.me",
+  "email.recover.subject": "New Admin code",
+  "email.recover.title": "New Admin code",
+  "email.recover.body":
+    "Someone asked to recover your family’s Admin code. The old code no longer works. Here’s the new one (4 digits):",
+  "email.recover.after":
+    "In Admin mode, you can change it. If you didn’t request this, change the code as soon as you can and write to <a href=\"mailto:kidsrewardsystem@proton.me\">kidsrewardsystem@proton.me</a>.",
+  "email.recover.afterText":
+    "In Admin mode, you can change it. If you didn’t request this, write to kidsrewardsystem@proton.me.",
+};
+
+function assertSameKeys() {
+  const keys = Object.keys(fr).sort();
+  for (const [name, dict] of [
+    ["nl", nl],
+    ["de", de],
+    ["en", en],
+  ]) {
+    const other = Object.keys(dict).sort();
+    if (keys.join("\n") !== other.join("\n")) {
+      throw new Error(`locale ${name} keys do not match fr`);
+    }
+  }
+}
+
+assertSameKeys();
+
+module.exports = { DEFAULT_LOCALE, LOCALES: { fr, nl, de, en } };

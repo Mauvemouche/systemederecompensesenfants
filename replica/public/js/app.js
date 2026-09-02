@@ -13,6 +13,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { familyTasksCol, familyTaskDoc } from "./family-path.js";
 import { httpsCallable } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-functions.js";
+import { t as i18n, getLocale, bcp47, onLocaleChange } from "./i18n.js";
 
 /* =========================================================
    CONFIG / GLOBAL
@@ -20,9 +21,23 @@ import { httpsCallable } from "https://www.gstatic.com/firebasejs/10.7.1/firebas
 let PEOPLE = ["papa", "maman", "kid-1", "kid-2"];
 let CHILDREN = new Set(["kid-1", "kid-2"]);
 
-function callFn(name, payload) {
-  if (!window.functions) throw new Error("Firebase Functions non initialisé");
-  return httpsCallable(window.functions, name)(payload);
+function callFn(name, payload = {}) {
+  if (!window.functions) throw new Error(i18n("err.functionsMissing"));
+  return httpsCallable(window.functions, name)({ ...payload, locale: getLocale() });
+}
+
+function dateLabelForCategory(cat) {
+  return cat === "mensuel" ? i18n("task.dateMonth") : i18n("task.dateSpecific");
+}
+
+function categoryLabel(cat) {
+  const key = `task.cat.${cat}`;
+  const translated = i18n(key);
+  return translated === key ? (cat || "") : translated;
+}
+
+function dayName(i) {
+  return i18n(`day.${i}`);
 }
 
 function storeAdminToken(token) {
@@ -44,7 +59,6 @@ let isAdminMode = false;
 
 // Day navigation
 let selectedDay = null; // null = today
-const dayNames = ["Dimanche", "Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"];
 
 // Drag & drop state
 let draggedEl = null;
@@ -70,7 +84,7 @@ window.startFamilyBoard = function startFamilyBoard() {
   }
   if (!window.db) {
     console.error("window.db missing. Check firebase init in index.html.");
-    showNotification("Firebase non initialisé", "error");
+    showNotification(i18n("err.firebaseInit"), "error");
     return;
   }
   boardStarted = true;
@@ -79,6 +93,21 @@ window.startFamilyBoard = function startFamilyBoard() {
   if (sessionStorage.getItem("isAdminMode") === "true") enableAdmin(false);
   loadTasks();
 };
+
+onLocaleChange(() => {
+  if (!boardStarted) return;
+  updateDayDisplay();
+  const cat = document.getElementById("category")?.value;
+  const dateLabel = document.getElementById("dateLabel");
+  if (dateLabel && (cat === "mensuel" || cat === "ponctuel")) {
+    dateLabel.textContent = dateLabelForCategory(cat);
+  }
+  if (document.getElementById("editCategory")) syncEditDateUI();
+  loadTasks();
+  document.querySelectorAll("[data-error-key]").forEach((el) => {
+    el.textContent = i18n(el.dataset.errorKey);
+  });
+});
 
 /* =========================================================
    EVENTS
@@ -159,7 +188,7 @@ function setupEvents() {
     if (val === "ponctuel" || val === "mensuel") {
       if (specific) specific.style.display = "block";
       if (daysGroup) daysGroup.style.display = "none";
-      if (dateLabel) dateLabel.textContent = val === "mensuel" ? "Date du mois concerné" : "Date spécifique";
+      if (dateLabel) dateLabel.textContent = dateLabelForCategory(val);
     } else if (val === "hebdomadaire") {
       if (specific) specific.style.display = "none";
       if (daysGroup) daysGroup.style.display = "none";
@@ -218,7 +247,8 @@ function setupEvents() {
       enableAdmin(true);
     } catch (err) {
       if (pinError) {
-        pinError.textContent = err.message || "Code incorrect";
+        pinError.dataset.errorKey = "admin.pinWrong";
+        pinError.textContent = err.message || i18n("admin.pinWrong");
         pinError.style.display = "block";
       }
     } finally {
@@ -233,12 +263,14 @@ function setupEvents() {
     try {
       await callFn("recoverAdminPin", {});
       if (hint) {
-        hint.textContent = "Nouveau code envoyé à l’email du parent titulaire. L’ancien ne fonctionne plus.";
+        hint.dataset.errorKey = "admin.recoverSent";
+        hint.textContent = i18n("admin.recoverSent");
         hint.style.display = "block";
       }
     } catch (err) {
       if (pinError) {
-        pinError.textContent = err.message || "Impossible d’envoyer le code.";
+        pinError.dataset.errorKey = "err.pinSend";
+        pinError.textContent = err.message || i18n("err.pinSend");
         pinError.style.display = "block";
       }
     }
@@ -259,7 +291,9 @@ function setupEvents() {
     const currentPin = document.getElementById("changeAdminPinCurrent")?.value?.trim() || "";
     if (!/^\d{4}$/.test(newPin) || newPin !== newPin2) {
       if (errEl) {
-        errEl.textContent = newPin !== newPin2 ? "Les deux codes ne correspondent pas." : "Le code doit contenir 4 chiffres.";
+        const mismatch = newPin !== newPin2;
+        errEl.dataset.errorKey = mismatch ? "admin.pinMismatch" : "admin.pinFourDigits";
+        errEl.textContent = i18n(errEl.dataset.errorKey);
         errEl.style.display = "block";
       }
       return;
@@ -272,10 +306,11 @@ function setupEvents() {
       });
       storeAdminToken(res.data?.adminToken);
       closeChangeAdminPinModal();
-      showNotification("✅ Code Admin modifié", "success");
+      showNotification(i18n("admin.changed"), "success");
     } catch (err) {
       if (errEl) {
-        errEl.textContent = err.message || "Impossible de changer le code.";
+        errEl.dataset.errorKey = "err.pinChange";
+        errEl.textContent = err.message || i18n("err.pinChange");
         errEl.style.display = "block";
       }
     }
@@ -309,15 +344,15 @@ function updateDayDisplay() {
   const d = computeSelectedDate();
   const title = document.getElementById("dayNavigationTitle");
   if (title) {
-    title.textContent = `📅 ${dayNames[getCurrentDow()].toUpperCase()} ${d.toLocaleDateString("fr-FR")}`;
+    title.textContent = `📅 ${dayName(getCurrentDow()).toUpperCase()} ${d.toLocaleDateString(bcp47())}`;
   }
 
   const prev = (getCurrentDow() + 6) % 7;
   const next = (getCurrentDow() + 1) % 7;
   const prevName = document.getElementById("prevDayName");
   const nextName = document.getElementById("nextDayName");
-  if (prevName) prevName.textContent = dayNames[prev];
-  if (nextName) nextName.textContent = dayNames[next];
+  if (prevName) prevName.textContent = dayName(prev);
+  if (nextName) nextName.textContent = dayName(next);
 
   for (let i = 0; i <= 6; i++) {
     document.getElementById(`dayBtn${i}`)?.classList.toggle("active", i === getCurrentDow());
@@ -330,10 +365,10 @@ function updateDayDisplay() {
       const warningDayName = document.getElementById("warningDayName");
       const warningTodayName = document.getElementById("warningTodayName");
       const today = new Date();
-      const todayStr = today.toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit" });
-      const selStr = d.toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit" });
-      if (warningDayName) warningDayName.textContent = `${dayNames[getCurrentDow()].toUpperCase()} ${selStr}`;
-      if (warningTodayName) warningTodayName.textContent = `${dayNames[getTodayDow()]} ${todayStr}`;
+      const todayStr = today.toLocaleDateString(bcp47(), { day: "2-digit", month: "2-digit" });
+      const selStr = d.toLocaleDateString(bcp47(), { day: "2-digit", month: "2-digit" });
+      if (warningDayName) warningDayName.textContent = `${dayName(getCurrentDow()).toUpperCase()} ${selStr}`;
+      if (warningTodayName) warningTodayName.textContent = `${dayName(getTodayDow())} ${todayStr}`;
     }
   }
 }
@@ -370,7 +405,7 @@ function enableAdmin(toast = true) {
     btn.classList.add("active");
   }
 
-  if (toast) showNotification("✅ Mode Admin activé", "success");
+  if (toast) showNotification(i18n("admin.enabled"), "success");
 }
 
 function disableAdmin() {
@@ -387,7 +422,7 @@ function disableAdmin() {
   const debugPanel = document.getElementById("debugPanel");
   if (debugPanel) debugPanel.style.display = "none";
 
-  showNotification("🔒 Mode Admin désactivé", "info");
+  showNotification(i18n("admin.disabled"), "info");
 }
 
 /* =========================================================
@@ -410,7 +445,7 @@ function loadTasks() {
     },
     (err) => {
       console.error("Firestore load error:", err);
-      showNotification("Erreur lors du chargement", "error");
+      showNotification(i18n("notify.loadError"), "error");
     }
   );
 }
@@ -669,13 +704,13 @@ function createTaskElement(t) {
   const starsDisplay = t.isPenalty ? `-${absStars}⭐` : `⭐ ${absStars}`;
 
   const badges = [
-    t.isBonus ? `<span class="badge badge-bonus">🎁 BONUS</span>` : "",
-    t.isPenalty ? `<span class="badge badge-penalty">⛔ PÉNALITÉ</span>` : "",
-    t.isSeriousFault ? `<span class="badge badge-fault">💀 FAUTE GRAVE</span>` : ""
+    t.isBonus ? `<span class="badge badge-bonus">🎁 ${escapeHtml(i18n("ui.bonusBadge"))}</span>` : "",
+    t.isPenalty ? `<span class="badge badge-penalty">⛔ ${escapeHtml(i18n("ui.penaltyBadge"))}</span>` : "",
+    t.isSeriousFault ? `<span class="badge badge-fault">💀 ${escapeHtml(i18n("ui.seriousBadge"))}</span>` : ""
   ].join("");
 
   const meta = [
-    `<span class="task-category">${escapeHtml(t.category || "")}</span>`,
+    `<span class="task-category">${escapeHtml(categoryLabel(t.category))}</span>`,
     `<span class="task-stars">${starsDisplay}</span>`,
     t.fullDate ? `<span class="badge" style="background:#eee;color:#333;">📅 ${escapeHtml(t.fullDate)}</span>` : "",
     t.dayOfMonth ? `<span class="badge" style="background:#eee;color:#333;">🗓️ ${escapeHtml(String(t.dayOfMonth))}</span>` : ""
@@ -683,8 +718,8 @@ function createTaskElement(t) {
 
   div.innerHTML = `
     <div class="task-header">
-      <div class="drag-handle" title="Glisser pour réorganiser">⋮⋮</div>
-      <div class="checkbox ${t.completed ? "checked" : ""}" title="Cocher / décocher"></div>
+      <div class="drag-handle" title="${escapeAttr(i18n("ui.drag"))}">⋮⋮</div>
+      <div class="checkbox ${t.completed ? "checked" : ""}" title="${escapeAttr(i18n("ui.toggleTask"))}"></div>
       <div class="task-content">
         <div class="task-title">${escapeHtml(t.title || "")} ${badges}</div>
         ${t.description ? `<div style="color:#555; font-weight:700; padding-left:2px;">${escapeHtml(t.description)}</div>` : ""}
@@ -693,8 +728,8 @@ function createTaskElement(t) {
     </div>
 
     <div class="task-actions">
-      <button class="btn-edit" type="button">✏️ Modifier</button>
-      <button class="btn-delete" type="button">🗑️ Supprimer</button>
+      <button class="btn-edit" type="button">✏️ ${escapeHtml(i18n("ui.modifier"))}</button>
+      <button class="btn-delete" type="button">🗑️ ${escapeHtml(i18n("ui.delete"))}</button>
     </div>
   `;
 
@@ -732,20 +767,20 @@ async function toggleTaskCompletion(taskId, completed) {
     await updateDoc(familyTaskDoc( taskId), { completed, updatedAt: serverTimestamp() });
   } catch (e) {
     console.error(e);
-    showNotification("Erreur mise à jour", "error");
+    showNotification(i18n("notify.updateError"), "error");
   }
 }
 
 async function deleteTask(taskId) {
-  if (!isAdminMode) return showNotification("Mode admin requis", "error");
+  if (!isAdminMode) return showNotification(i18n("admin.required"), "error");
   if (!confirm("Supprimer cette tâche ?")) return;
 
   try {
     await deleteDoc(familyTaskDoc( taskId));
-    showNotification("Tâche supprimée", "success");
+    showNotification(i18n("notify.taskDeleted"), "success");
   } catch (e) {
     console.error(e);
-    showNotification("Erreur suppression", "error");
+    showNotification(i18n("notify.deleteError"), "error");
   }
 }
 
@@ -791,7 +826,7 @@ async function updateOrders(container) {
     await Promise.all(writes);
   } catch (e) {
     console.error(e);
-    showNotification("Erreur réorganisation", "error");
+    showNotification(i18n("notify.reorderError"), "error");
   }
 }
 
@@ -799,8 +834,8 @@ async function updateOrders(container) {
    ADMIN BULK ACTIONS (called from HTML)
 ========================================================= */
 window.checkAllTasks = async function (person, completed) {
-  if (!isAdminMode) return showNotification("Mode admin requis", "error");
-  if (!confirm(`${completed ? "Cocher" : "Décocher"} toutes les tâches de ${person} (jour affiché) ?`)) return;
+  if (!isAdminMode) return showNotification(i18n("admin.required"), "error");
+  if (!confirm(i18n(completed ? "notify.checkAllConfirm" : "notify.uncheckAllConfirm", { person }))) return;
 
   try {
     // ✅ On charge les tâches de la personne puis on filtre côté client (mensuel/ponctuel inclus)
@@ -814,13 +849,13 @@ window.checkAllTasks = async function (person, completed) {
       writes.push(updateDoc(familyTaskDoc( d.id), { completed, updatedAt: serverTimestamp() }));
     });
 
-    if (writes.length === 0) return showNotification("Aucune tâche à modifier", "info");
+    if (writes.length === 0) return showNotification(i18n("notify.noTasks"), "info");
 
     await Promise.all(writes);
-    showNotification("✅ OK", "success");
+    showNotification(i18n("notify.ok"), "success");
   } catch (e) {
     console.error(e);
-    showNotification("Erreur", "error");
+    showNotification(i18n("notify.error"), "error");
   }
 };
 
@@ -844,7 +879,7 @@ async function submitTask(e) {
   const isPenalty = !!document.getElementById("isPenalty")?.checked;
   const isSeriousFault = !!document.getElementById("isSeriousFault")?.checked;
 
-  if (!title || !assignedTo) return showNotification("Titre + personne obligatoires", "error");
+  if (!title || !assignedTo) return showNotification(i18n("notify.needTitlePerson"), "error");
 
   // ✅ 1 templateId pour toutes les occurrences (sauf ponctuel : pas grave si présent)
   const templateId = newTemplateId();
@@ -876,14 +911,14 @@ async function submitTask(e) {
         dayOfMonth: null
       });
       resetAndCloseForm();
-      showNotification("✅ Tâche hebdomadaire ajoutée (Dimanche)", "success");
+      showNotification(i18n("notify.taskAddedWeekly"), "success");
       return;
     }
 
     // ponctuel / mensuel => specificDate
     if (category === "ponctuel" || category === "mensuel") {
       const dateVal = document.getElementById("specificDate")?.value;
-      if (!dateVal) return showNotification("Sélectionne une date", "error");
+      if (!dateVal) return showNotification(i18n("notify.selectDate"), "error");
       const d = new Date(dateVal);
 
       await addDoc(familyTasksCol(), {
@@ -895,7 +930,7 @@ async function submitTask(e) {
       });
 
       resetAndCloseForm();
-      showNotification("✅ Tâche ajoutée", "success");
+      showNotification(i18n("notify.taskAdded"), "success");
       return;
     }
 
@@ -904,7 +939,7 @@ async function submitTask(e) {
     for (let i = 0; i <= 6; i++) {
       if (document.getElementById(`day${i}`)?.checked) selectedDays.push(i);
     }
-    if (selectedDays.length === 0) return showNotification("Choisis au moins un jour", "error");
+    if (selectedDays.length === 0) return showNotification(i18n("notify.needDay"), "error");
 
     await Promise.all(
       selectedDays.map((day, idx) =>
@@ -920,10 +955,10 @@ async function submitTask(e) {
     );
 
     resetAndCloseForm();
-    showNotification(`✅ Tâche ajoutée (${selectedDays.length} jour(s))`, "success");
+    showNotification(i18n("notify.taskAddedDays", { n: selectedDays.length }), "success");
   } catch (err) {
     console.error(err);
-    showNotification("Erreur ajout tâche", "error");
+    showNotification(i18n("notify.addError"), "error");
   }
 }
 
@@ -1036,7 +1071,7 @@ function syncEditDateUI(taskData = null) {
 
   const show = cat === "ponctuel" || cat === "mensuel";
   block.classList.toggle("hidden", !show);
-  if (label) label.textContent = cat === "mensuel" ? "Date du mois concerné" : "Date spécifique";
+  if (label) label.textContent = dateLabelForCategory(cat);
 
   if (taskData && taskData.category === "ponctuel" && taskData.fullDate) {
     document.getElementById("editSpecificDate").value = taskData.fullDate;
@@ -1154,7 +1189,7 @@ async function saveEditModal() {
 
     const createMonthly = async () => {
       const dateVal = document.getElementById("editSpecificDate").value;
-      if (!dateVal) return showNotification("Sélectionne une date", "error");
+      if (!dateVal) return showNotification(i18n("notify.selectDate"), "error");
       const d = new Date(dateVal);
 
       const base = {
@@ -1183,7 +1218,7 @@ async function saveEditModal() {
 
     const createPonctuel = async () => {
       const dateVal = document.getElementById("editSpecificDate").value;
-      if (!dateVal) return showNotification("Sélectionne une date", "error");
+      if (!dateVal) return showNotification(i18n("notify.selectDate"), "error");
 
       const base = {
         templateId,
@@ -1217,14 +1252,14 @@ async function saveEditModal() {
 
         // date update (ponctuel)
         const dateVal = document.getElementById("editSpecificDate").value;
-        if (!dateVal) return showNotification("Sélectionne une date", "error");
+        if (!dateVal) return showNotification(i18n("notify.selectDate"), "error");
         payload.fullDate = dateVal;
         payload.dayOfMonth = null;
         payload.dayOfWeek = -1;
 
         await updateDoc(familyTaskDoc( id), payload);
         closeEditModal();
-        showNotification("✅ Tâche modifiée", "success");
+        showNotification(i18n("notify.taskUpdated"), "success");
         return;
       }
 
@@ -1257,7 +1292,7 @@ async function saveEditModal() {
       await Promise.all(writes);
 
       closeEditModal();
-      showNotification("✅ Tâche modifiée (récurrence mise à jour)", "success");
+      showNotification(i18n("notify.taskRecurrence"), "success");
       return;
     }
 
@@ -1284,23 +1319,23 @@ async function saveEditModal() {
     }
 
     closeEditModal();
-    showNotification("✅ Récurrence mise à jour", "success");
+    showNotification(i18n("notify.recurrenceUpdated"), "success");
   } catch (e) {
     console.error(e);
-    showNotification("Erreur édition", "error");
+    showNotification(i18n("notify.editError"), "error");
   }
 }
 
 async function editTask(taskId) {
-  if (!isAdminMode) return showNotification("Mode admin requis", "error");
+  if (!isAdminMode) return showNotification(i18n("admin.required"), "error");
 
   try {
     const snap = await getDoc(familyTaskDoc( taskId));
-    if (!snap.exists()) return showNotification("Tâche introuvable", "error");
+    if (!snap.exists()) return showNotification(i18n("notify.taskMissing"), "error");
     openEditModalWithTask(taskId, snap.data());
   } catch (e) {
     console.error(e);
-    showNotification("Erreur édition", "error");
+    showNotification(i18n("notify.editError"), "error");
   }
 }
 
@@ -1358,6 +1393,12 @@ function escapeHtml(text) {
   const div = document.createElement("div");
   div.textContent = text ?? "";
   return div.innerHTML;
+}
+function escapeAttr(text) {
+  return String(text ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/"/g, "&quot;")
+    .replace(/</g, "&lt;");
 }
 function setText(id, value) {
   const el = document.getElementById(id);

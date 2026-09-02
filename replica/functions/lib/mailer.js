@@ -1,31 +1,35 @@
 "use strict";
 
-const EMAIL_NOT_CONFIGURED_FR =
-  "L’envoi d’email n’est pas encore configuré. Réessaie plus tard, ou écris à kidsrewardsystem@proton.me.";
+const { t, normalizeLocale, bcp47 } = require("./i18n");
 
 function emailConfigured() {
   return !!(String(process.env.EMAIL_USER || "").trim() && String(process.env.EMAIL_PASSWORD || "").trim());
 }
 
-function requireEmailConfigured() {
+function missingEmailMessage(locale) {
+  return t(locale, "err.emailNotConfigured");
+}
+
+function requireEmailConfigured(locale) {
   if (!emailConfigured()) {
-    const err = new Error(EMAIL_NOT_CONFIGURED_FR);
+    const err = new Error(missingEmailMessage(locale));
     err.code = "EMAIL_NOT_CONFIGURED";
     throw err;
   }
 }
 
-async function sendMail({ to, subject, html, text }) {
-  requireEmailConfigured();
+async function sendMail({ to, subject, html, text, locale }) {
+  requireEmailConfigured(locale);
   const nodemailer = require("nodemailer");
   const user = process.env.EMAIL_USER;
   const pass = process.env.EMAIL_PASSWORD;
+  const fromName = t(locale, "email.fromName");
   const transporter = nodemailer.createTransport({
     service: "gmail",
     auth: { user, pass },
   });
   await transporter.sendMail({
-    from: `"Système de récompenses" <${user}>`,
+    from: `"${fromName}" <${user}>`,
     to,
     subject,
     html,
@@ -33,9 +37,10 @@ async function sendMail({ to, subject, html, text }) {
   });
 }
 
-function wrapEmail(title, inner) {
+function wrapEmail(locale, title, inner) {
+  const lang = normalizeLocale(locale);
   return `<!doctype html>
-<html lang="fr">
+<html lang="${lang}">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
@@ -45,111 +50,96 @@ function wrapEmail(title, inner) {
   <div style="max-width:640px;margin:0 auto;padding:22px;">
     <div style="background:#fff;border-radius:16px;padding:22px 22px 16px;box-shadow:0 10px 26px rgba(0,0,0,.08);">
       ${inner}
-      <p style="margin:22px 0 0;color:#888;font-size:13px;">À très vite,<br/>Un papa belge</p>
+      <p style="margin:22px 0 0;color:#888;font-size:13px;">${t(locale, "email.signoff")}<br/>${t(locale, "email.dad")}</p>
     </div>
   </div>
 </body>
 </html>`;
 }
 
-function welcomeVerifyEmailHtml(code) {
+function welcomeVerifyEmailHtml(code, locale) {
   const digits = String(code);
+  const loc = normalizeLocale(locale);
   return wrapEmail(
-    "Bienvenue",
+    loc,
+    t(loc, "email.welcome.title"),
     `
-    <h2 style="margin:0 0 10px;font-size:22px;">Bienvenue 👋</h2>
-    <p style="margin:0 0 12px;color:#333;line-height:1.5;">
-      Salut, et merci de nous rejoindre. Je suis un papa belge : j’ai construit cette appli
-      pour que les familles puissent suivre les <b>tâches des enfants</b>, gagner des
-      <b>étoiles</b>, et transformer ça en <b>temps d’écran</b> — sans se battre tous les soirs.
-    </p>
-    <p style="margin:0 0 8px;color:#333;font-weight:700;">Voici ton code de vérification (valable 15 minutes) :</p>
+    <h2 style="margin:0 0 10px;font-size:22px;">${t(loc, "email.welcome.title")}</h2>
+    <p style="margin:0 0 12px;color:#333;line-height:1.5;">${t(loc, "email.welcome.body")}</p>
+    <p style="margin:0 0 8px;color:#333;font-weight:700;">${t(loc, "email.welcome.codeIntro")}</p>
     <div style="font-size:32px;letter-spacing:8px;font-weight:800;text-align:center;padding:14px 0 18px;font-family:Arial,Helvetica,sans-serif;">
       ${digits}
     </div>
-    <p style="margin:0 0 14px;color:#333;line-height:1.5;">
-      Entre-le dans l’appli <b>avant</b> de te connecter. Tant que ce n’est pas validé, le compte reste fermé.
-    </p>
-    <h3 style="margin:16px 0 8px;font-size:16px;">Le mode Admin, en deux mots</h3>
+    <p style="margin:0 0 14px;color:#333;line-height:1.5;">${t(loc, "email.welcome.afterCode")}</p>
+    <h3 style="margin:16px 0 8px;font-size:16px;">${t(loc, "email.welcome.adminTitle")}</h3>
     <ul style="margin:0 0 14px;padding-left:18px;color:#333;line-height:1.55;">
-      <li>Au <b>premier accès</b>, tu choisis un code Admin à <b>4 chiffres</b>. Garde-le précieusement : on ne te l’envoie pas maintenant.</li>
-      <li>En mode Admin, tu peux le changer (« <b>Changer le code Admin</b> »).</li>
-      <li>Si tu n’es pas en mode Admin et que tu as oublié le code, utilise « <b>Récupérer le code Admin</b> ». On t’envoie un <b>nouveau</b> code à 4 chiffres par email, et l’ancien ne fonctionne plus.</li>
+      <li>${t(loc, "email.welcome.admin1")}</li>
+      <li>${t(loc, "email.welcome.admin2")}</li>
+      <li>${t(loc, "email.welcome.admin3")}</li>
     </ul>
-    <h3 style="margin:16px 0 8px;font-size:16px;">Les prix</h3>
-    <p style="margin:0 0 12px;color:#333;line-height:1.5;">
-      <b>2,50 €/mois</b> (ça ferait 30 €/an si tu restes au mois) ou <b>25 €/an</b>.
-      Premier mois d’essai, avec carte. J’ai mis le prix autour d’une bière (ou d’un café) par mois,
-      parce que c’est un père belge qui l’a construite — pas pour s’acheter une Ferrari, juste pour payer le serveur.
-    </p>
-    <p style="margin:0;color:#333;line-height:1.5;">
-      Une idée, une plainte, un « ça bug » ? Écris à
-      <a href="mailto:kidsrewardsystem@proton.me">kidsrewardsystem@proton.me</a>.
-    </p>
+    <h3 style="margin:16px 0 8px;font-size:16px;">${t(loc, "email.welcome.pricesTitle")}</h3>
+    <p style="margin:0 0 12px;color:#333;line-height:1.5;">${t(loc, "email.welcome.prices")}</p>
+    <p style="margin:0;color:#333;line-height:1.5;">${t(loc, "email.welcome.contact")}</p>
     `
   );
 }
 
-function welcomeVerifyEmailText(code) {
-  return `Bienvenue
+function welcomeVerifyEmailText(code, locale) {
+  const loc = normalizeLocale(locale);
+  return `${t(loc, "email.welcome.title")}
 
-Salut, et merci de nous rejoindre. Je suis un papa belge : j’ai construit cette appli pour que les familles puissent suivre les tâches des enfants, gagner des étoiles, et transformer ça en temps d’écran.
+${t(loc, "email.welcome.bodyText")}
 
-Ton code de vérification (valable 15 minutes) : ${code}
+${t(loc, "email.welcome.codeIntro")} ${code}
 
-Entre-le dans l’appli avant de te connecter.
+${t(loc, "email.welcome.afterCodeText")}
 
-Mode Admin :
-- Au premier accès, tu choisis un code Admin à 4 chiffres. Garde-le précieusement : on ne te l’envoie pas maintenant.
-- En mode Admin, tu peux le changer (« Changer le code Admin »).
-- Si tu n’es pas en mode Admin et que tu as oublié le code, utilise « Récupérer le code Admin ». On t’envoie un nouveau code à 4 chiffres par email, et l’ancien ne fonctionne plus.
+${t(loc, "email.welcome.adminText")}
 
-Prix : 2,50 €/mois (30 €/an si payé mois par mois) ou 25 €/an. Premier mois d’essai, avec carte. Prix autour d’une bière (ou d’un café) par mois, parce qu’un père belge l’a construite.
+${t(loc, "email.welcome.pricesText")}
 
-Suggestions / plaintes : kidsrewardsystem@proton.me
+${t(loc, "email.welcome.contactText")}
 
-À très vite,
-Un papa belge`;
+${t(loc, "email.signoff")}
+${t(loc, "email.dad")}`;
 }
 
-function recoverPinEmailHtml(pin) {
+function recoverPinEmailHtml(pin, locale) {
+  const loc = normalizeLocale(locale);
   const digits = String(pin);
   return wrapEmail(
-    "Nouveau code Admin",
+    loc,
+    t(loc, "email.recover.title"),
     `
-    <h2 style="margin:0 0 10px;font-size:22px;">Nouveau code Admin</h2>
-    <p style="margin:0 0 12px;color:#333;line-height:1.5;">
-      Quelqu’un a demandé à récupérer le code Admin de ta famille. L’ancien code ne fonctionne plus.
-      Voici le nouveau (4 chiffres) :
-    </p>
+    <h2 style="margin:0 0 10px;font-size:22px;">${t(loc, "email.recover.title")}</h2>
+    <p style="margin:0 0 12px;color:#333;line-height:1.5;">${t(loc, "email.recover.body")}</p>
     <div style="font-size:32px;letter-spacing:8px;font-weight:800;text-align:center;padding:14px 0 18px;font-family:Arial,Helvetica,sans-serif;">
       ${digits}
     </div>
-    <p style="margin:0 0 12px;color:#333;line-height:1.5;">
-      En mode Admin, tu pourras le changer. Si tu n’as pas fait cette demande, change le code dès que tu peux,
-      et écris-nous à <a href="mailto:kidsrewardsystem@proton.me">kidsrewardsystem@proton.me</a>.
-    </p>
+    <p style="margin:0 0 12px;color:#333;line-height:1.5;">${t(loc, "email.recover.after")}</p>
     `
   );
 }
 
-function recoverPinEmailText(pin) {
-  return `Nouveau code Admin
+function recoverPinEmailText(pin, locale) {
+  const loc = normalizeLocale(locale);
+  return `${t(loc, "email.recover.title")}
 
-L’ancien code ne fonctionne plus. Voici le nouveau : ${pin}
+${t(loc, "email.recover.body")} ${pin}
 
-En mode Admin, tu pourras le changer. Si tu n’as pas fait cette demande, écris à kidsrewardsystem@proton.me.
+${t(loc, "email.recover.afterText")}
 
-Un papa belge`;
+${t(loc, "email.dad")}`;
 }
 
 module.exports = {
-  EMAIL_NOT_CONFIGURED_FR,
   emailConfigured,
+  missingEmailMessage,
   requireEmailConfigured,
   sendMail,
   welcomeVerifyEmailHtml,
   welcomeVerifyEmailText,
   recoverPinEmailHtml,
   recoverPinEmailText,
+  bcp47,
 };

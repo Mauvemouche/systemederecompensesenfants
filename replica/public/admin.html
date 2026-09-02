@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="fr" data-i18n-title="adminPage.title">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -108,8 +108,8 @@
 <body>
     <!-- Vérification PIN -->
     <div id="pinVerification">
-        <h2>🔐 Accès Admin</h2>
-        <p>Entrez le code PIN pour accéder à l'administration</p>
+        <h2>🔐 <span data-i18n="adminPage.title"></span></h2>
+        <p data-i18n="adminPage.lead"></p>
         <form id="pinForm">
             <input 
                 type="password" 
@@ -119,14 +119,12 @@
                 autofocus
                 autocomplete="off"
             >
-            <div class="pin-error" id="pinError">❌ Code incorrect</div>
-            <button type="submit" class="btn-primary" style="margin-top: 20px;">
-                Valider
-            </button>
-            <p style="margin-top: 14px;"><a href="#" id="recoverAdminPinLink">Récupérer le code Admin</a></p>
+            <div class="pin-error" id="pinError" data-i18n="admin.pinWrong"></div>
+            <button type="submit" class="btn-primary" style="margin-top: 20px;" data-i18n="admin.validate"></button>
+            <p style="margin-top: 14px;"><a href="#" id="recoverAdminPinLink" data-i18n="admin.recover"></a></p>
         </form>
         <div style="margin-top: 20px;">
-            <a href="index.html" class="btn-back">← Retour à l'application</a>
+            <a href="index.html" class="btn-back">← <span data-i18n="adminPage.back"></span></a>
         </div>
     </div>
 
@@ -136,10 +134,10 @@
             <!-- Header -->
             <div class="admin-header">
                 <div>
-                    <h1>⚙️ Administration</h1>
+                    <h1>⚙️ <span data-i18n="adminPage.heading"></span></h1>
                     <p style="margin: 5px 0 0 0; color: #666;">Gestion du Reset Automatique</p>
                 </div>
-                <a href="index.html" class="btn-back">← Retour</a>
+                <a href="index.html" class="btn-back">← <span data-i18n="adminPage.back"></span></a>
             </div>
 
             <!-- Section Reset Admin -->
@@ -273,11 +271,13 @@
         import { getFunctions, httpsCallable } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-functions.js';
         import { firebaseConfig, FUNCTIONS_REGION } from './js/firebase-config.js';
         import { syncFamilyClaim } from './js/family-path.js';
+        import { bootI18n, t, getLocale } from './js/i18n.js';
 
         const app = initializeApp(firebaseConfig);
         window.db = getFirestore(app);
         window.auth = getAuth(app);
         window.functions = getFunctions(app, FUNCTIONS_REGION);
+        await bootI18n();
 
         onAuthStateChanged(window.auth, async (user) => {
             if (!user) {
@@ -285,7 +285,7 @@
                 return;
             }
             try {
-                const res = await httpsCallable(window.functions, 'bootstrapInstance')({});
+                const res = await httpsCallable(window.functions, 'bootstrapInstance')({ locale: getLocale() });
                 await syncFamilyClaim(res.data);
             } catch (err) {
                 console.error(err);
@@ -309,11 +309,11 @@
             const enteredPin = pinInput.value;
             pinError.style.display = 'none';
             try {
-                await httpsCallable(window.functions, 'verifyAdminPin')({ pin: enteredPin });
+                await httpsCallable(window.functions, 'verifyAdminPin')({ pin: enteredPin, locale: getLocale() });
                 sessionStorage.setItem('adminAuth', 'true');
                 showAdminContent();
             } catch (err) {
-                pinError.textContent = err.message || '❌ Code incorrect';
+                pinError.textContent = err.message || t('admin.pinWrong');
                 pinError.style.display = 'block';
                 pinInput.value = '';
                 pinInput.classList.add('shake');
@@ -325,13 +325,13 @@
             e.preventDefault();
             pinError.style.display = 'none';
             try {
-                await httpsCallable(window.functions, 'recoverAdminPin')({});
+                await httpsCallable(window.functions, 'recoverAdminPin')({ locale: getLocale() });
                 pinError.style.color = '#2e7d32';
-                pinError.textContent = 'Nouveau code envoyé à l’email du parent titulaire.';
+                pinError.textContent = t('admin.recoverSent');
                 pinError.style.display = 'block';
             } catch (err) {
                 pinError.style.color = '';
-                pinError.textContent = err.message || 'Impossible d’envoyer le code.';
+                pinError.textContent = err.message || t('err.pinSend');
                 pinError.style.display = 'block';
             }
         });

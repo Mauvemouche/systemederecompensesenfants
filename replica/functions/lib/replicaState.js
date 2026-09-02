@@ -2,6 +2,7 @@
 
 const { hasAppAccess, needsCheckout, needsKidsSetup, needsAdminPin } = require("./access");
 const { DEFAULT_FAMILY } = require("./family");
+const { normalizeLocale } = require("./i18n");
 
 function serializeState(familyId, billing, settings, uid, extras = {}) {
   const billingData = billing && typeof billing === "object" ? { ...billing } : { status: "incomplete" };
@@ -36,6 +37,7 @@ function serializeState(familyId, billing, settings, uid, extras = {}) {
     needsKids: needsKidsSetup(settingsData),
     needsAdminPin: needsAdminPin(settingsData),
     complimentaryForever: !!billingData.complimentaryForever,
+    locale: normalizeLocale(settingsData.locale),
   };
 }
 

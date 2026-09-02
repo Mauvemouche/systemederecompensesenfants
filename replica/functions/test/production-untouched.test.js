@@ -141,6 +141,7 @@ describe("replica functions deploy without optional email secrets", () => {
     assert.equal(typeof fns.verifyAdminPin, "function");
     assert.equal(typeof fns.changeAdminPin, "function");
     assert.equal(typeof fns.recoverAdminPin, "function");
+    assert.equal(typeof fns.setFamilyLocale, "function");
     const platform = fns.stripeWebhook.__endpoint?.platform || fns.bootstrapInstance.__endpoint?.platform;
     assert.equal(platform, "gcfv2");
     assert.equal(getApps().length, before);
@@ -159,14 +160,14 @@ describe("replica family board rename (paid test instance only)", () => {
   it("adds a Modifier control next to each person name on the replica board", () => {
     const ui = fs.readFileSync(path.join(repoRoot, "replica/public/js/family-ui.js"), "utf8");
     assert.match(ui, /btn-rename-person/);
-    assert.match(ui, />Modifier</);
+    assert.match(ui, /t\("ui\.modifier"\)/);
     assert.match(ui, /personNameRow/);
     const gate = fs.readFileSync(path.join(repoRoot, "replica/public/js/family-gate.js"), "utf8");
     assert.match(gate, /callFn\("renamePerson"/);
-    assert.match(gate, /prompt\("Modifier le prénom"/);
+    assert.match(gate, /t\("rename\.prompt"\)/);
     const billing = fs.readFileSync(path.join(repoRoot, "replica/functions/billing.js"), "utf8");
     assert.match(billing, /exports\.renamePerson/);
-    assert.match(billing, /requireFamilyOwner\(uid\)/);
+    assert.match(billing, /requireFamilyOwner\(uid,\s*locale\)/);
     assert.match(billing, /renamePersonInList/);
   });
 
@@ -198,8 +199,9 @@ describe("replica parent gate UX", () => {
     assert.ok(cardStart < title);
   });
 
-  it("maps Firebase auth codes to French and re-routes after sign-in", () => {
+  it("maps Firebase auth codes through i18n and re-routes after sign-in", () => {
     const js = fs.readFileSync(path.join(repoRoot, "replica/public/js/family-gate.js"), "utf8");
+    const i18n = fs.readFileSync(path.join(repoRoot, "replica/public/js/i18n.js"), "utf8");
     for (const code of [
       "email-already-in-use",
       "invalid-credential",
@@ -209,11 +211,12 @@ describe("replica parent gate UX", () => {
       "invalid-email",
       "too-many-requests",
     ]) {
-      assert.match(js, new RegExp(code));
+      assert.match(i18n, new RegExp(code));
     }
-    assert.match(js, /Cet email est déjà utilisé/);
-    assert.match(js, /Connexion…/);
-    assert.match(js, /Création…/);
+    assert.match(js, /AUTH_ERROR_KEYS/);
+    assert.match(js, /auth\.\$\{code\}/);
+    assert.match(js, /gate\.busyLogin/);
+    assert.match(js, /gate\.busySignup/);
     assert.match(js, /const state = await refreshState\(\);\s*await routeState\(state\);/);
     assert.equal(js.includes("setError(err.message || \"Connexion impossible\")"), false);
     assert.match(js, /requestSignup/);

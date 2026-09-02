@@ -20,7 +20,7 @@ function resolvePriceId(plan, env = process.env) {
   return env.STRIPE_PRICE_MONTHLY || PRICE_MONTHLY;
 }
 
-function buildCheckoutSessionParams({ instanceId, familyId, uid, email, plan, origin, customerId }) {
+function buildCheckoutSessionParams({ instanceId, familyId, uid, email, plan, origin, customerId, locale }) {
   if (!instanceId) throw new Error("instanceId required");
   if (!familyId) throw new Error("familyId required");
   if (!uid) throw new Error("uid required");
@@ -38,7 +38,7 @@ function buildCheckoutSessionParams({ instanceId, familyId, uid, email, plan, or
     client_reference_id: familyId,
     payment_method_collection: "if_required",
     allow_promotion_codes: "true",
-    locale: "fr",
+    locale: locale === "nl" || locale === "de" || locale === "en" ? locale : "fr",
     line_items: [{ price: priceId, quantity: 1 }],
     subscription_data: {
       trial_period_days: TRIAL_DAYS,

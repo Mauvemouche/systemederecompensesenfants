@@ -11,13 +11,8 @@ const {
 } = require("./lib/adminPinFormat");
 const { memberRef, settingsRef, readFamilyBilling, readFamilySettings } = require("./lib/families");
 const { serializeState } = require("./lib/replicaState");
-const {
-  EMAIL_NOT_CONFIGURED_FR,
-  requireEmailConfigured,
-  sendMail,
-  recoverPinEmailHtml,
-  recoverPinEmailText,
-} = require("./lib/mailer");
+const { requireEmailConfigured, sendMail, recoverPinEmailHtml, recoverPinEmailText } = require("./lib/mailer");
+const { t, localeFromRequest } = require("./lib/i18n");
 
 const RECOVER_COOLDOWN_MS = 15 * 60 * 1000;
 const PIN_VERIFY_MAX = 10;
@@ -32,46 +27,36 @@ async function loadState(familyId, uid) {
   });
 }
 
-async function requireFamily(uid) {
+function fail(status, locale, key) {
+  throw new HttpsError(status, t(locale, key), { key });
+}
+
+async function requireFamily(uid, locale) {
   const memberSnap = await memberRef(uid).get();
   const familyId = memberSnap.exists ? memberSnap.data().familyId : null;
-  if (!familyId) {
-    throw new HttpsError("failed-precondition", "Famille non initialisée.");
-  }
+  if (!familyId) fail("failed-precondition", locale, "err.familyMissing");
   const billing = await readFamilyBilling(familyId);
   const settings = await readFamilySettings(familyId);
   return { familyId, billing, settings };
 }
 
-function requireOwner(uid, billing) {
-  if (!billing?.ownerUid) {
-    throw new HttpsError("failed-precondition", "Famille non initialisée.");
-  }
-  if (billing.ownerUid !== uid) {
-    throw new HttpsError("permission-denied", "Seul le parent titulaire peut faire ça.");
-  }
-}
-
-function pinError() {
-  throw new HttpsError("invalid-argument", "Le code Admin doit contenir 4 chiffres.");
+function requireOwner(uid, billing, locale) {
+  if (!billing?.ownerUid) fail("failed-precondition", locale, "err.familyMissing");
+  if (billing.ownerUid !== uid) fail("permission-denied", locale, "err.ownerOnly");
 }
 
 exports.setAdminPin = onCall(
   CALLABLE,
   wrapCallable("setAdminPin", async (request) => {
+    const locale = localeFromRequest(request);
     const { uid } = requireAuth(request);
     const pin = String(request.data?.pin || "").trim();
-    if (!isFourDigitPin(pin)) pinError();
+    if (!isFourDigitPin(pin)) fail("invalid-argument", locale, "err.pinFourDigits");
 
     ensureApp();
-    const { familyId, billing, settings } = await requireFamily(uid);
-    requireOwner(uid, billing);
-    if (settings?.adminPinHash) {
-      throw new HttpsError(
-        "failed-precondition",
-        "Un code Admin existe déjà. Utilise « Changer le code Admin »."
-      );
-    }
+    const { familyId, billing, settings } = await requireFamily(uid, locale);
+    requireOwner(uid, billing, locale);
+    if (settings?.adminPinHash) fail("failed-precondition", locale, "err.pinExists");
 
     await settingsRef(familyId).set(
       {
@@ -89,21 +74,17 @@ exports.setAdminPin = onCall(
 exports.verifyAdminPin = onCall(
   CALLABLE,
   wrapCallable("verifyAdminPin", async (request) => {
+    const locale = localeFromRequest(request);
     const { uid } = requireAuth(request);
     const pin = String(request.data?.pin || "").trim();
-    if (!isFourDigitPin(pin)) pinError();
+    if (!isFourDigitPin(pin)) fail("invalid-argument", locale, "err.pinFourDigits");
 
     ensureApp();
-    const { familyId, settings } = await requireFamily(uid);
+    const { familyId, settings } = await requireFamily(uid, locale);
     const hash = settings?.adminPinHash;
-    if (!hash) {
-      throw new HttpsError("failed-precondition", "Choisis d’abord un code Admin.");
-    }
+    if (!hash) fail("failed-precondition", locale, "err.pinChooseFirst");
     if (Number(settings.adminPinAttempts || 0) >= PIN_VERIFY_MAX) {
-      throw new HttpsError(
-        "resource-exhausted",
-        "Trop d’essais. Utilise « Récupérer le code Admin » ou réessaie plus tard."
-      );
+      fail("resource-exhausted", locale, "err.pinLocked");
     }
 
     if (!verifySecret(pin, hash)) {
@@ -114,7 +95,7 @@ exports.verifyAdminPin = onCall(
         },
         { merge: true }
       );
-      throw new HttpsError("permission-denied", "Code incorrect.");
+      fail("permission-denied", locale, "err.pinWrong");
     }
 
     await settingsRef(familyId).set({ adminPinAttempts: 0, updatedAt: serverTimestamp() }, { merge: true });
@@ -125,24 +106,23 @@ exports.verifyAdminPin = onCall(
 exports.changeAdminPin = onCall(
   CALLABLE,
   wrapCallable("changeAdminPin", async (request) => {
+    const locale = localeFromRequest(request);
     const { uid } = requireAuth(request);
     const newPin = String(request.data?.newPin || "").trim();
     const currentPin = String(request.data?.currentPin || "").trim();
     const adminToken = request.data?.adminToken;
-    if (!isFourDigitPin(newPin)) pinError();
+    if (!isFourDigitPin(newPin)) fail("invalid-argument", locale, "err.pinFourDigits");
 
     ensureApp();
-    const { familyId, billing, settings } = await requireFamily(uid);
-    requireOwner(uid, billing);
+    const { familyId, billing, settings } = await requireFamily(uid, locale);
+    requireOwner(uid, billing, locale);
     const hash = settings?.adminPinHash;
-    if (!hash) {
-      throw new HttpsError("failed-precondition", "Choisis d’abord un code Admin.");
-    }
+    if (!hash) fail("failed-precondition", locale, "err.pinChooseFirst");
 
     const alreadyAdmin = adminTokenValid(adminToken, familyId, uid, hash);
     if (!alreadyAdmin) {
       if (!isFourDigitPin(currentPin) || !verifySecret(currentPin, hash)) {
-        throw new HttpsError("permission-denied", "Code actuel incorrect.");
+        fail("permission-denied", locale, "err.pinCurrentWrong");
       }
     }
 
@@ -165,41 +145,35 @@ exports.recoverAdminPin = onCall(
   wrapCallable("recoverAdminPin", async (request) => {
     const { uid } = requireAuth(request);
     ensureApp();
-    const { familyId, billing, settings } = await requireFamily(uid);
+    const earlyLocale = localeFromRequest(request);
+    const { familyId, billing, settings } = await requireFamily(uid, earlyLocale);
+    const locale = localeFromRequest(request, settings?.locale);
     const ownerEmail = String(billing?.ownerEmail || "").trim();
-    if (!ownerEmail) {
-      throw new HttpsError("failed-precondition", "Aucun email titulaire pour envoyer le code.");
-    }
+    if (!ownerEmail) fail("failed-precondition", locale, "err.noOwnerEmail");
 
     const now = Date.now();
     const last = Number(settings?.lastAdminPinRecoverAtMs || 0);
-    if (last && now - last < RECOVER_COOLDOWN_MS) {
-      throw new HttpsError(
-        "resource-exhausted",
-        "Un email de récupération a déjà été envoyé. Réessaie dans 15 minutes."
-      );
-    }
+    if (last && now - last < RECOVER_COOLDOWN_MS) fail("resource-exhausted", locale, "err.recoverWait");
 
     try {
-      requireEmailConfigured();
+      requireEmailConfigured(locale);
     } catch (_) {
-      throw new HttpsError("failed-precondition", EMAIL_NOT_CONFIGURED_FR);
+      fail("failed-precondition", locale, "err.emailNotConfigured");
     }
 
     const pin = generateFourDigitPin();
     try {
       await sendMail({
         to: ownerEmail,
-        subject: "Nouveau code Admin",
-        html: recoverPinEmailHtml(pin),
-        text: recoverPinEmailText(pin),
+        locale,
+        subject: t(locale, "email.recover.subject"),
+        html: recoverPinEmailHtml(pin, locale),
+        text: recoverPinEmailText(pin, locale),
       });
     } catch (err) {
-      if (err?.code === "EMAIL_NOT_CONFIGURED") {
-        throw new HttpsError("failed-precondition", EMAIL_NOT_CONFIGURED_FR);
-      }
+      if (err?.code === "EMAIL_NOT_CONFIGURED") fail("failed-precondition", locale, "err.emailNotConfigured");
       console.error("recoverAdminPin mail failed");
-      throw new HttpsError("unavailable", "Impossible d’envoyer l’email. Réessaie dans un instant.");
+      fail("unavailable", locale, "err.mailFailed");
     }
 
     await settingsRef(familyId).set(
@@ -212,6 +186,6 @@ exports.recoverAdminPin = onCall(
       { merge: true }
     );
 
-    return { ok: true };
+    return { ok: true, locale };
   })
 );

@@ -2,6 +2,7 @@
 
 const { onCall, onRequest, HttpsError } = require("firebase-functions/v2/https");
 const { defineSecret } = require("firebase-functions/params");
+const { t, localeFromRequest } = require("./i18n");
 
 const REGION = "europe-west1";
 
@@ -14,7 +15,8 @@ const CALLABLE_STRIPE = { region: REGION, secrets: [STRIPE_SECRET_KEY] };
 
 function requireAuth(request) {
   if (!request.auth?.uid) {
-    throw new HttpsError("unauthenticated", "Connecte-toi pour continuer.");
+    const locale = localeFromRequest(request);
+    throw new HttpsError("unauthenticated", t(locale, "err.unauthenticated"), { key: "err.unauthenticated" });
   }
   return { uid: request.auth.uid, email: request.auth.token.email || null };
 }

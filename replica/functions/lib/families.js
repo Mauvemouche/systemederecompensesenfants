@@ -3,6 +3,7 @@
 const { getAuth } = require("firebase-admin/auth");
 const { db, ensureApp, serverTimestamp } = require("./adminApp");
 const { DEFAULT_FAMILY } = require("./family");
+const { normalizeLocale } = require("./i18n");
 
 const LEGACY_OWNER_EMAIL = "anthony.rsca@gmail.com";
 
@@ -116,11 +117,12 @@ function emptyBilling(uid, email, plan, now) {
   };
 }
 
-function emptySettings(now) {
+function emptySettings(now, locale) {
   return {
     name: "",
     people: DEFAULT_FAMILY,
     kidsNamed: true,
+    locale: normalizeLocale(locale),
     createdAt: now,
     updatedAt: now,
   };
@@ -188,7 +190,7 @@ async function copyCollectionDocs(sourceCol, destCol) {
   return docs.length;
 }
 
-async function createFamilyForOwner(uid, email, plan) {
+async function createFamilyForOwner(uid, email, plan, locale) {
   const firestore = db();
   const now = serverTimestamp();
   const memberDoc = memberRef(uid);
@@ -206,14 +208,16 @@ async function createFamilyForOwner(uid, email, plan) {
       }
     }
     familyId = firestore.collection("families").doc().id;
+    const loc = normalizeLocale(locale);
     tx.set(familyRef(familyId), {
       ownerUid: uid,
       ownerEmail: email || "",
+      locale: loc,
       createdAt: now,
       updatedAt: now,
     });
     tx.set(billingRef(familyId), emptyBilling(uid, email, plan, now));
-    tx.set(settingsRef(familyId), emptySettings(now));
+    tx.set(settingsRef(familyId), emptySettings(now, loc));
     tx.set(usersCol(familyId).doc(uid), { email: email || "", role: "parent", updatedAt: now });
     tx.set(memberDoc, { familyId, role: "owner", createdAt: now });
   });
@@ -278,7 +282,7 @@ async function migrateLegacySingleton(uid, email) {
   return { familyId, alreadyMigrated, tasksCopied };
 }
 
-async function resolveFamilyForUser(uid, email, plan) {
+async function resolveFamilyForUser(uid, email, plan, locale) {
   const memberSnap = await memberRef(uid).get();
   const memberFamilyId = memberSnap.exists ? memberSnap.data().familyId : null;
   const memberFamilyBilling = memberFamilyId ? await readFamilyBilling(memberFamilyId) : null;
@@ -312,7 +316,7 @@ async function resolveFamilyForUser(uid, email, plan) {
     }
   }
 
-  const familyId = await createFamilyForOwner(uid, email, plan);
+  const familyId = await createFamilyForOwner(uid, email, plan, locale);
   return { familyId, created: true, migrated: false };
 }
 

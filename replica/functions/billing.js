@@ -30,6 +30,7 @@ const {
   requireAuth,
   wrapCallable,
 } = require("./lib/callable");
+const { t, localeFromRequest, normalizeLocale, stripeCheckoutLocale } = require("./lib/i18n");
 
 function instanceId() {
   return process.env.GCLOUD_PROJECT || ensureApp().options.projectId || "replica";
@@ -41,20 +42,26 @@ async function loadState(familyId, uid) {
   });
 }
 
-async function requireFamilyOwner(uid) {
+async function requireFamilyOwner(uid, locale) {
   const memberSnap = await memberRef(uid).get();
   const familyId = memberSnap.exists ? memberSnap.data().familyId : null;
   if (!familyId) {
-    throw new HttpsError("failed-precondition", "Famille non initialisée.");
+    throw new HttpsError("failed-precondition", t(locale, "err.familyMissing"), { key: "err.familyMissing" });
   }
   const billing = await readFamilyBilling(familyId);
   if (!billing?.ownerUid) {
-    throw new HttpsError("failed-precondition", "Famille non initialisée.");
+    throw new HttpsError("failed-precondition", t(locale, "err.familyMissing"), { key: "err.familyMissing" });
   }
   if (billing.ownerUid !== uid) {
-    throw new HttpsError("permission-denied", "Seul le parent titulaire peut faire ça.");
+    throw new HttpsError("permission-denied", t(locale, "err.ownerOnly"), { key: "err.ownerOnly" });
   }
   return { familyId, billing };
+}
+
+async function persistFamilyLocale(familyId, locale) {
+  const loc = normalizeLocale(locale);
+  await familyRef(familyId).set({ locale: loc, updatedAt: serverTimestamp() }, { merge: true });
+  await settingsRef(familyId).set({ locale: loc, updatedAt: serverTimestamp() }, { merge: true });
 }
 
 async function tagStripeCustomer(secret, customerId, familyId, uid) {
@@ -142,17 +149,21 @@ exports.bootstrapInstance = onCall(
   wrapCallable("bootstrapInstance", async (request) => {
     const { uid, email } = requireAuth(request);
     const data = request.data || {};
+    const locale = localeFromRequest(request);
     const plan = data.plan === "yearly" ? "yearly" : "monthly";
 
     ensureApp();
-    const resolved = await resolveFamilyForUser(uid, email, plan);
+    const resolved = await resolveFamilyForUser(uid, email, plan, locale);
     const familyId = resolved.familyId;
     if (!familyId) {
-      throw new HttpsError("internal", "Impossible de créer la famille.");
+      throw new HttpsError("internal", t(locale, "err.internalFamily"), { key: "err.internalFamily" });
     }
 
     const claimed = await setFamilyClaim(uid, familyId);
     const billing = await readFamilyBilling(familyId);
+    if (billing?.ownerUid === uid && locale) {
+      await persistFamilyLocale(familyId, locale);
+    }
     if (billing?.stripeCustomerId && process.env.STRIPE_SECRET_KEY) {
       await tagStripeCustomer(process.env.STRIPE_SECRET_KEY, billing.stripeCustomerId, familyId, uid);
       if (billing.stripeSubscriptionId) {
@@ -172,14 +183,15 @@ exports.createCheckoutSession = onCall(
   wrapCallable("createCheckoutSession", async (request) => {
     const { uid, email } = requireAuth(request);
     const data = request.data || {};
-    const { familyId, billing } = await requireFamilyOwner(uid);
+    const locale = localeFromRequest(request);
+    const { familyId, billing } = await requireFamilyOwner(uid, locale);
     if (!needsCheckout(billing)) {
-      throw new HttpsError("failed-precondition", "Un abonnement est déjà actif.");
+      throw new HttpsError("failed-precondition", t(locale, "err.subscriptionActive"), { key: "err.subscriptionActive" });
     }
 
     const origin = String(data.origin || "").replace(/\/$/, "");
     if (!origin || !/^https?:\/\//i.test(origin)) {
-      throw new HttpsError("invalid-argument", "origin HTTPS requis.");
+      throw new HttpsError("invalid-argument", t(locale, "err.originHttps"), { key: "err.originHttps" });
     }
 
     const plan = data.plan === "yearly" ? "yearly" : billing.plan || "monthly";
@@ -216,6 +228,7 @@ exports.createCheckoutSession = onCall(
       plan,
       origin,
       customerId,
+      locale: stripeCheckoutLocale(locale),
     });
 
     const session = await stripeRequest("POST", "/checkout/sessions", params, secret);
@@ -239,14 +252,12 @@ exports.confirmCheckoutSession = onCall(
   wrapCallable("confirmCheckoutSession", async (request) => {
     const { uid } = requireAuth(request);
     const data = request.data || {};
-    const { familyId } = await requireFamilyOwner(uid);
+    const locale = localeFromRequest(request);
+    const { familyId } = await requireFamilyOwner(uid, locale);
 
     const sessionId = data.sessionId;
     if (!sessionId || !String(sessionId).startsWith("cs_test_")) {
-      throw new HttpsError(
-        "invalid-argument",
-        "sessionId sandbox (cs_test_…) requis. Les sessions live sont refusées."
-      );
+      throw new HttpsError("invalid-argument", t(locale, "err.sessionSandbox"), { key: "err.sessionSandbox" });
     }
 
     const secret = process.env.STRIPE_SECRET_KEY;
@@ -258,12 +269,12 @@ exports.confirmCheckoutSession = onCall(
     );
 
     if (session.livemode) {
-      throw new HttpsError("failed-precondition", "Événement live refusé (sandbox only).");
+      throw new HttpsError("failed-precondition", t(locale, "err.liveEvent"), { key: "err.liveEvent" });
     }
 
     const sessionFamilyId = await resolveFamilyIdFromStripe(session, session);
     if (sessionFamilyId && sessionFamilyId !== familyId) {
-      throw new HttpsError("permission-denied", "Cette session Stripe appartient à une autre famille.");
+      throw new HttpsError("permission-denied", t(locale, "err.sessionOtherFamily"), { key: "err.sessionOtherFamily" });
     }
 
     let sub = session.subscription;
@@ -290,12 +301,13 @@ exports.createPortalSession = onCall(
   wrapCallable("createPortalSession", async (request) => {
     const { uid } = requireAuth(request);
     const data = request.data || {};
-    const { billing } = await requireFamilyOwner(uid);
+    const locale = localeFromRequest(request);
+    const { billing } = await requireFamilyOwner(uid, locale);
     if (!billing.stripeCustomerId) {
-      throw new HttpsError("failed-precondition", "Pas encore de client Stripe.");
+      throw new HttpsError("failed-precondition", t(locale, "err.noStripeCustomer"), { key: "err.noStripeCustomer" });
     }
     const origin = String(data.origin || "").replace(/\/$/, "");
-    if (!origin) throw new HttpsError("invalid-argument", "origin requis.");
+    if (!origin) throw new HttpsError("invalid-argument", t(locale, "err.originRequired"), { key: "err.originRequired" });
 
     const session = await stripeRequest(
       "POST",
@@ -312,15 +324,16 @@ exports.saveChildren = onCall(
   wrapCallable("saveChildren", async (request) => {
     const { uid } = requireAuth(request);
     const data = request.data || {};
-    const { familyId, billing } = await requireFamilyOwner(uid);
+    const locale = localeFromRequest(request);
+    const { familyId, billing } = await requireFamilyOwner(uid, locale);
     if (!hasAppAccess(billing)) {
-      throw new HttpsError("failed-precondition", "Abonnement requis.");
+      throw new HttpsError("failed-precondition", t(locale, "err.subscriptionRequired"), { key: "err.subscriptionRequired" });
     }
 
     const names = Array.isArray(data.childNames) ? data.childNames : [];
     const cleaned = names.map((n) => String(n || "").trim()).filter(Boolean);
     if (cleaned.length < 1 || cleaned.length > 6) {
-      throw new HttpsError("invalid-argument", "Indique entre 1 et 6 prénoms.");
+      throw new HttpsError("invalid-argument", t(locale, "err.childNames"), { key: "err.childNames" });
     }
 
     const people = peopleFromChildNames(cleaned);
@@ -341,24 +354,25 @@ exports.renamePerson = onCall(
   CALLABLE,
   wrapCallable("renamePerson", async (request) => {
     const { uid } = requireAuth(request);
-    const { familyId, billing } = await requireFamilyOwner(uid);
+    const locale = localeFromRequest(request);
+    const { familyId, billing } = await requireFamilyOwner(uid, locale);
     if (!hasAppAccess(billing)) {
-      throw new HttpsError("failed-precondition", "Abonnement requis.");
+      throw new HttpsError("failed-precondition", t(locale, "err.subscriptionRequired"), { key: "err.subscriptionRequired" });
     }
 
     const personId = String(request.data?.personId || "").trim();
     if (!personId) {
-      throw new HttpsError("invalid-argument", "Personne requise.");
+      throw new HttpsError("invalid-argument", t(locale, "err.personRequired"), { key: "err.personRequired" });
     }
 
     const settings = await readFamilySettings(familyId);
     const currentPeople = Array.isArray(settings?.people) && settings.people.length ? settings.people : DEFAULT_FAMILY;
     const result = renamePersonInList(currentPeople, personId, request.data?.name);
     if (result.error === "invalid-name") {
-      throw new HttpsError("invalid-argument", "Le prénom doit faire entre 1 et 40 caractères.");
+      throw new HttpsError("invalid-argument", t(locale, "err.invalidName"), { key: "err.invalidName" });
     }
     if (result.error === "not-found") {
-      throw new HttpsError("not-found", "Personne introuvable.");
+      throw new HttpsError("not-found", t(locale, "err.personNotFound"), { key: "err.personNotFound" });
     }
 
     await settingsRef(familyId).set(
@@ -369,6 +383,17 @@ exports.renamePerson = onCall(
       { merge: true }
     );
 
+    return loadState(familyId, uid);
+  })
+);
+
+exports.setFamilyLocale = onCall(
+  CALLABLE,
+  wrapCallable("setFamilyLocale", async (request) => {
+    const { uid } = requireAuth(request);
+    const locale = localeFromRequest(request);
+    const { familyId, billing } = await requireFamilyOwner(uid, locale);
+    await persistFamilyLocale(familyId, locale);
     return loadState(familyId, uid);
   })
 );

@@ -79,8 +79,8 @@ describe("serializeState never leaks the PIN hash", () => {
 
 describe("welcome email copy", () => {
   it("includes the French welcome, code, admin PIN story, prices, and contact", () => {
-    const html = welcomeVerifyEmailHtml("482910");
-    const text = welcomeVerifyEmailText("482910");
+    const html = welcomeVerifyEmailHtml("482910", "fr");
+    const text = welcomeVerifyEmailText("482910", "fr");
     for (const body of [html, text]) {
       assert.match(body, /Bienvenue/);
       assert.match(body, /482910/);

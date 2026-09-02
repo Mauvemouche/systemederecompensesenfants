@@ -13,6 +13,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { familyTasksCol, familyTaskDoc } from "./family-path.js";
 import { httpsCallable } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-functions.js";
+import { t as i18n, getLocale } from "./i18n.js";
 
 let PEOPLE = ["papa", "maman", "kid-1", "kid-2"];
 
@@ -94,7 +95,7 @@ function unlock() {
 ========================= */
 function startListening() {
   if (!window.db) {
-    alert("Firebase non initialisé (window.db manquant).");
+    alert(i18n("err.firebaseInit"));
     return;
   }
   unsubscribe?.();
@@ -142,7 +143,7 @@ function render(tasks) {
     const chk = document.createElement("div");
     chk.className = `chk ${t.completed ? "on" : ""}`;
     chk.textContent = t.completed ? "✓" : "";
-    chk.title = "Cocher / décocher";
+    chk.title = i18n("ui.toggleTask");
     chk.addEventListener("click", async () => {
       await updateDoc(familyTaskDoc( t.id), {
         completed: !t.completed,
@@ -162,9 +163,9 @@ function render(tasks) {
         <span class="tag">👤 ${escapeHtml(t.assignedTo || "?")}</span>
         <span class="tag">⭐ ${Number(t.stars || 3)}</span>
         <span class="tag">🏷️ ${escapeHtml(t.category || "")}</span>
-        ${t.isBonus ? `<span class="tag">🎁 bonus</span>` : ``}
-        ${t.isPenalty ? `<span class="tag">⛔ pénalité</span>` : ``}
-        ${t.isSeriousFault ? `<span class="tag">💀 faute grave</span>` : ``}
+        ${t.isBonus ? `<span class="tag">🎁 ${i18n("task.bonus")}</span>` : ``}
+        ${t.isPenalty ? `<span class="tag">⛔ ${i18n("task.penalty")}</span>` : ``}
+        ${t.isSeriousFault ? `<span class="tag">💀 ${i18n("task.serious")}</span>` : ``}
         ${t.fullDate ? `<span class="tag">📅 ${escapeHtml(String(t.fullDate))}</span>` : ``}
         ${t.dayOfMonth ? `<span class="tag">🗓️ ${escapeHtml(String(t.dayOfMonth))}</span>` : ``}
       </div>
@@ -177,13 +178,13 @@ function render(tasks) {
     const editBtn = document.createElement("button");
     editBtn.className = "btn ghost";
     editBtn.type = "button";
-    editBtn.textContent = "✏️ Modifier";
+    editBtn.textContent = `✏️ ${i18n("ui.modifier")}`;
     editBtn.addEventListener("click", () => editTask(t.id));
 
     const delBtn = document.createElement("button");
     delBtn.className = "btn danger";
     delBtn.type = "button";
-    delBtn.textContent = "🗑️ Supprimer";
+    delBtn.textContent = `🗑️ ${i18n("ui.delete")}`;
     delBtn.addEventListener("click", () => deleteTask(t.id));
 
     actions.appendChild(editBtn);
@@ -520,7 +521,7 @@ function setupCategoryUI() {
 
 function bootManagePage() {
   if (!window.db) {
-    alert("Firebase non initialisé (window.db). Vérifie firebase-config.js.");
+    alert(i18n("err.firebaseInit"));
     return;
   }
 
@@ -534,10 +535,10 @@ function bootManagePage() {
     e.preventDefault();
     const pin = $("pinInput").value.trim();
     try {
-      await httpsCallable(window.functions, "verifyAdminPin")({ pin });
+      await httpsCallable(window.functions, "verifyAdminPin")({ pin, locale: getLocale() });
       unlock();
     } catch (err) {
-      showToast?.(err.message || "Code incorrect");
+      showToast?.(err.message || i18n("admin.pinWrong"));
     }
   });
 
@@ -550,10 +551,10 @@ function bootManagePage() {
   $("recoverAdminPinLink")?.addEventListener("click", async (e) => {
     e.preventDefault();
     try {
-      await httpsCallable(window.functions, "recoverAdminPin")({});
-      showToast?.("Nouveau code envoyé à l’email du parent titulaire.");
+      await httpsCallable(window.functions, "recoverAdminPin")({ locale: getLocale() });
+      showToast?.(i18n("admin.recoverSent"));
     } catch (err) {
-      showToast?.(err.message || "Impossible d’envoyer le code.");
+      showToast?.(err.message || i18n("err.pinSend"));
     }
   });
 

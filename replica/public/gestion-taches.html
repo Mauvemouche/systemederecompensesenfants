@@ -357,11 +357,13 @@
     import { firebaseConfig, FUNCTIONS_REGION } from "./js/firebase-config.js";
     import { renderFamilyShell } from "./js/family-ui.js";
     import { syncFamilyClaim } from "./js/family-path.js";
+    import { bootI18n, getLocale } from "./js/i18n.js";
 
     const app = initializeApp(firebaseConfig);
     window.db = getFirestore(app);
     window.auth = getAuth(app);
     window.functions = getFunctions(app, FUNCTIONS_REGION);
+    await bootI18n();
 
     onAuthStateChanged(window.auth, async (user) => {
       if (!user) {
@@ -369,7 +371,7 @@
         return;
       }
       try {
-        const res = await httpsCallable(window.functions, "bootstrapInstance")({});
+        const res = await httpsCallable(window.functions, "bootstrapInstance")({ locale: getLocale() });
         const state = res.data;
         await syncFamilyClaim(state);
         if (!state.hasAccess) {

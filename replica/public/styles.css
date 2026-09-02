@@ -838,9 +838,36 @@ body{
 .change-admin-pin-btn{ display:none; }
 .admin-mode-active .change-admin-pin-btn{ display:inline-flex; }
 
+.lang-switcher{
+  position:fixed;
+  top:0;
+  left:0;
+  right:0;
+  z-index:50000;
+  display:flex;
+  justify-content:flex-end;
+  align-items:center;
+  gap:8px;
+  padding:8px 14px;
+  background:rgba(255,255,255,.96);
+  border-bottom:1px solid #ece6ff;
+  font-weight:800;
+  font-size:13px;
+}
+.lang-switcher select{
+  font-weight:800;
+  border:2px solid #ece6ff;
+  border-radius:10px;
+  padding:4px 8px;
+  background:#fff;
+}
+body{ padding-top:44px; }
 .auth-gate{
   position:fixed;
-  inset:0;
+  top:44px;
+  left:0;
+  right:0;
+  bottom:0;
   background: linear-gradient(135deg,#667eea 0%,#764ba2 100%);
   z-index:20000;
   display:flex;

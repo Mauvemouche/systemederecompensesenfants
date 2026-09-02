@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="fr" data-i18n-title="header.title">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>Système de récompenses</title>
 
   <!-- IMPORTANT: garde ton styles.css existant -->
-  <link rel="stylesheet" href="./styles.css?v=109" />
+  <link rel="stylesheet" href="./styles.css?v=112" />
 </head>
 
 <body>
@@ -16,20 +16,20 @@
     <header class="main-header">
       <div class="header-row">
         <div>
-          <h1>⭐ Système de récompenses</h1>
-          <p id="familySubtitle">Suivi des tâches et du temps d’écran</p>
+          <h1 data-i18n="header.title"></h1>
+          <p id="familySubtitle" data-i18n="header.subtitle"></p>
         </div>
 
         <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
           <div id="accountBar" class="account-bar hidden">
             <span id="accountEmail"></span>
             <span id="accountBilling"></span>
-            <button id="portalBtn" class="btn-refresh" type="button">💳 Abonnement</button>
-            <button id="changeAdminPinBtn" class="btn-refresh change-admin-pin-btn" type="button">Changer le code Admin</button>
-            <button id="logoutBtn" class="btn-refresh" type="button">Déconnexion</button>
+            <button id="portalBtn" class="btn-refresh" type="button" data-i18n="header.portal"></button>
+            <button id="changeAdminPinBtn" class="btn-refresh change-admin-pin-btn" type="button" data-i18n="header.changePin"></button>
+            <button id="logoutBtn" class="btn-refresh" type="button" data-i18n="header.logout"></button>
           </div>
-          <button id="adminModeBtn" class="admin-mode-btn" title="Mode Admin" type="button">🔒</button>
-          <button class="btn-refresh" id="refreshBtn" type="button">🔄 Actualiser</button>
+          <button id="adminModeBtn" class="admin-mode-btn" data-i18n-title="header.adminMode" title="" type="button">🔒</button>
+          <button class="btn-refresh" id="refreshBtn" type="button" data-i18n="header.refresh"></button>
         </div>
       </div>
     </header>
@@ -37,19 +37,19 @@
     <!-- ===== NAVIGATION DES JOURS ===== -->
     <section class="day-navigation">
       <div class="day-nav-main">
-        <button class="day-nav-btn" type="button" onclick="previousDay()">⬅ <span id="prevDayName">Jour</span></button>
-        <h2 id="dayNavigationTitle" class="day-nav-title">📅 JOUR</h2>
-        <button class="day-nav-btn" type="button" onclick="nextDay()"><span id="nextDayName">Jour</span> ➡</button>
+        <button class="day-nav-btn" type="button" onclick="previousDay()">⬅ <span id="prevDayName"></span></button>
+        <h2 id="dayNavigationTitle" class="day-nav-title">📅</h2>
+        <button class="day-nav-btn" type="button" onclick="nextDay()"><span id="nextDayName"></span> ➡</button>
       </div>
 
       <div class="day-nav-quick">
-        <button id="dayBtn1" class="day-quick-btn" type="button" onclick="changeDay(1)">Lun</button>
-        <button id="dayBtn2" class="day-quick-btn" type="button" onclick="changeDay(2)">Mar</button>
-        <button id="dayBtn3" class="day-quick-btn" type="button" onclick="changeDay(3)">Mer</button>
-        <button id="dayBtn4" class="day-quick-btn" type="button" onclick="changeDay(4)">Jeu</button>
-        <button id="dayBtn5" class="day-quick-btn" type="button" onclick="changeDay(5)">Ven</button>
-        <button id="dayBtn6" class="day-quick-btn" type="button" onclick="changeDay(6)">Sam</button>
-        <button id="dayBtn0" class="day-quick-btn" type="button" onclick="changeDay(0)">Dim</button>
+        <button id="dayBtn1" class="day-quick-btn" type="button" onclick="changeDay(1)" data-i18n="day.short.1"></button>
+        <button id="dayBtn2" class="day-quick-btn" type="button" onclick="changeDay(2)" data-i18n="day.short.2"></button>
+        <button id="dayBtn3" class="day-quick-btn" type="button" onclick="changeDay(3)" data-i18n="day.short.3"></button>
+        <button id="dayBtn4" class="day-quick-btn" type="button" onclick="changeDay(4)" data-i18n="day.short.4"></button>
+        <button id="dayBtn5" class="day-quick-btn" type="button" onclick="changeDay(5)" data-i18n="day.short.5"></button>
+        <button id="dayBtn6" class="day-quick-btn" type="button" onclick="changeDay(6)" data-i18n="day.short.6"></button>
+        <button id="dayBtn0" class="day-quick-btn" type="button" onclick="changeDay(0)" data-i18n="day.short.0"></button>
       </div>
     </section>
 
@@ -58,43 +58,43 @@
       <div class="warning-content">
         <div class="warning-icon">⚠️</div>
         <div class="warning-text">
-          <strong>Tu regardes <span id="warningDayName">un autre jour</span></strong><br />
-          <small>Aujourd’hui : <span id="warningTodayName">—</span></small>
+          <strong><span data-i18n="day.lookingAt"></span> <span id="warningDayName"></span></strong><br />
+          <small><span data-i18n="day.todayPrefix"></span> <span id="warningTodayName">—</span></small>
         </div>
-        <button class="btn-today" type="button" onclick="goToToday()">↩ Retour à aujourd’hui</button>
+        <button class="btn-today" type="button" onclick="goToToday()" data-i18n="day.backToday"></button>
       </div>
     </div>
 
     <!-- ===== FILTERS ===== -->
     <div class="filters">
-      <button class="filter-btn active" data-filter="all" type="button">Tous</button>
+      <button class="filter-btn active" data-filter="all" type="button" data-i18n="filter.all"></button>
     </div>
 
     <!-- ===== ADD TASK ===== -->
     <section class="add-task-section">
       <div class="header-row add-task-toggle" id="toggleFormBtn" role="button" tabindex="0" aria-expanded="false">
-  <h2 style="margin:0; color:#222;">➕ Ajouter une tâche</h2>
+  <h2 style="margin:0; color:#222;" data-i18n="task.addSection"></h2>
   </div>
 
 
       <form id="taskForm" class="task-form hidden">
-        <h3>Nouvelle tâche</h3>
+        <h3 data-i18n="task.new"></h3>
 
         <div class="form-group">
-          <label for="taskTitle">Titre</label>
-          <input id="taskTitle" type="text" placeholder="Ex: Ranger la chambre" required />
-          <small class="hint">Astuce : si le titre contient “bonus”, ça devient automatiquement une tâche bonus.</small>
+          <label for="taskTitle" data-i18n="task.title"></label>
+          <input id="taskTitle" type="text" data-i18n-placeholder="task.titlePlaceholder" placeholder="" required />
+          <small class="hint" data-i18n="task.bonusHint"></small>
         </div>
 
         <div class="form-group">
-          <label for="taskDescription">Description (optionnel)</label>
-          <textarea id="taskDescription" rows="2" placeholder="Détails..."></textarea>
+          <label for="taskDescription" data-i18n="task.description"></label>
+          <textarea id="taskDescription" rows="2" data-i18n-placeholder="task.descPlaceholder" placeholder=""></textarea>
         </div>
 
         <div class="form-group">
-          <label for="assignedTo">Personne</label>
+          <label for="assignedTo" data-i18n="task.person"></label>
           <select id="assignedTo" required>
-            <option value="">— Choisir —</option>
+            <option value="" data-i18n="task.choose"></option>
             <option value="papa">Papa</option>
             <option value="maman">Maman</option>
             <option value="kid-1">Kid 1</option>
@@ -103,7 +103,7 @@
         </div>
 
         <div class="form-group">
-          <label for="stars">Étoiles</label>
+          <label for="stars" data-i18n="task.stars"></label>
           <select id="stars">
             <option value="1">1 ⭐</option>
             <option value="2">2 ⭐</option>
@@ -114,56 +114,56 @@
         </div>
 
         <div class="form-group">
-          <label for="category">Catégorie</label>
+          <label for="category" data-i18n="task.category"></label>
           <select id="category">
-            <option value="quotidien" selected>quotidien</option>
-            <option value="hebdomadaire">hebdomadaire</option>
-            <option value="mensuel">mensuel</option>
-            <option value="ponctuel">ponctuel</option>
+            <option value="quotidien" selected data-i18n="task.cat.quotidien"></option>
+            <option value="hebdomadaire" data-i18n="task.cat.hebdomadaire"></option>
+            <option value="mensuel" data-i18n="task.cat.mensuel"></option>
+            <option value="ponctuel" data-i18n="task.cat.ponctuel"></option>
           </select>
-          <small class="hint">Hebdo = dimanche. Mensuel = jour du mois. Ponctuel = date exacte.</small>
+          <small class="hint" data-i18n="task.catHint"></small>
         </div>
 
         <div id="specificDateGroup" class="form-group" style="display:none;">
-          <label id="dateLabel" for="specificDate">Date</label>
+          <label id="dateLabel" for="specificDate" data-i18n="task.date"></label>
           <input id="specificDate" type="date" />
         </div>
 
         <div id="daysSelectionGroup" class="form-group">
-          <label>Jours (quotidien)</label>
+          <label data-i18n="task.daysDaily"></label>
           <div class="days-checkboxes">
             <label class="day-checkbox-label">
               <input id="allDays" class="day-checkbox" type="checkbox" checked />
-              <span>Tous</span>
+              <span data-i18n="task.allDays"></span>
             </label>
-            <label class="day-checkbox-label"><input id="day1" class="day-checkbox" type="checkbox" checked /><span>Lun</span></label>
-            <label class="day-checkbox-label"><input id="day2" class="day-checkbox" type="checkbox" checked /><span>Mar</span></label>
-            <label class="day-checkbox-label"><input id="day3" class="day-checkbox" type="checkbox" checked /><span>Mer</span></label>
-            <label class="day-checkbox-label"><input id="day4" class="day-checkbox" type="checkbox" checked /><span>Jeu</span></label>
-            <label class="day-checkbox-label"><input id="day5" class="day-checkbox" type="checkbox" checked /><span>Ven</span></label>
-            <label class="day-checkbox-label"><input id="day6" class="day-checkbox" type="checkbox" checked /><span>Sam</span></label>
-            <label class="day-checkbox-label"><input id="day0" class="day-checkbox" type="checkbox" checked /><span>Dim</span></label>
+            <label class="day-checkbox-label"><input id="day1" class="day-checkbox" type="checkbox" checked /><span data-i18n="day.short.1"></span></label>
+            <label class="day-checkbox-label"><input id="day2" class="day-checkbox" type="checkbox" checked /><span data-i18n="day.short.2"></span></label>
+            <label class="day-checkbox-label"><input id="day3" class="day-checkbox" type="checkbox" checked /><span data-i18n="day.short.3"></span></label>
+            <label class="day-checkbox-label"><input id="day4" class="day-checkbox" type="checkbox" checked /><span data-i18n="day.short.4"></span></label>
+            <label class="day-checkbox-label"><input id="day5" class="day-checkbox" type="checkbox" checked /><span data-i18n="day.short.5"></span></label>
+            <label class="day-checkbox-label"><input id="day6" class="day-checkbox" type="checkbox" checked /><span data-i18n="day.short.6"></span></label>
+            <label class="day-checkbox-label"><input id="day0" class="day-checkbox" type="checkbox" checked /><span data-i18n="day.short.0"></span></label>
           </div>
         </div>
 
         <div class="form-group" style="display:flex; gap:14px; flex-wrap:wrap;">
           <label class="modal-check" style="flex:1;">
             <input id="isBonus" type="checkbox" />
-            <span>🎁 Bonus</span>
+            <span>🎁 <span data-i18n="task.bonus"></span></span>
           </label>
           <label class="modal-check" style="flex:1;">
             <input id="isPenalty" type="checkbox" />
-            <span>⛔ Pénalité</span>
+            <span>⛔ <span data-i18n="task.penalty"></span></span>
           </label>
           <label class="modal-check" style="flex:1;">
             <input id="isSeriousFault" type="checkbox" />
-            <span>💀 Faute grave</span>
+            <span>💀 <span data-i18n="task.serious"></span></span>
           </label>
         </div>
 
         <div class="form-actions">
-          <button id="cancelFormBtn" class="btn-secondary" type="button">Annuler</button>
-          <button class="btn-primary" type="submit">Ajouter</button>
+          <button id="cancelFormBtn" class="btn-secondary" type="button" data-i18n="task.cancel"></button>
+          <button class="btn-primary" type="submit" data-i18n="task.add"></button>
         </div>
       </form>
     </section>
@@ -186,12 +186,12 @@
 <div id="adminPinOverlay" class="modal-overlay hidden" aria-hidden="true">
   <div class="modal" role="dialog" aria-modal="true" aria-labelledby="adminPinTitle">
     <div class="modal-header">
-      <h3 id="adminPinTitle">🔒 Mode administrateur</h3>
-      <button id="adminPinCloseBtn" class="modal-close" type="button" aria-label="Fermer">✕</button>
+      <h3 id="adminPinTitle">🔒 <span data-i18n="admin.pinTitle"></span></h3>
+      <button id="adminPinCloseBtn" class="modal-close" type="button" data-i18n-aria="task.close">✕</button>
     </div>
 
     <form id="adminPinForm" class="modal-body">
-      <label class="modal-label">Code PIN</label>
+      <label class="modal-label" data-i18n="admin.pinLabel"></label>
       <input
         id="adminPinInput"
         class="modal-input"
@@ -202,21 +202,15 @@
         required
       />
 
-      <div id="adminPinError" class="modal-hint" style="color:#d32f2f; display:none;">
-        Code incorrect
-      </div>
+      <div id="adminPinError" class="modal-hint" style="color:#d32f2f; display:none;" data-i18n="admin.pinWrong"></div>
       <p class="modal-hint" style="margin-top:10px;">
-        <a href="#" id="recoverAdminPinLink">Récupérer le code Admin</a>
+        <a href="#" id="recoverAdminPinLink" data-i18n="admin.recover"></a>
       </p>
       <p id="recoverAdminPinHint" class="modal-hint" style="display:none; color:#2e7d32;"></p>
 
       <div class="modal-footer">
-        <button type="button" id="adminPinCancelBtn" class="btn btn-secondary">
-          Annuler
-        </button>
-        <button type="submit" class="btn btn-primary">
-          Valider
-        </button>
+        <button type="button" id="adminPinCancelBtn" class="btn btn-secondary" data-i18n="admin.cancel"></button>
+        <button type="submit" class="btn btn-primary" data-i18n="admin.validate"></button>
       </div>
     </form>
   </div>
@@ -226,22 +220,22 @@
 <div id="changeAdminPinOverlay" class="modal-overlay hidden" aria-hidden="true">
   <div class="modal" role="dialog" aria-modal="true" aria-labelledby="changeAdminPinTitle">
     <div class="modal-header">
-      <h3 id="changeAdminPinTitle">Changer le code Admin</h3>
-      <button id="changeAdminPinCloseBtn" class="modal-close" type="button" aria-label="Fermer">✕</button>
+      <h3 id="changeAdminPinTitle" data-i18n="admin.changeTitle"></h3>
+      <button id="changeAdminPinCloseBtn" class="modal-close" type="button" data-i18n-aria="task.close">✕</button>
     </div>
     <form id="changeAdminPinForm" class="modal-body">
       <div id="changeAdminPinCurrentWrap">
-        <label class="modal-label" for="changeAdminPinCurrent">Code actuel</label>
+        <label class="modal-label" for="changeAdminPinCurrent" data-i18n="admin.currentPin"></label>
         <input id="changeAdminPinCurrent" class="modal-input" type="password" inputmode="numeric" maxlength="4" autocomplete="off" placeholder="••••" />
       </div>
-      <label class="modal-label" for="changeAdminPinNew">Nouveau code (4 chiffres)</label>
+      <label class="modal-label" for="changeAdminPinNew" data-i18n="admin.newPin"></label>
       <input id="changeAdminPinNew" class="modal-input" type="password" inputmode="numeric" maxlength="4" autocomplete="off" placeholder="••••" required />
-      <label class="modal-label" for="changeAdminPinNew2">Confirmer</label>
+      <label class="modal-label" for="changeAdminPinNew2" data-i18n="admin.confirmPin"></label>
       <input id="changeAdminPinNew2" class="modal-input" type="password" inputmode="numeric" maxlength="4" autocomplete="off" placeholder="••••" required />
       <div id="changeAdminPinError" class="modal-hint" style="color:#d32f2f; display:none;"></div>
       <div class="modal-footer">
-        <button type="button" id="changeAdminPinCancelBtn" class="btn btn-secondary">Annuler</button>
-        <button type="submit" class="btn btn-primary">Enregistrer</button>
+        <button type="button" id="changeAdminPinCancelBtn" class="btn btn-secondary" data-i18n="admin.cancel"></button>
+        <button type="submit" class="btn btn-primary" data-i18n="task.save"></button>
       </div>
     </form>
   </div>
@@ -249,22 +243,22 @@
   <div id="editModalOverlay" class="modal-overlay hidden" aria-hidden="true">
     <div class="modal" role="dialog" aria-modal="true" aria-labelledby="editModalTitle">
       <div class="modal-header">
-        <h3 id="editModalTitle">Modifier la tâche</h3>
-        <button id="editModalCloseBtn" class="modal-close" type="button" aria-label="Fermer">✕</button>
+        <h3 id="editModalTitle" data-i18n="task.edit"></h3>
+        <button id="editModalCloseBtn" class="modal-close" type="button" data-i18n-aria="task.close">✕</button>
       </div>
 
       <form id="editTaskForm" class="modal-body">
         <input type="hidden" id="editTaskId" />
 
-        <label class="modal-label">Titre</label>
+        <label class="modal-label" data-i18n="task.title"></label>
         <input id="editTitle" class="modal-input" type="text" required />
 
-        <label class="modal-label">Description</label>
+        <label class="modal-label" data-i18n="task.description"></label>
         <textarea id="editDescription" class="modal-textarea" rows="3"></textarea>
 
         <div class="modal-row">
           <div class="modal-col">
-            <label class="modal-label">Étoiles</label>
+            <label class="modal-label" data-i18n="task.stars"></label>
             <select id="editStars" class="modal-input">
               <option value="1">1 ⭐</option>
               <option value="2">2 ⭐</option>
@@ -275,12 +269,12 @@
           </div>
 
           <div class="modal-col">
-            <label class="modal-label">Catégorie</label>
+            <label class="modal-label" data-i18n="task.category"></label>
             <select id="editCategory" class="modal-input">
-              <option value="quotidien">quotidien</option>
-              <option value="hebdomadaire">hebdomadaire</option>
-              <option value="mensuel">mensuel</option>
-              <option value="ponctuel">ponctuel</option>
+              <option value="quotidien" data-i18n="task.cat.quotidien"></option>
+              <option value="hebdomadaire" data-i18n="task.cat.hebdomadaire"></option>
+              <option value="mensuel" data-i18n="task.cat.mensuel"></option>
+              <option value="ponctuel" data-i18n="task.cat.ponctuel"></option>
             </select>
           </div>
         </div>
@@ -288,31 +282,31 @@
         <div class="modal-row">
           <label class="modal-check">
             <input id="editIsBonus" type="checkbox" />
-            <span>🎁 Bonus</span>
+            <span>🎁 <span data-i18n="task.bonus"></span></span>
           </label>
 
           <label class="modal-check">
             <input id="editIsPenalty" type="checkbox" />
-            <span>⛔ Pénalité</span>
+            <span>⛔ <span data-i18n="task.penalty"></span></span>
           </label>
 
           <label class="modal-check">
             <input id="editIsSeriousFault" type="checkbox" />
-            <span>💀 Faute grave</span>
+            <span>💀 <span data-i18n="task.serious"></span></span>
           </label>
         </div>
 
         <div id="editDateBlock" class="modal-row hidden">
           <div class="modal-col" style="flex:1;">
-            <label id="editDateLabel" class="modal-label">Date</label>
+            <label id="editDateLabel" class="modal-label" data-i18n="task.date"></label>
             <input id="editSpecificDate" class="modal-input" type="date" />
-            <div class="modal-hint">Ponctuel = date exacte. Mensuel = jour du mois.</div>
+            <div class="modal-hint" data-i18n="task.editDateHint"></div>
           </div>
         </div>
 
         <div class="modal-footer">
-          <button id="editCancelBtn" class="btn btn-secondary" type="button">Annuler</button>
-          <button class="btn btn-primary" type="submit">Enregistrer</button>
+          <button id="editCancelBtn" class="btn btn-secondary" type="button" data-i18n="task.cancel"></button>
+          <button class="btn btn-primary" type="submit" data-i18n="task.save"></button>
         </div>
       </form>
     </div>
@@ -322,105 +316,100 @@
   <div id="authGate" class="auth-gate" aria-hidden="false">
     <div class="auth-card">
       <section id="gate-auth">
-        <h2 id="authTitle">Connexion parent</h2>
-        <p class="gate-lead">Cette copie est réservée à votre famille. 1er mois offert, puis 2,50 €/mois ou 25 €/an.</p>
+        <h2 id="authTitle" data-i18n="gate.loginTitle"></h2>
+        <p class="gate-lead" data-i18n="gate.lead"></p>
         <form id="authForm" data-mode="login">
-          <label class="modal-label" for="authEmail">Email</label>
+          <label class="modal-label" for="authEmail" data-i18n="gate.email"></label>
           <input id="authEmail" class="modal-input" type="email" autocomplete="email" required />
-          <label class="modal-label" for="authPassword">Mot de passe</label>
+          <label class="modal-label" for="authPassword" data-i18n="gate.password"></label>
           <input id="authPassword" class="modal-input" type="password" autocomplete="current-password" required minlength="6" />
           <p id="gateError" class="gate-error" role="alert" style="display:none;"></p>
           <div class="modal-footer" style="margin-top:14px;">
-            <button id="authSubmit" class="btn btn-primary" type="submit">Se connecter</button>
+            <button id="authSubmit" class="btn btn-primary" type="submit" data-i18n="gate.login"></button>
           </div>
         </form>
-        <p><a href="#" id="toggleAuthMode">Créer un compte</a></p>
+        <p><a href="#" id="toggleAuthMode" data-i18n="gate.toggleSignup"></a></p>
       </section>
 
       <section id="gate-verify" class="hidden">
-        <h2>Vérifie ton email</h2>
+        <h2 data-i18n="gate.verifyTitle"></h2>
         <p class="gate-lead">
-          On a envoyé un code à 6 chiffres à <span id="verifyEmailHint"></span>.
-          Il expire dans 15 minutes. Entre-le avant de te connecter.
+          <span data-i18n="gate.verifyLeadBefore"></span>
+          <span id="verifyEmailHint"></span>.
+          <span data-i18n="gate.verifyLeadAfter"></span>
         </p>
         <form id="verifyForm">
-          <label class="modal-label" for="verifyCode">Code à 6 chiffres</label>
+          <label class="modal-label" for="verifyCode" data-i18n="gate.verifyCode"></label>
           <input id="verifyCode" class="modal-input" type="text" inputmode="numeric" pattern="\d{6}" maxlength="6" autocomplete="one-time-code" required />
           <p class="gate-error" role="alert" style="display:none;"></p>
           <p id="verifyResent" class="modal-hint" style="display:none; color:#2e7d32;"></p>
           <div class="modal-footer" style="margin-top:14px;">
-            <button id="verifySubmit" class="btn btn-primary" type="submit">Valider le code</button>
+            <button id="verifySubmit" class="btn btn-primary" type="submit" data-i18n="gate.verifySubmit"></button>
           </div>
         </form>
-        <p><a href="#" id="resendCodeBtn">Renvoyer le code</a> · <a href="#" id="backToAuthBtn">Retour</a></p>
+        <p><a href="#" id="resendCodeBtn" data-i18n="gate.resend"></a> · <a href="#" id="backToAuthBtn" data-i18n="gate.back"></a></p>
       </section>
 
       <section id="gate-checkout" class="hidden">
-        <h2>Choisir l’abonnement</h2>
-        <p class="gate-lead">Essai de 30 jours, carte enregistrée. Ensuite 2,50 € / mois ou 25 € / an (Stripe sandbox).</p>
+        <h2 data-i18n="gate.checkoutTitle"></h2>
+        <p class="gate-lead" data-i18n="gate.checkoutLead"></p>
         <p class="gate-error" role="alert" style="display:none;"></p>
         <div class="plan-row">
           <button id="checkoutMonthlyBtn" class="plan-card" type="button">
-            <strong>Mensuel</strong>
-            <span>2,50 € / mois</span>
-            <small>après 30 jours</small>
+            <strong data-i18n="gate.monthly"></strong>
+            <span data-i18n="gate.priceMonth"></span>
+            <small data-i18n="gate.afterTrial"></small>
           </button>
           <button id="checkoutYearlyBtn" class="plan-card" type="button">
-            <strong>Annuel</strong>
-            <span>25 € / an</span>
-            <small>après 30 jours</small>
+            <strong data-i18n="gate.yearly"></strong>
+            <span data-i18n="gate.priceYear"></span>
+            <small data-i18n="gate.afterTrial"></small>
           </button>
         </div>
       </section>
 
       <section id="gate-gift" class="hidden">
-        <h2>Cette famille est invitée</h2>
-        <p class="gate-lead">
-          Les tarifs habituels restent 2,50 €/mois ou 25 €/an. Grâce au code, votre famille
-          profite de l’appli <b>gratuitement, pour toujours</b> — y compris les améliorations à venir.
-        </p>
+        <h2 data-i18n="gate.giftTitle"></h2>
+        <p class="gate-lead" data-i18n-html="gate.giftLead"></p>
         <p class="gate-error" role="alert" style="display:none;"></p>
         <div class="modal-footer" style="margin-top:14px;">
-          <button id="giftContinueBtn" class="btn btn-primary" type="button">Continuer</button>
+          <button id="giftContinueBtn" class="btn btn-primary" type="button" data-i18n="gate.continue"></button>
         </div>
       </section>
 
       <section id="gate-pin" class="hidden">
-        <h2>Choisis ton code Admin</h2>
-        <p class="gate-lead">
-          4 chiffres, à retenir. On ne l’envoie pas par email maintenant.
-          Plus tard, en mode Admin tu pourras le changer ; sinon « Récupérer le code Admin » enverra un nouveau code.
-        </p>
+        <h2 data-i18n="gate.pinTitle"></h2>
+        <p class="gate-lead" data-i18n="gate.pinLead"></p>
         <form id="setupPinForm">
-          <label class="modal-label" for="setupPin">Code à 4 chiffres</label>
+          <label class="modal-label" for="setupPin" data-i18n="gate.pinCode"></label>
           <input id="setupPin" class="modal-input" type="password" inputmode="numeric" pattern="\d{4}" maxlength="4" autocomplete="new-password" required />
-          <label class="modal-label" for="setupPinConfirm">Confirmer</label>
+          <label class="modal-label" for="setupPinConfirm" data-i18n="gate.pinConfirm"></label>
           <input id="setupPinConfirm" class="modal-input" type="password" inputmode="numeric" pattern="\d{4}" maxlength="4" autocomplete="new-password" required />
           <p class="gate-error" role="alert" style="display:none;"></p>
           <div class="modal-footer" style="margin-top:14px;">
-            <button id="setupPinSubmit" class="btn btn-primary" type="submit">Enregistrer</button>
+            <button id="setupPinSubmit" class="btn btn-primary" type="submit" data-i18n="gate.save"></button>
           </div>
         </form>
       </section>
 
       <section id="gate-kids" class="hidden">
-        <h2>Prénoms des enfants</h2>
-        <p class="gate-lead">Chaque famille nomme ses propres enfants. Papa et Maman restent disponibles pour les tâches.</p>
+        <h2 data-i18n="gate.kidsTitle"></h2>
+        <p class="gate-lead" data-i18n="gate.kidsLead"></p>
         <form id="kidsForm">
-          <input id="childName1" class="modal-input" type="text" placeholder="Enfant 1" required />
-          <input id="childName2" class="modal-input" type="text" placeholder="Enfant 2 (optionnel)" />
-          <input id="childName3" class="modal-input" type="text" placeholder="Enfant 3 (optionnel)" />
-          <input id="childName4" class="modal-input" type="text" placeholder="Enfant 4 (optionnel)" />
+          <input id="childName1" class="modal-input" type="text" data-i18n-placeholder="gate.child1" placeholder="" required />
+          <input id="childName2" class="modal-input" type="text" data-i18n-placeholder="gate.child2" placeholder="" />
+          <input id="childName3" class="modal-input" type="text" data-i18n-placeholder="gate.child3" placeholder="" />
+          <input id="childName4" class="modal-input" type="text" data-i18n-placeholder="gate.child4" placeholder="" />
           <p class="gate-error" role="alert" style="display:none;"></p>
           <div class="modal-footer" style="margin-top:14px;">
-            <button class="btn btn-primary" type="submit">Enregistrer</button>
+            <button class="btn btn-primary" type="submit" data-i18n="gate.save"></button>
           </div>
         </form>
       </section>
 
       <section id="gate-blocked" class="hidden">
-        <h2>Accès impossible</h2>
-        <p id="blockedText" class="gate-lead">Reconnecte-toi pour ouvrir ta famille sur cet URL.</p>
+        <h2 data-i18n="gate.blockedTitle"></h2>
+        <p id="blockedText" class="gate-lead" data-i18n="gate.blockedLead"></p>
       </section>
     </div>
   </div>
@@ -431,15 +420,17 @@
     import { getAuth } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
     import { getFunctions } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-functions.js";
     import { firebaseConfig, FUNCTIONS_REGION } from "./js/firebase-config.js";
+    import { bootI18n } from "./js/i18n.js";
     import { startReplicaGate } from "./js/family-gate.js";
 
     const app = initializeApp(firebaseConfig);
     window.db = getFirestore(app);
     window.auth = getAuth(app);
     window.functions = getFunctions(app, FUNCTIONS_REGION);
+    await bootI18n();
     startReplicaGate();
   </script>
 
-  <script type="module" src="./js/app.js?v=111"></script>
+  <script type="module" src="./js/app.js?v=112"></script>
 </body>
 </html>

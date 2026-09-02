@@ -17,13 +17,8 @@ const {
   nextExpiry,
   evaluateVerify,
 } = require("./lib/signupCodes");
-const {
-  EMAIL_NOT_CONFIGURED_FR,
-  requireEmailConfigured,
-  sendMail,
-  welcomeVerifyEmailHtml,
-  welcomeVerifyEmailText,
-} = require("./lib/mailer");
+const { requireEmailConfigured, sendMail, welcomeVerifyEmailHtml, welcomeVerifyEmailText } = require("./lib/mailer");
+const { t, localeFromRequest, normalizeLocale } = require("./lib/i18n");
 
 function auth() {
   return getAuth(ensureApp());
@@ -33,41 +28,32 @@ function signupCodeRef(email) {
   return db().collection("signup_codes").doc(emailDocId(email));
 }
 
-function frenchAuthError(err) {
+function fail(status, locale, key) {
+  throw new HttpsError(status, t(locale, key), { key });
+}
+
+function mappedAuthError(err, locale) {
   const code = String(err?.code || "");
-  if (code === "auth/email-already-exists") {
-    return new HttpsError("already-exists", "Cet email est déjà utilisé. Connecte-toi.");
-  }
-  if (code === "auth/invalid-email") {
-    return new HttpsError("invalid-argument", "Email invalide.");
-  }
+  if (code === "auth/email-already-exists") return new HttpsError("already-exists", t(locale, "err.emailInUse"), { key: "err.emailInUse" });
+  if (code === "auth/invalid-email") return new HttpsError("invalid-argument", t(locale, "err.invalidEmail"), { key: "err.invalidEmail" });
   if (code === "auth/weak-password" || code === "auth/invalid-password") {
-    return new HttpsError("invalid-argument", "Mot de passe trop faible (6 caractères min.).");
+    return new HttpsError("invalid-argument", t(locale, "err.weakPassword"), { key: "err.weakPassword" });
   }
   return null;
 }
 
-async function findUserByEmail(email) {
+async function findUserByEmail(email, locale) {
   try {
     return await auth().getUserByEmail(email);
   } catch (err) {
     if (err?.code === "auth/user-not-found") return null;
-    const mapped = frenchAuthError(err);
+    const mapped = mappedAuthError(err, locale);
     if (mapped) throw mapped;
     throw err;
   }
 }
 
-async function sendVerifyEmail(email, code) {
-  await sendMail({
-    to: email,
-    subject: "Bienvenue — ton code de vérification",
-    html: welcomeVerifyEmailHtml(code),
-    text: welcomeVerifyEmailText(code),
-  });
-}
-
-async function persistAndSendCode({ email, uid, now }) {
+async function persistAndSendCode({ email, uid, now, locale }) {
   const code = generateSixDigitCode();
   const expiresAtMs = nextExpiry(now);
   await signupCodeRef(email).set({
@@ -77,49 +63,51 @@ async function persistAndSendCode({ email, uid, now }) {
     attempts: 0,
     expiresAtMs,
     lastSentAtMs: now,
+    locale,
     updatedAt: serverTimestamp(),
     createdAt: serverTimestamp(),
   });
-  await sendVerifyEmail(email, code);
+  await sendMail({
+    to: email,
+    locale,
+    subject: t(locale, "email.welcome.subject"),
+    html: welcomeVerifyEmailHtml(code, locale),
+    text: welcomeVerifyEmailText(code, locale),
+  });
 }
 
 exports.requestSignup = onCall(
   CALLABLE,
   wrapCallable("requestSignup", async (request) => {
+    const locale = localeFromRequest(request);
     const email = normalizeEmail(request.data?.email);
     const password = request.data?.password;
-    if (!isValidEmail(email)) {
-      throw new HttpsError("invalid-argument", "Email invalide.");
-    }
-    if (!isValidSignupPassword(password)) {
-      throw new HttpsError("invalid-argument", "Mot de passe trop faible (6 caractères min.).");
-    }
+    if (!isValidEmail(email)) fail("invalid-argument", locale, "err.invalidEmail");
+    if (!isValidSignupPassword(password)) fail("invalid-argument", locale, "err.weakPassword");
 
     try {
-      requireEmailConfigured();
+      requireEmailConfigured(locale);
     } catch (err) {
-      throw new HttpsError("failed-precondition", EMAIL_NOT_CONFIGURED_FR);
+      fail("failed-precondition", locale, "err.emailNotConfigured");
     }
 
     ensureApp();
     const now = Date.now();
-    let user = await findUserByEmail(email);
+    let user = await findUserByEmail(email, locale);
 
-    if (user && !user.disabled) {
-      throw new HttpsError("already-exists", "Cet email est déjà utilisé. Connecte-toi.");
-    }
+    if (user && !user.disabled) fail("already-exists", locale, "err.emailInUse");
 
     const existingCode = await signupCodeRef(email).get();
     const record = existingCode.exists ? existingCode.data() : null;
     if (record && !isCodeExpired(record, now) && !canResend(record, now)) {
-      throw new HttpsError("resource-exhausted", "Attends une minute avant de renvoyer le code.");
+      fail("resource-exhausted", locale, "err.resendWait");
     }
 
     if (user) {
       try {
         await auth().updateUser(user.uid, { password, disabled: true });
       } catch (err) {
-        const mapped = frenchAuthError(err);
+        const mapped = mappedAuthError(err, locale);
         if (mapped) throw mapped;
         throw err;
       }
@@ -132,43 +120,35 @@ exports.requestSignup = onCall(
           emailVerified: false,
         });
       } catch (err) {
-        const mapped = frenchAuthError(err);
+        const mapped = mappedAuthError(err, locale);
         if (mapped) throw mapped;
         throw err;
       }
     }
 
     try {
-      await persistAndSendCode({ email, uid: user.uid, now });
+      await persistAndSendCode({ email, uid: user.uid, now, locale });
     } catch (err) {
-      if (err?.code === "EMAIL_NOT_CONFIGURED") {
-        throw new HttpsError("failed-precondition", EMAIL_NOT_CONFIGURED_FR);
-      }
+      if (err?.code === "EMAIL_NOT_CONFIGURED") fail("failed-precondition", locale, "err.emailNotConfigured");
       console.error("requestSignup mail failed");
       await signupCodeRef(email)
         .set({ lastSentAtMs: 0, updatedAt: serverTimestamp() }, { merge: true })
         .catch(() => {});
-      throw new HttpsError(
-        "unavailable",
-        "Impossible d’envoyer l’email de vérification. Réessaie dans un instant."
-      );
+      fail("unavailable", locale, "err.verifyMailFailed");
     }
 
-    return { ok: true, email };
+    return { ok: true, email, locale };
   })
 );
 
 exports.verifyEmailCode = onCall(
   CALLABLE,
   wrapCallable("verifyEmailCode", async (request) => {
+    const locale = localeFromRequest(request);
     const email = normalizeEmail(request.data?.email);
     const code = String(request.data?.code || "").trim();
-    if (!isValidEmail(email)) {
-      throw new HttpsError("invalid-argument", "Email invalide.");
-    }
-    if (!isValidSixDigitCode(code)) {
-      throw new HttpsError("invalid-argument", "Le code doit contenir 6 chiffres.");
-    }
+    if (!isValidEmail(email)) fail("invalid-argument", locale, "err.invalidEmail");
+    if (!isValidSixDigitCode(code)) fail("invalid-argument", locale, "err.codeSixDigits");
 
     ensureApp();
     const now = Date.now();
@@ -183,28 +163,23 @@ exports.verifyEmailCode = onCall(
     }
 
     if (!result.ok) {
-      if (result.reason === "expired" || result.reason === "missing") {
-        throw new HttpsError("deadline-exceeded", "Ce code a expiré. Demande-en un nouveau.");
-      }
-      if (result.reason === "locked") {
-        throw new HttpsError("resource-exhausted", "Trop d’essais. Demande un nouveau code.");
-      }
-      throw new HttpsError("permission-denied", "Code incorrect.");
+      if (result.reason === "expired" || result.reason === "missing") fail("deadline-exceeded", locale, "err.codeExpired");
+      if (result.reason === "locked") fail("resource-exhausted", locale, "err.codeLocked");
+      fail("permission-denied", locale, "err.codeWrong");
     }
 
     const uid = record.uid;
-    if (!uid) {
-      throw new HttpsError("failed-precondition", "Compte introuvable. Recommence l’inscription.");
-    }
+    if (!uid) fail("failed-precondition", locale, "err.accountMissing");
 
     try {
       await auth().updateUser(uid, { disabled: false, emailVerified: true });
     } catch (err) {
-      const mapped = frenchAuthError(err);
+      const mapped = mappedAuthError(err, locale);
       if (mapped) throw mapped;
       throw err;
     }
 
+    const savedLocale = normalizeLocale(record.locale || locale);
     await ref.delete().catch(() => {});
 
     let token = null;
@@ -214,6 +189,6 @@ exports.verifyEmailCode = onCall(
       console.error("verifyEmailCode custom token failed");
     }
 
-    return { ok: true, token };
+    return { ok: true, token, locale: savedLocale };
   })
 );
