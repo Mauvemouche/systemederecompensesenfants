@@ -228,5 +228,9 @@
   "terms.withdrawTitle": "Herroepingsrecht",
   "terms.withdrawBody": "Consumenten in de EU hebben 14 dagen bedenktijd. Als u de app tijdens de proefperiode al gebruikt, kan dat gevolgen hebben voor dat herroepingsrecht (uitvoering van de dienst tijdens de bedenktijd).",
   "terms.contactTitle": "Contact",
-  "terms.contactHtml": "Vragen: <a data-legal-mail></a>."
+  "terms.contactHtml": "Vragen: <a data-legal-mail></a>.",
+  "footer.belgianDad": "Een Belgische papa",
+  "legal.contactTitle": "Contact",
+  "legal.belgianDad": "Een Belgische papa",
+  "legal.paidNote": "Voor vragen vóór of tijdens de proefperiode: kidsrewardsystem@proton.me. De volledige wettelijke naam en het geografische adres worden in de app getoond na de eerste betaalde factuur (niet tijdens de proefperiode van 30 dagen, en niet als een promo het abonnement gratis maakt)."
 }

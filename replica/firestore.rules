@@ -66,6 +66,11 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
+    /* Operator name/street live here or in Cloud Run env — never client-readable. */
+    match /platform/{docId} {
+      allow read, write: if false;
+    }
+
     match /{document=**} {
       allow read, write: if false;
     }

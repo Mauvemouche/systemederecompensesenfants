@@ -228,5 +228,9 @@
   "terms.withdrawTitle": "Widerrufsrecht",
   "terms.withdrawBody": "Verbraucher in der EU haben 14 Tage Widerrufsrecht. Die Nutzung der App während des Testzeitraums kann dieses Recht beeinflussen (Beginn der Dienstleistung während der Widerrufsfrist).",
   "terms.contactTitle": "Kontakt",
-  "terms.contactHtml": "Fragen: <a data-legal-mail></a>."
+  "terms.contactHtml": "Fragen: <a data-legal-mail></a>.",
+  "footer.belgianDad": "Ein belgischer Papa",
+  "legal.contactTitle": "Kontakt",
+  "legal.belgianDad": "Ein belgischer Papa",
+  "legal.paidNote": "Fragen vor oder während der Testphase: kidsrewardsystem@proton.me. Der vollständige gesetzliche Name und die geografische Adresse werden in der App nach der ersten bezahlten Rechnung angezeigt (nicht während der 30-tägigen Testphase und nicht, wenn eine Promo das Abo kostenlos macht)."
 }

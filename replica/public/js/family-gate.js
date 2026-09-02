@@ -15,7 +15,11 @@ import {
   applyFamilyLocale,
   AUTH_ERROR_KEYS,
 } from "./i18n.js";
-import { fillLegalIdentity } from "./legal-identity.js";
+import {
+  fillPublicContact,
+  hidePaidOperatorIdentity,
+  applyPaidOperatorIdentity,
+} from "./legal-identity.js";
 
 const $ = (id) => document.getElementById(id);
 
@@ -151,6 +155,20 @@ function accountBar(state, user) {
   if (billEl) billEl.textContent = billingLabel(state);
 }
 
+async function refreshPaidLegalIdentity(state) {
+  fillPublicContact();
+  if (!window.auth?.currentUser || !state?.familyId) {
+    hidePaidOperatorIdentity();
+    return;
+  }
+  try {
+    const res = await callFn("getOperatorLegalIdentity");
+    applyPaidOperatorIdentity(res.data);
+  } catch (_) {
+    hidePaidOperatorIdentity();
+  }
+}
+
 async function applyState(state) {
   window.__replicaState = state;
   await applyFamilyLocale(state?.locale);
@@ -160,6 +178,7 @@ async function applyState(state) {
     renderFamilyShell(state.people);
   }
   accountBar(state, window.auth?.currentUser);
+  await refreshPaidLegalIdentity(state);
 }
 
 async function refreshState(plan) {
@@ -434,7 +453,7 @@ export function startReplicaGate() {
   bindUi();
   onLocaleChange(() => {
     syncAuthLabels();
-    fillLegalIdentity();
+    fillPublicContact();
     accountBar(window.__replicaState, window.auth?.currentUser);
     if (window.__replicaState?.people) renderFamilyShell(window.__replicaState.people);
     retranslateErrors();
@@ -451,6 +470,8 @@ export function startReplicaGate() {
     if (!user) {
       window.__replicaState = null;
       accountBar(null, null);
+      hidePaidOperatorIdentity();
+      fillPublicContact();
       setGate(true);
       showPanel(pendingSignup ? "verify" : "auth");
       return;

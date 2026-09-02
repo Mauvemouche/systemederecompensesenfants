@@ -228,5 +228,9 @@
   "terms.withdrawTitle": "Right of withdrawal",
   "terms.withdrawBody": "EU consumers have 14 days to withdraw. Using the app during the trial may affect that right (performance of the service during the withdrawal period).",
   "terms.contactTitle": "Contact",
-  "terms.contactHtml": "Questions: <a data-legal-mail></a>."
+  "terms.contactHtml": "Questions: <a data-legal-mail></a>.",
+  "footer.belgianDad": "A Belgian father",
+  "legal.contactTitle": "Contact",
+  "legal.belgianDad": "A Belgian father",
+  "legal.paidNote": "For questions before or during the trial: kidsrewardsystem@proton.me. The full legal name and geographic address are displayed in the app after the first paid invoice (not during the 30-day trial, and not if a promo makes the subscription free)."
 }

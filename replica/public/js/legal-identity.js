@@ -1,28 +1,32 @@
 /**
- * Fill these ALL-CAPS placeholders yourself before going live.
- * Never commit a real home address to the repo.
- *
- * YOUR_COUNTRY is Belgium as jurisdiction; keep the placeholder until you type it.
- * CONTACT_EMAIL defaults to kidsrewardsystem@proton.me.
- * BCE_KBO_NUMBER and VAT_NUMBER are optional.
+ * Public contact only. Never put a legal name or street address in this file.
+ * Paid-family identity is served by getOperatorLegalIdentity after amount_paid > 0.
  */
-export const LEGAL_IDENTITY = {
-  legalName: "YOUR_LEGAL_NAME",
-  streetAddress: "YOUR_STREET_ADDRESS",
-  postcodeCity: "YOUR_POSTCODE_CITY",
-  country: "YOUR_COUNTRY",
-  contactEmail: "kidsrewardsystem@proton.me",
-  bceKbo: "BCE_KBO_NUMBER",
-  vatNumber: "VAT_NUMBER",
-};
+export const PUBLIC_CONTACT_EMAIL = "kidsrewardsystem@proton.me";
 
-export function fillLegalIdentity(root = document) {
-  root.querySelectorAll("[data-legal]").forEach((el) => {
-    const key = el.getAttribute("data-legal");
-    if (key && LEGAL_IDENTITY[key] != null) el.textContent = LEGAL_IDENTITY[key];
-  });
+export function fillPublicContact(root = document) {
   root.querySelectorAll("[data-legal-mail]").forEach((el) => {
-    el.setAttribute("href", `mailto:${LEGAL_IDENTITY.contactEmail}`);
-    if (!el.textContent.trim()) el.textContent = LEGAL_IDENTITY.contactEmail;
+    el.setAttribute("href", `mailto:${PUBLIC_CONTACT_EMAIL}`);
+    if (!el.textContent.trim()) el.textContent = PUBLIC_CONTACT_EMAIL;
   });
+}
+
+export function hidePaidOperatorIdentity() {
+  const wrap = document.getElementById("paidLegalIdentity");
+  if (wrap) wrap.hidden = true;
+}
+
+export function applyPaidOperatorIdentity(identity) {
+  const wrap = document.getElementById("paidLegalIdentity");
+  const line = document.getElementById("paidLegalLine");
+  if (!wrap) return;
+  if (!identity?.revealed || !identity.legalName || !identity.streetAddress) {
+    wrap.hidden = true;
+    return;
+  }
+  const parts = [identity.legalName, identity.streetAddress, identity.postcodeCity, identity.country].filter(
+    (part) => String(part || "").trim()
+  );
+  if (line) line.textContent = parts.join(" · ");
+  wrap.hidden = parts.length < 2;
 }

@@ -6,7 +6,7 @@
   <title>Système de récompenses</title>
 
   <!-- IMPORTANT: garde ton styles.css existant -->
-  <link rel="stylesheet" href="./styles.css?v=113" />
+  <link rel="stylesheet" href="./styles.css?v=114" />
 </head>
 
 <body>
@@ -420,11 +420,9 @@
 
   <footer class="app-legal-footer" id="appLegalFooter">
     <span>
-      <span data-legal="legalName"></span>
-      · <span data-legal="streetAddress"></span>
-      · <span data-legal="postcodeCity"></span>
-      · <span data-legal="country"></span>
+      <span data-i18n="footer.belgianDad"></span>
       · <a data-legal-mail></a>
+      <span id="paidLegalIdentity" hidden> · <span id="paidLegalLine"></span></span>
     </span>
     <span>
       <a href="./privacy.html" data-i18n="footer.privacy"></a>
@@ -440,7 +438,7 @@
     import { getFunctions } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-functions.js";
     import { firebaseConfig, FUNCTIONS_REGION } from "./js/firebase-config.js";
     import { bootI18n } from "./js/i18n.js";
-    import { fillLegalIdentity } from "./js/legal-identity.js";
+    import { fillPublicContact } from "./js/legal-identity.js";
     import { startReplicaGate } from "./js/family-gate.js";
 
     const app = initializeApp(firebaseConfig);
@@ -448,10 +446,10 @@
     window.auth = getAuth(app);
     window.functions = getFunctions(app, FUNCTIONS_REGION);
     await bootI18n();
-    fillLegalIdentity();
+    fillPublicContact();
     startReplicaGate();
   </script>
 
-  <script type="module" src="./js/app.js?v=113"></script>
+  <script type="module" src="./js/app.js?v=114"></script>
 </body>
 </html>

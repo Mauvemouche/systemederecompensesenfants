@@ -35,9 +35,22 @@ Signup verification and Admin PIN recovery also use `EMAIL_USER` / `EMAIL_PASSWO
 
 Languages: **nl, fr, de, en** (Dutch first). Unknown locale and default mail locale: **nl**.
 
-## Legal identity (fill before going live)
+## Legal identity (paid families only)
 
-Edit `public/js/legal-identity.js`. Keep the ALL-CAPS placeholders until you type the real values yourself. Do **not** commit a home address by accident. `CONTACT_EMAIL` already defaults to `kidsrewardsystem@proton.me`. BCE/KBO and VAT are optional. Replica hosting has **no** Firebase Analytics / gtag / cookie banner.
+Never commit a real name or street address.
+
+Public surfaces (gate, signup, `privacy.html`, `terms.html`, emails, visitors, trial, unpaid, 100% forever promo) show only `kidsrewardsystem@proton.me` and optionally “a Belgian father”.
+
+After **that family’s first Stripe invoice with `amount_paid > 0`**, the logged-in app can show the operator name and street. Set these on the Cloud Run services for `getOperatorLegalIdentity` (or in Firestore `platform/legal_identity`, Admin SDK only — clients cannot read it):
+
+```
+OPERATOR_LEGAL_NAME
+OPERATOR_STREET_ADDRESS
+```
+
+Optional: `OPERATOR_POSTCODE_CITY`, `OPERATOR_COUNTRY`, `OPERATOR_BCE_KBO`, `OPERATOR_VAT`.
+
+Do **not** put real values in git, locale JSON, or `replica/public`. Trial checkout and founder/promo with no charge do not reveal the address. Replica hosting has **no** Firebase Analytics / gtag / cookie banner.
 
 ## Stripe promo / founder codes (sandbox only)
 

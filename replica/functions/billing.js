@@ -15,6 +15,7 @@ const {
   readFamilyBilling,
   readFamilySettings,
   resolveFamilyForUser,
+  shouldKeepExistingMembership,
 } = require("./lib/families");
 const { buildCheckoutSessionParams, resolvePriceId, assertSandboxKey } = require("./lib/stripeCheckout");
 const { stripeRequest, verifyStripeSignature } = require("./lib/stripeHttp");
@@ -31,6 +32,14 @@ const {
   wrapCallable,
 } = require("./lib/callable");
 const { t, localeFromRequest, normalizeLocale, stripeCheckoutLocale } = require("./lib/i18n");
+const {
+  publicContactPayload,
+  invoicesIncludePaidCharge,
+  canRevealOperator,
+  revealPayload,
+  loadOperatorIdentity,
+  listCustomerInvoices,
+} = require("./lib/operatorIdentity");
 
 function instanceId() {
   return process.env.GCLOUD_PROJECT || ensureApp().options.projectId || "replica";
@@ -175,6 +184,41 @@ exports.bootstrapInstance = onCall(
     state.claimsNeedRefresh = claimed || resolved.created || resolved.migrated;
     state.migratedFromLegacy = !!resolved.migrated;
     return state;
+  })
+);
+
+exports.getOperatorLegalIdentity = onCall(
+  CALLABLE_STRIPE,
+  wrapCallable("getOperatorLegalIdentity", async (request) => {
+    const { uid } = requireAuth(request);
+    ensureApp();
+    const publicPayload = publicContactPayload();
+
+    const memberSnap = await memberRef(uid).get();
+    const familyId = memberSnap.exists ? memberSnap.data().familyId : null;
+    if (!familyId) return publicPayload;
+
+    const billing = await readFamilyBilling(familyId);
+    if (!shouldKeepExistingMembership(billing, uid)) return publicPayload;
+    if (!billing?.stripeCustomerId) return publicPayload;
+
+    const secret = process.env.STRIPE_SECRET_KEY;
+    if (!secret) return publicPayload;
+
+    let invoices = [];
+    try {
+      invoices = await listCustomerInvoices(stripeRequest, secret, billing.stripeCustomerId);
+    } catch (err) {
+      console.error("getOperatorLegalIdentity invoices failed", err?.message || err);
+      return publicPayload;
+    }
+
+    const paidCharge = invoicesIncludePaidCharge(invoices);
+    if (!paidCharge) return publicPayload;
+
+    const operator = await loadOperatorIdentity();
+    if (!canRevealOperator(operator, paidCharge)) return publicPayload;
+    return revealPayload(operator);
   })
 );
 
@@ -482,7 +526,10 @@ exports.stripeWebhook = onRequest(
               console.error("Webhook invoice event missing familyId", invoice.id);
               break;
             }
-            await applyFamilyBilling(familyId, billingFromSubscription(sub));
+            await applyFamilyBilling(familyId, {
+              ...billingFromSubscription(sub),
+              ...(Number(invoice.amount_paid) > 0 ? { hasPaidInvoice: true } : {}),
+            });
           }
           break;
         }

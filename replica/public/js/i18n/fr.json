@@ -228,5 +228,9 @@
   "terms.withdrawTitle": "Droit de rétractation",
   "terms.withdrawBody": "Les consommateurs dans l’UE disposent de 14 jours de rétractation. L’utilisation de l’appli pendant l’essai peut affecter ce droit (exécution du service pendant le délai de rétractation).",
   "terms.contactTitle": "Contact",
-  "terms.contactHtml": "Questions : <a data-legal-mail></a>."
+  "terms.contactHtml": "Questions : <a data-legal-mail></a>.",
+  "footer.belgianDad": "Un papa belge",
+  "legal.contactTitle": "Contact",
+  "legal.belgianDad": "Un papa belge",
+  "legal.paidNote": "Pour toute question avant ou pendant l’essai : kidsrewardsystem@proton.me. Le nom légal complet et l’adresse géographique s’affichent dans l’appli après la première facture payée (pas pendant l’essai de 30 jours, ni si un code promo rend l’abonnement gratuit)."
 }
