@@ -210,6 +210,36 @@ function bindUi() {
       setError(err.message || "Portail Stripe indisponible");
     }
   });
+
+  document.addEventListener("click", (e) => {
+    const btn = e.target.closest?.(".btn-rename-person");
+    if (!btn) return;
+    e.preventDefault();
+    renamePersonFromBoard(btn);
+  });
+}
+
+async function renamePersonFromBoard(btn) {
+  if (!window.__replicaState?.isOwner || !window.__replicaState?.hasAccess) return;
+  const personId = btn.dataset.personId;
+  const current = (window.__replicaState?.people || []).find((p) => p.id === personId);
+  const next = window.prompt("Modifier le prénom", current?.name || "");
+  if (next == null) return;
+  const name = String(next).trim();
+  if (!name || name.length > 40) {
+    window.alert("Le prénom doit faire entre 1 et 40 caractères.");
+    return;
+  }
+  btn.disabled = true;
+  try {
+    const res = await callFn("renamePerson", { personId, name });
+    await applyState(res.data);
+    window.startFamilyBoard?.();
+  } catch (err) {
+    window.alert(err.message || "Impossible de modifier ce prénom.");
+  } finally {
+    btn.disabled = false;
+  }
 }
 
 async function startCheckout(plan) {

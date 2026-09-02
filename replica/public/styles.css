@@ -200,6 +200,25 @@ body{
 }
 
 .person-name{ font-size:2rem; font-weight:900; }
+.person-name-row{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  flex-wrap:wrap;
+  min-width:0;
+}
+.btn-rename-person{
+  font-size:12px;
+  font-weight:800;
+  padding:4px 10px;
+  border-radius:999px;
+  border:2px solid currentColor;
+  background:#fff;
+  cursor:pointer;
+  line-height:1.2;
+}
+.btn-rename-person:hover{ opacity:.85; }
+.btn-rename-person:disabled{ opacity:.55; cursor:wait; }
 .papa .person-name{ color:var(--papa-color); }
 .maman .person-name{ color:var(--maman-color); }
 .florent .person-name,.child-a .person-name{ color:var(--child-a-color); }

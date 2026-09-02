@@ -59,6 +59,29 @@ function childIds(people) {
   return (people || []).filter((p) => p.role === "child").map((p) => p.id);
 }
 
+function normalizePersonName(raw) {
+  const name = String(raw ?? "").trim();
+  if (name.length < 1 || name.length > 40) return null;
+  return name;
+}
+
+function renamePersonInList(people, personId, rawName) {
+  const name = normalizePersonName(rawName);
+  if (!name) return { error: "invalid-name" };
+  const list = (people || []).map((p) => ({ ...p }));
+  const idx = list.findIndex((p) => p.id === personId);
+  if (idx < 0) return { error: "not-found" };
+  const current = list[idx];
+  list[idx] = {
+    ...current,
+    id: current.id,
+    role: current.role,
+    theme: current.theme,
+    name,
+  };
+  return { people: list };
+}
+
 module.exports = {
   THEME_KEYS,
   DEFAULT_PARENTS,
@@ -68,4 +91,6 @@ module.exports = {
   peopleFromChildNames,
   personIds,
   childIds,
+  normalizePersonName,
+  renamePersonInList,
 };

@@ -53,9 +53,18 @@ export function renderFamilyShell(people) {
   }
 }
 
+function personNameRow(p) {
+  const name = escapeHtml(p.name);
+  const id = escapeAttr(p.id);
+  const canRename = !!(window.__replicaState?.isOwner && window.__replicaState?.hasAccess);
+  const edit = canRename
+    ? `<button type="button" class="btn-rename-person" data-person-id="${id}" title="Modifier">Modifier</button>`
+    : "";
+  return `<div class="person-name-row"><div class="person-name">${name}</div>${edit}</div>`;
+}
+
 function personSectionHtml(p) {
   const theme = p.theme || p.id;
-  const name = escapeHtml(p.name);
   const id = escapeAttr(p.id);
   const isChild = p.role === "child";
 
@@ -74,7 +83,7 @@ function personSectionHtml(p) {
 
   const titleInner = isChild
     ? `<div class="person-left">
-    <div class="person-name">${name}</div>
+    ${personNameRow(p)}
     <div class="tasks-count"><span id="tasks-count-${id}">0</span> tâche(s)</div>
   </div>
   <div class="person-right">
@@ -82,7 +91,7 @@ function personSectionHtml(p) {
     <div class="progress-details"><span id="percentage-${id}">0%</span></div>
   </div>`
     : `<div>
-              <div class="person-name">${name}</div>
+              ${personNameRow(p)}
               <div class="tasks-count"><span id="tasks-count-${id}">0</span> tâche(s)</div>
             </div>
             <div class="stats">

@@ -2,7 +2,7 @@
 
 const { db, ensureApp, serverTimestamp } = require("./lib/adminApp");
 const { hasAppAccess, needsCheckout, needsKidsSetup, billingFromSubscription } = require("./lib/access");
-const { peopleFromChildNames, DEFAULT_FAMILY } = require("./lib/family");
+const { peopleFromChildNames, DEFAULT_FAMILY, renamePersonInList } = require("./lib/family");
 const { buildCheckoutSessionParams, resolvePriceId, assertSandboxKey } = require("./lib/stripeCheckout");
 const { stripeRequest, verifyStripeSignature } = require("./lib/stripeHttp");
 const {
@@ -262,6 +262,42 @@ exports.saveChildren = onCall(
       {
         people,
         kidsNamed: true,
+        updatedAt: serverTimestamp(),
+      },
+      { merge: true }
+    );
+
+    return serializeState(await readBilling(), await readSettings(), uid);
+  })
+);
+
+exports.renamePerson = onCall(
+  CALLABLE,
+  wrapCallable("renamePerson", async (request) => {
+    const { uid } = requireAuth(request);
+    const billing = await assertOwner(uid);
+    if (!hasAppAccess(billing)) {
+      throw new HttpsError("failed-precondition", "Abonnement requis.");
+    }
+
+    const personId = String(request.data?.personId || "").trim();
+    if (!personId) {
+      throw new HttpsError("invalid-argument", "Personne requise.");
+    }
+
+    const settings = await readSettings();
+    const currentPeople = Array.isArray(settings?.people) && settings.people.length ? settings.people : DEFAULT_FAMILY;
+    const result = renamePersonInList(currentPeople, personId, request.data?.name);
+    if (result.error === "invalid-name") {
+      throw new HttpsError("invalid-argument", "Le prénom doit faire entre 1 et 40 caractères.");
+    }
+    if (result.error === "not-found") {
+      throw new HttpsError("not-found", "Personne introuvable.");
+    }
+
+    await db().collection("family_config").doc("settings").set(
+      {
+        people: result.people,
         updatedAt: serverTimestamp(),
       },
       { merge: true }

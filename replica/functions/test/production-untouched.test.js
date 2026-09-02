@@ -133,6 +133,8 @@ describe("replica functions deploy without optional email secrets", () => {
     assert.equal(typeof fns.dailyResetAndStats, "function");
     assert.equal(typeof fns.bootstrapInstance, "function");
     assert.equal(typeof fns.stripeWebhook, "function");
+    assert.equal(typeof fns.renamePerson, "function");
+    assert.equal(typeof fns.saveChildren, "function");
     const platform = fns.stripeWebhook.__endpoint?.platform || fns.bootstrapInstance.__endpoint?.platform;
     assert.equal(platform, "gcfv2");
     assert.equal(getApps().length, before);
@@ -144,6 +146,36 @@ describe("replica functions deploy without optional email secrets", () => {
     assert.equal(js.includes('args.length ? args : ["deploy"]'), false);
     const cmd = fs.readFileSync(path.join(repoRoot, "replica/scripts/deploy.cmd"), "utf8");
     assert.match(cmd, /firebase deploy %\*/);
+  });
+});
+
+describe("replica family board rename (paid test instance only)", () => {
+  it("adds a Modifier control next to each person name on the replica board", () => {
+    const ui = fs.readFileSync(path.join(repoRoot, "replica/public/js/family-ui.js"), "utf8");
+    assert.match(ui, /btn-rename-person/);
+    assert.match(ui, />Modifier</);
+    assert.match(ui, /personNameRow/);
+    const gate = fs.readFileSync(path.join(repoRoot, "replica/public/js/family-gate.js"), "utf8");
+    assert.match(gate, /callFn\("renamePerson"/);
+    assert.match(gate, /prompt\("Modifier le prénom"/);
+    const billing = fs.readFileSync(path.join(repoRoot, "replica/functions/billing.js"), "utf8");
+    assert.match(billing, /exports\.renamePerson/);
+    assert.match(billing, /assertOwner\(uid\)/);
+    assert.match(billing, /renamePersonInList/);
+  });
+
+  it("does not add rename controls or a rename callable to Anthony's live app", () => {
+    const files = [
+      "public/js/app.js",
+      "public/index.html",
+      "public/js/gestion-taches.js",
+      "functions/index.js",
+    ];
+    for (const rel of files) {
+      const text = fs.readFileSync(path.join(repoRoot, rel), "utf8");
+      assert.equal(text.includes("btn-rename-person"), false, rel);
+      assert.equal(text.includes("renamePerson"), false, rel);
+    }
   });
 });
 

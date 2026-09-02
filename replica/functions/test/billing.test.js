@@ -12,7 +12,7 @@ const {
   encodeStripeParams,
 } = require("../lib/stripeCheckout");
 const { verifyStripeSignature } = require("../lib/stripeHttp");
-const { peopleFromChildNames, DEFAULT_FAMILY } = require("../lib/family");
+const { peopleFromChildNames, DEFAULT_FAMILY, renamePersonInList } = require("../lib/family");
 
 describe("replica Stripe Checkout (sandbox)", () => {
   it("uses a 30-day trial, not a 0 EUR price", () => {
@@ -121,5 +121,38 @@ describe("replica family names", () => {
       people.some((p) => p.id === "florent" || p.id === "harry"),
       false
     );
+  });
+
+  it("renames a person by id without changing id, role, or theme", () => {
+    const result = renamePersonInList(DEFAULT_FAMILY, "kid-1", "  Léa  ");
+    assert.equal(result.error, undefined);
+    const kid = result.people.find((p) => p.id === "kid-1");
+    const papa = result.people.find((p) => p.id === "papa");
+    assert.equal(kid.name, "Léa");
+    assert.equal(kid.role, "child");
+    assert.equal(kid.theme, "child-a");
+    assert.equal(papa.name, "Papa");
+    assert.equal(papa.role, "parent");
+    assert.deepEqual(
+      result.people.map((p) => p.id),
+      ["papa", "maman", "kid-1", "kid-2"]
+    );
+  });
+
+  it("lets the parent rename Papa or Maman while keeping parent roles", () => {
+    const papa = renamePersonInList(DEFAULT_FAMILY, "papa", "Pierre");
+    assert.equal(papa.people.find((p) => p.id === "papa").name, "Pierre");
+    assert.equal(papa.people.find((p) => p.id === "papa").role, "parent");
+    const maman = renamePersonInList(DEFAULT_FAMILY, "maman", "Anne");
+    assert.equal(maman.people.find((p) => p.id === "maman").name, "Anne");
+    assert.equal(maman.people.find((p) => p.id === "maman").role, "parent");
+  });
+
+  it("refuses empty, whitespace-only, and too-long names", () => {
+    assert.equal(renamePersonInList(DEFAULT_FAMILY, "kid-1", "").error, "invalid-name");
+    assert.equal(renamePersonInList(DEFAULT_FAMILY, "kid-1", "   ").error, "invalid-name");
+    assert.equal(renamePersonInList(DEFAULT_FAMILY, "kid-1", "x".repeat(41)).error, "invalid-name");
+    assert.equal(renamePersonInList(DEFAULT_FAMILY, "kid-1", "x".repeat(40)).error, undefined);
+    assert.equal(renamePersonInList(DEFAULT_FAMILY, "inconnu", "Léa").error, "not-found");
   });
 });
