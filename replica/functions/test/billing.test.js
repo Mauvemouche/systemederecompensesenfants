@@ -10,6 +10,11 @@ const {
   PRICE_YEARLY,
   TRIAL_DAYS,
   assertSandboxKey,
+  assertStripeLivemode,
+  checkoutSessionIdOk,
+  isLiveStripeProject,
+  resolveGcpProjectId,
+  resolvePriceId,
   buildCheckoutSessionParams,
   encodeStripeParams,
   resolveCheckoutTrial,
@@ -67,9 +72,43 @@ describe("replica Stripe Checkout (sandbox)", () => {
     assert.equal(params.subscription_data.metadata.firebaseUid, "uid_1");
   });
 
-  it("rejects live Stripe secret keys", () => {
+  it("rejects live Stripe secret keys unless the Cloud project is kidsrewardsystem", () => {
+    const testEnv = { GCLOUD_PROJECT: "recompenses-test" };
+    const missingEnv = {};
+    const liveEnv = { GCLOUD_PROJECT: "kidsrewardsystem" };
+    const liveFromFirebaseConfig = { FIREBASE_CONFIG: JSON.stringify({ projectId: "kidsrewardsystem" }) };
+
+    assert.equal(resolveGcpProjectId(testEnv), "recompenses-test");
+    assert.equal(isLiveStripeProject(testEnv), false);
+    assert.equal(isLiveStripeProject(missingEnv), false);
+    assert.equal(isLiveStripeProject(liveEnv), true);
+    assert.equal(isLiveStripeProject(liveFromFirebaseConfig), true);
+
+    assert.throws(() => assertSandboxKey("sk_live_example", testEnv), /sandbox|forbidden|Live/i);
+    assert.throws(() => assertSandboxKey("rk_live_example", testEnv), /sandbox|forbidden|Live/i);
+    assert.throws(() => assertSandboxKey("sk_live_example", missingEnv), /sandbox|forbidden|Live/i);
     assert.throws(() => assertSandboxKey("sk_live_example"), /sandbox|forbidden|Live/i);
+    assert.doesNotThrow(() => assertSandboxKey("sk_test_example", testEnv));
     assert.doesNotThrow(() => assertSandboxKey("sk_test_example"));
+
+    assert.doesNotThrow(() => assertSandboxKey("sk_live_example", liveEnv));
+    assert.doesNotThrow(() => assertSandboxKey("rk_live_example", liveEnv));
+    assert.doesNotThrow(() => assertSandboxKey("sk_live_example", liveFromFirebaseConfig));
+    assert.throws(() => assertSandboxKey("sk_test_example", liveEnv), /kidsrewardsystem|sk_test/i);
+
+    assert.throws(() => assertStripeLivemode(true, testEnv), /Live mode forbidden/);
+    assert.doesNotThrow(() => assertStripeLivemode(false, testEnv));
+    assert.doesNotThrow(() => assertStripeLivemode(true, liveEnv));
+    assert.throws(() => assertStripeLivemode(false, liveEnv), /kidsrewardsystem|Test-mode/i);
+
+    assert.equal(checkoutSessionIdOk("cs_test_abc", testEnv), true);
+    assert.equal(checkoutSessionIdOk("cs_live_abc", testEnv), false);
+    assert.equal(checkoutSessionIdOk("cs_live_abc", liveEnv), true);
+    assert.equal(checkoutSessionIdOk("cs_test_abc", liveEnv), false);
+
+    assert.equal(resolvePriceId("monthly", {}), PRICE_MONTHLY);
+    assert.equal(resolvePriceId("yearly", { STRIPE_PRICE_YEARLY: "price_from_secret" }), "price_from_secret");
+    assert.equal(resolvePriceId("monthly", { STRIPE_PRICE_MONTHLY: "price_from_secret" }), "price_from_secret");
   });
 
   it("encodes nested Checkout fields for Stripe's form API", () => {
@@ -183,6 +222,9 @@ describe("replica Stripe Checkout (sandbox)", () => {
     assert.match(src, /offerTrial/);
     assert.match(src, /if \(next\.stripeSubscriptionId\) next\.trialUsed = true/);
     assert.equal(src.includes("fingerprint"), false);
+    assert.match(src, /isLiveStripeProject/);
+    assert.match(src, /assertStripeLivemode/);
+    assert.match(src, /checkoutSessionIdOk/);
     const checkoutFn = src.split("exports.createCheckoutSession")[1].split("exports.confirmCheckoutSession")[0];
     assert.match(checkoutFn, /offerTrial/);
     assert.match(checkoutFn, /trialUsed/);

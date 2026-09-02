@@ -28,9 +28,9 @@ Other parents share **one Hosting URL** on a **separate Firebase project**. Logi
 
 Do **not** create a new Firebase project per paying family. That is the old single-tenant trap (`billing/current` one owner, second parent blocked). **Never** deploy `replica/` onto `systemederecompensesenfants`.
 
-### Stripe (sandbox / AnthonyRsca test mode only)
+### Stripe
 
-Already created (`livemode: false`):
+Sandbox prices already exist (`livemode: false`) for `recompenses-test`:
 
 | | ID |
 |---|---|
@@ -38,7 +38,7 @@ Already created (`livemode: false`):
 | Monthly | `price_1UAzwjA8Dakj1Sdel8QCE7II` (`family_monthly`, 2.50 EUR) |
 | Yearly | `price_1UAzx0A8Dakj1SdePoaupmpE` (`family_yearly`, 25 EUR) |
 
-Never create live products, live prices, or live charges. Never commit `sk_live` / `sk_test` secret keys. Checkout session + Stripe customer/subscription metadata include `familyId`.
+`recompenses-test` stays sandbox. `kidsrewardsystem` uses AnthonyRsca LIVE keys + live price IDs via Secret Manager — never commit them, never copy `sk_test` onto that project, never invent live price IDs in source. Checkout session + Stripe customer/subscription metadata include `familyId`.
 
 ### What Anthony must set for the platform project
 

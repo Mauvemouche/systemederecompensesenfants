@@ -72,9 +72,17 @@ Next steps (never deploy this onto systemederecompensesenfants.web.app):
 1. Keep using Firebase project ${TEST_PROJECT} (test) or ${PROD_PROJECT} (live paid). Do not spin up a second live-style project for client #2.
 2. Enable Authentication (Email/Password), Firestore, Hosting, and Cloud Functions (2nd gen, Node 22, europe-west1).
 3. Web app config lives in replica/public/js/firebase-config.js (hostname switch; not the live Florent/Harry app).
-4. Sandbox Stripe secrets on ${TEST_PROJECT} (never invent live Stripe keys):
+4. Stripe secrets:
+   Sandbox on ${TEST_PROJECT} only (never invent live keys in git):
      firebase functions:secrets:set STRIPE_SECRET_KEY --project ${TEST_PROJECT}
      firebase functions:secrets:set STRIPE_WEBHOOK_SECRET --project ${TEST_PROJECT}
+     firebase functions:secrets:set STRIPE_PRICE_MONTHLY --project ${TEST_PROJECT}
+     firebase functions:secrets:set STRIPE_PRICE_YEARLY --project ${TEST_PROJECT}
+   Live AnthonyRsca keys + live price IDs on ${PROD_PROJECT} only (Secret Manager; never copy sk_test there):
+     firebase functions:secrets:set STRIPE_SECRET_KEY --project ${PROD_PROJECT}
+     firebase functions:secrets:set STRIPE_WEBHOOK_SECRET --project ${PROD_PROJECT}
+     firebase functions:secrets:set STRIPE_PRICE_MONTHLY --project ${PROD_PROJECT}
+     firebase functions:secrets:set STRIPE_PRICE_YEARLY --project ${PROD_PROJECT}
    Mail + operator identity already exist on ${PROD_PROJECT} (copied from test). Stripe live keys on ${PROD_PROJECT} stay UNSET.
    After that, do not use gcloud run services update --update-env-vars after each deploy.
    Prices already exist in AnthonyRsca sandbox:

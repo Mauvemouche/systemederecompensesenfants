@@ -6,9 +6,12 @@ const { t, localeFromRequest } = require("./i18n");
 
 const REGION = "europe-west1";
 
-/** Bound only on Stripe functions. Never live keys. */
+/** Bound only on Stripe functions. Live keys only when the Cloud project is kidsrewardsystem. */
 const STRIPE_SECRET_KEY = defineSecret("STRIPE_SECRET_KEY");
 const STRIPE_WEBHOOK_SECRET = defineSecret("STRIPE_WEBHOOK_SECRET");
+const STRIPE_PRICE_MONTHLY = defineSecret("STRIPE_PRICE_MONTHLY");
+const STRIPE_PRICE_YEARLY = defineSecret("STRIPE_PRICE_YEARLY");
+const STRIPE_SECRETS = [STRIPE_SECRET_KEY, STRIPE_PRICE_MONTHLY, STRIPE_PRICE_YEARLY];
 
 /**
  * Secret Manager names. Bound only on the functions that need them.
@@ -37,10 +40,10 @@ const OPERATOR_SECRETS = [OPERATOR_LEGAL_NAME, OPERATOR_STREET_ADDRESS];
 
 const CALLABLE = { region: REGION };
 const CALLABLE_MAIL = { region: REGION, secrets: EMAIL_SECRETS };
-const CALLABLE_STRIPE = { region: REGION, secrets: [STRIPE_SECRET_KEY] };
+const CALLABLE_STRIPE = { region: REGION, secrets: STRIPE_SECRETS };
 const CALLABLE_OPERATOR = {
   region: REGION,
-  secrets: [STRIPE_SECRET_KEY, ...OPERATOR_SECRETS],
+  secrets: [...STRIPE_SECRETS, ...OPERATOR_SECRETS],
 };
 
 function requireAuth(request) {
@@ -82,6 +85,9 @@ module.exports = {
   REGION,
   STRIPE_SECRET_KEY,
   STRIPE_WEBHOOK_SECRET,
+  STRIPE_PRICE_MONTHLY,
+  STRIPE_PRICE_YEARLY,
+  STRIPE_SECRETS,
   EMAIL_SECRETS,
   OPERATOR_SECRETS,
   CALLABLE,

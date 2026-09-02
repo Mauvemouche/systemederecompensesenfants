@@ -17,7 +17,7 @@ const {
   resolveFamilyForUser,
   shouldKeepExistingMembership,
 } = require("./lib/families");
-const { buildCheckoutSessionParams, resolvePriceId, assertSandboxKey, resolveCheckoutTrial } = require("./lib/stripeCheckout");
+const { buildCheckoutSessionParams, resolvePriceId, assertSandboxKey, resolveCheckoutTrial, isLiveStripeProject, assertStripeLivemode, checkoutSessionIdOk } = require("./lib/stripeCheckout");
 const { stripeRequest, verifyStripeSignature } = require("./lib/stripeHttp");
 const {
   onCall,
@@ -26,6 +26,7 @@ const {
   REGION,
   STRIPE_SECRET_KEY,
   STRIPE_WEBHOOK_SECRET,
+  STRIPE_SECRETS,
   CALLABLE,
   CALLABLE_STRIPE,
   CALLABLE_OPERATOR,
@@ -317,8 +318,9 @@ exports.confirmCheckoutSession = onCall(
     const { familyId } = await requireFamilyOwner(uid, locale);
 
     const sessionId = data.sessionId;
-    if (!sessionId || !String(sessionId).startsWith("cs_test_")) {
-      throw new HttpsError("invalid-argument", t(locale, "err.sessionSandbox"), { key: "err.sessionSandbox" });
+    if (!checkoutSessionIdOk(sessionId)) {
+      const key = isLiveStripeProject() ? "err.sessionLive" : "err.sessionSandbox";
+      throw new HttpsError("invalid-argument", t(locale, key), { key });
     }
 
     const secret = process.env.STRIPE_SECRET_KEY;
@@ -329,8 +331,11 @@ exports.confirmCheckoutSession = onCall(
       secret
     );
 
-    if (session.livemode) {
-      throw new HttpsError("failed-precondition", t(locale, "err.liveEvent"), { key: "err.liveEvent" });
+    try {
+      assertStripeLivemode(session.livemode);
+    } catch {
+      const key = isLiveStripeProject() ? "err.testEvent" : "err.liveEvent";
+      throw new HttpsError("failed-precondition", t(locale, key), { key });
     }
 
     const sessionFamilyId = await resolveFamilyIdFromStripe(session, session);
@@ -474,7 +479,7 @@ exports.setDailyEmailOptIn = onCall(
 exports.stripeWebhook = onRequest(
   {
     region: REGION,
-    secrets: [STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET],
+    secrets: [...STRIPE_SECRETS, STRIPE_WEBHOOK_SECRET],
     cors: false,
     invoker: "public",
   },
@@ -493,9 +498,11 @@ exports.stripeWebhook = onRequest(
       return;
     }
 
-    if (event.livemode) {
-      console.error("Refusing live-mode Stripe event");
-      res.status(400).send("Live mode forbidden");
+    try {
+      assertStripeLivemode(event.livemode);
+    } catch (err) {
+      console.error("Refusing Stripe event for this project", err.message);
+      res.status(400).send(err.message);
       return;
     }
 

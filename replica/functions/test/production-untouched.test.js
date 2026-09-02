@@ -123,8 +123,10 @@ describe("replica functions bind mail and operator secrets without crashing at b
     assert.match(callable, /defineSecret\(\s*"EMAIL_REPLY_TO"\s*\)/);
     assert.match(callable, /defineSecret\(\s*"EMAIL_SMTP_HOST"\s*\)/);
     assert.match(callable, /defineSecret\(\s*"EMAIL_SMTP_PORT"\s*\)/);
-    assert.match(callable, /defineSecret\(\s*"OPERATOR_LEGAL_NAME"\s*\)/);
-    assert.match(callable, /defineSecret\(\s*"OPERATOR_STREET_ADDRESS"\s*\)/);
+    assert.match(callable, /defineSecret\(\s*"STRIPE_PRICE_MONTHLY"\s*\)/);
+    assert.match(callable, /defineSecret\(\s*"STRIPE_PRICE_YEARLY"\s*\)/);
+    assert.match(callable, /defineSecret\(\s*"STRIPE_SECRET_KEY"\s*\)/);
+    assert.equal(/STRIPE_PRICE_MONTHLY\.value\s*\(/.test(callable), false);
     assert.match(callable, /CALLABLE_MAIL/);
     assert.match(callable, /CALLABLE_OPERATOR/);
     assert.equal(/EMAIL_USER\.value\s*\(/.test(callable), false);
@@ -214,6 +216,11 @@ describe("replica functions bind mail and operator secrets without crashing at b
     assert.equal(secretKeys(fns.getOperatorLegalIdentity).includes("OPERATOR_LEGAL_NAME"), true);
     assert.equal(secretKeys(fns.getOperatorLegalIdentity).includes("OPERATOR_STREET_ADDRESS"), true);
     assert.equal(secretKeys(fns.getOperatorLegalIdentity).includes("STRIPE_SECRET_KEY"), true);
+    assert.equal(secretKeys(fns.createCheckoutSession).includes("STRIPE_SECRET_KEY"), true);
+    assert.equal(secretKeys(fns.createCheckoutSession).includes("STRIPE_PRICE_MONTHLY"), true);
+    assert.equal(secretKeys(fns.createCheckoutSession).includes("STRIPE_PRICE_YEARLY"), true);
+    assert.equal(secretKeys(fns.stripeWebhook).includes("STRIPE_PRICE_MONTHLY"), true);
+    assert.equal(secretKeys(fns.stripeWebhook).includes("STRIPE_PRICE_YEARLY"), true);
     assert.equal(secretKeys(fns.createCheckoutSession).includes("OPERATOR_LEGAL_NAME"), false);
   });
 
@@ -244,7 +251,10 @@ describe("replica functions bind mail and operator secrets without crashing at b
     assert.match(readme, /contact@kidsrewardsystem\.com/);
     assert.match(readme, /kidsrewardsystem\.com/);
     assert.match(readme, /--project kidsrewardsystem/);
-    assert.match(readme, /placeholders `UNSET`|placeholders UNSET|remain `UNSET`|stay `UNSET`|stay UNSET/);
+    assert.match(readme, /AnthonyRsca LIVE|live price/i);
+    assert.match(readme, /Never copy[\s`'"]+sk_test/i);
+    assert.match(readme, /STRIPE_PRICE_MONTHLY/);
+    assert.match(readme, /STRIPE_PRICE_YEARLY/);
     assert.match(readme, /Never.*systemederecompensesenfants/s);
     assert.equal(/sk_live_[A-Za-z0-9]+/.test(readme), false);
   });

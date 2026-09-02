@@ -11,7 +11,7 @@ Region stays **europe-west1**. The same `replica/public` folder is deployed to b
 
 Do **not** create a new Firebase project per paying family. **Never** deploy this onto `systemederecompensesenfants` / `systemederecompensesenfants.web.app` (Florent & Harry). That is a different product.
 
-Mail and operator secrets already exist on `kidsrewardsystem` (copied from test). Stripe live keys on that project are **not** set (placeholders `UNSET`). Do not invent `sk_live` values.
+Mail and operator secrets already exist on `kidsrewardsystem` (copied from test). **Never** put `sk_live` / `whsec` / operator street values in git.
 
 See the root README for Stripe price IDs, secrets, and the provision command.
 
@@ -23,7 +23,21 @@ Replica functions are **2nd gen** (Cloud Run). They run as the **Compute Engine 
 
 ## Deploy (Windows-friendly)
 
-Required secrets on **test** (`recompenses-test`): `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` (sandbox `sk_test` / `whsec` only). Live (`kidsrewardsystem`) Stripe keys stay `UNSET` until set on purpose — do not invent `sk_live`.
+**Stripe by project**
+
+- `recompenses-test`: AnthonyRsca **sandbox** only (`sk_test` / test `whsec`). Live keys are rejected. Hardcoded sandbox price IDs stay as fallback.
+- `kidsrewardsystem`: AnthonyRsca **LIVE** keys + live price IDs via Secret Manager (`STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_MONTHLY`, `STRIPE_PRICE_YEARLY`). Checkout prefers `process.env.STRIPE_PRICE_*`. **Never copy `sk_test` onto `kidsrewardsystem`.** Do not invent live price IDs in source or git.
+
+Set live Stripe secrets on that project only (CLI prompts; never paste values into git):
+
+```bat
+firebase functions:secrets:set STRIPE_SECRET_KEY --project kidsrewardsystem
+firebase functions:secrets:set STRIPE_WEBHOOK_SECRET --project kidsrewardsystem
+firebase functions:secrets:set STRIPE_PRICE_MONTHLY --project kidsrewardsystem
+firebase functions:secrets:set STRIPE_PRICE_YEARLY --project kidsrewardsystem
+```
+
+On test, create the same **price** secret names (sandbox IDs) so deploy can bind them; values may match the hardcoded fallbacks. Do not put live secrets in this README.
 
 Mail and operator identity live in **Google Secret Manager** (Firebase `defineSecret`). They survive `firebase deploy --only functions`. Do **not** set them with `gcloud run services update --update-env-vars` — those Cloud Run env vars are wiped on every functions deploy.
 
@@ -31,7 +45,7 @@ Mail and operator identity live in **Google Secret Manager** (Firebase `defineSe
 
 From the `replica/` folder. The CLI prompts for the value; **never** put real values in git or in this README.
 
-On **live** `kidsrewardsystem`, mail/operator secrets are already copied from test. Stripe live keys there remain `UNSET`. Do not invent `sk_live`. Repeat `firebase functions:secrets:set … --project kidsrewardsystem` only if a secret is missing.
+On **live** `kidsrewardsystem`, mail/operator secrets are already copied from test. Stripe there uses AnthonyRsca LIVE keys + live price IDs via Secret Manager (commands above). Never copy `sk_test` onto `kidsrewardsystem`. Repeat `firebase functions:secrets:set … --project kidsrewardsystem` only if a secret is missing. Do not write those values here.
 
 ```bat
 firebase functions:secrets:set EMAIL_USER --project recompenses-test

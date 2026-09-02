@@ -4,15 +4,60 @@ const PRICE_MONTHLY = "price_1UAzwjA8Dakj1Sdel8QCE7II";
 const PRICE_YEARLY = "price_1UAzx0A8Dakj1SdePoaupmpE";
 const PRODUCT_ID = "prod_VBMgh23YU5Q2RB";
 const TRIAL_DAYS = 30;
+const LIVE_STRIPE_PROJECT = "kidsrewardsystem";
 
-function assertSandboxKey(secretKey) {
+function resolveGcpProjectId(env = process.env) {
+  const direct =
+    String(env.GCLOUD_PROJECT || "").trim() ||
+    String(env.GCP_PROJECT || "").trim() ||
+    String(env.GOOGLE_CLOUD_PROJECT || "").trim();
+  if (direct) return direct;
+  const raw = String(env.FIREBASE_CONFIG || "").trim();
+  if (!raw) return "";
+  try {
+    const parsed = JSON.parse(raw);
+    return String(parsed?.projectId || "").trim();
+  } catch {
+    return "";
+  }
+}
+
+function isLiveStripeProject(env = process.env) {
+  return resolveGcpProjectId(env) === LIVE_STRIPE_PROJECT;
+}
+
+function assertSandboxKey(secretKey, env = process.env) {
   if (!secretKey) throw new Error("Missing STRIPE_SECRET_KEY");
-  if (String(secretKey).startsWith("sk_live")) {
+  const key = String(secretKey);
+  if (isLiveStripeProject(env)) {
+    if (key.startsWith("sk_live") || key.startsWith("rk_live")) return;
+    if (key.startsWith("sk_test") || key.startsWith("rk_test")) {
+      throw new Error("Sandbox Stripe keys are forbidden on kidsrewardsystem. Never copy sk_test onto the live project.");
+    }
+    throw new Error("Stripe key must be a live key (sk_live / rk_live) on kidsrewardsystem.");
+  }
+  if (key.startsWith("sk_live") || key.startsWith("rk_live")) {
     throw new Error("Live Stripe keys are forbidden. Use the AnthonyRsca sandbox (sk_test) only.");
   }
-  if (!String(secretKey).startsWith("sk_test") && !String(secretKey).startsWith("rk_test")) {
+  if (!key.startsWith("sk_test") && !key.startsWith("rk_test")) {
     throw new Error("Stripe key must be a sandbox test key (sk_test / rk_test).");
   }
+}
+
+function assertStripeLivemode(livemode, env = process.env) {
+  const live = isLiveStripeProject(env);
+  if (live && !livemode) {
+    throw new Error("Test-mode Stripe events are forbidden on kidsrewardsystem.");
+  }
+  if (!live && livemode) {
+    throw new Error("Live mode forbidden");
+  }
+}
+
+function checkoutSessionIdOk(sessionId, env = process.env) {
+  const id = String(sessionId || "");
+  if (isLiveStripeProject(env)) return id.startsWith("cs_live_");
+  return id.startsWith("cs_test_");
 }
 
 function resolvePriceId(plan, env = process.env) {
@@ -106,7 +151,12 @@ module.exports = {
   PRICE_YEARLY,
   PRODUCT_ID,
   TRIAL_DAYS,
+  LIVE_STRIPE_PROJECT,
+  resolveGcpProjectId,
+  isLiveStripeProject,
   assertSandboxKey,
+  assertStripeLivemode,
+  checkoutSessionIdOk,
   resolvePriceId,
   buildCheckoutSessionParams,
   encodeStripeParams,
