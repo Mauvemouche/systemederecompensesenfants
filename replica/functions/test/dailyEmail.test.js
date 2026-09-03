@@ -184,7 +184,8 @@ describe("generateEmailHtml follows family locale", () => {
       assert.match(html, /7 \/ 9 ⭐/);
       assert.match(html, /12 ⭐<\/b> \/ 24/);
       assert.match(html, /50%/);
-      assert.match(html, /<b>2<\/b> \/ 6/);
+      assert.match(html, /<b>4<\/b> \/ 6/);
+      assert.match(html, /2 \/ 6 ⭐/);
       assert.equal(/Kid 1/.test(html), false);
     }
   });
@@ -217,7 +218,7 @@ describe("daily mail uses the family's stored settings.locale", () => {
 
     assert.equal(switched.locale, "en");
     assert.equal(/Rapport Quotidien/.test(switched.subject), false);
-    assert.match(switched.subject, dailySummarySubject("en", "Wednesday", "2026-09-02"));
+    assert.equal(switched.subject, dailySummarySubject("en", "Wednesday", "2026-09-02"));
   });
 
   it("uses the updated settings.locale after a live language change", () => {
