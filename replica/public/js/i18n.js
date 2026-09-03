@@ -99,14 +99,55 @@ export function rememberLocale(code) {
   }
 }
 
-export async function persistLocaleIfSignedIn() {
-  if (!window.functions || !window.auth?.currentUser) return;
+const PERSIST_DEBOUNCE_MS = 400;
+let persistTimer = null;
+let persistPending = false;
+
+export function canPersistFamilyLocale({
+  functionsReady = typeof window !== "undefined" && !!window.functions,
+  signedIn = typeof window !== "undefined" && !!window.auth?.currentUser,
+  familyId = typeof window !== "undefined" ? window.__replicaState?.familyId : "",
+} = {}) {
+  return !!(functionsReady && signedIn && familyId);
+}
+
+export async function persistFamilyLocaleNow() {
+  if (!canPersistFamilyLocale()) return false;
   try {
     const { httpsCallable } = await import("https://www.gstatic.com/firebasejs/10.7.1/firebase-functions.js");
-    await httpsCallable(window.functions, "setFamilyLocale")({ locale: current });
+    const locale = current;
+    await httpsCallable(window.functions, "setFamilyLocale")({ locale });
+    if (window.__replicaState) window.__replicaState.locale = locale;
+    persistPending = false;
+    return true;
   } catch (_) {
-    /* optional */
+    return false;
   }
+}
+
+export function persistLocaleIfSignedIn() {
+  if (!window.auth?.currentUser) {
+    persistPending = false;
+    return Promise.resolve();
+  }
+  persistPending = true;
+  if (persistTimer) clearTimeout(persistTimer);
+  return new Promise((resolve) => {
+    persistTimer = setTimeout(async () => {
+      persistTimer = null;
+      await persistFamilyLocaleNow();
+      resolve();
+    }, PERSIST_DEBOUNCE_MS);
+  });
+}
+
+export async function flushPendingFamilyLocale() {
+  if (!persistPending) return;
+  if (persistTimer) {
+    clearTimeout(persistTimer);
+    persistTimer = null;
+  }
+  await persistFamilyLocaleNow();
 }
 
 function mountLangSwitcher() {

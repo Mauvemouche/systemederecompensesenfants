@@ -13,6 +13,7 @@ import {
   getLocale,
   onLocaleChange,
   applyFamilyLocale,
+  flushPendingFamilyLocale,
   AUTH_ERROR_KEYS,
 } from "./i18n.js";
 import {
@@ -198,6 +199,7 @@ async function refreshPaidLegalIdentity(state) {
 async function applyState(state) {
   window.__replicaState = state;
   await applyFamilyLocale(state?.locale);
+  await flushPendingFamilyLocale();
   await syncFamilyClaim(state);
   if (state?.people) {
     window.applyReplicaFamily?.(state.people);

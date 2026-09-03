@@ -20,11 +20,10 @@ Object.assign(exports, require("./passwordReset"));
    CONFIG
 ========================================================= */
 
-const DAY_NAMES_FR = ["Dimanche", "Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"];
+const { familyLocale, weekdayName, dailySummaryFromSettings } = require("./lib/dailyEmail");
 
-async function loadFamilyPeople(familyId) {
-  const snap = await families.settingsRef(familyId).get();
-  const people = snap.exists && Array.isArray(snap.data().people) ? snap.data().people : family.DEFAULT_FAMILY;
+function peopleFromSettings(settings) {
+  const people = settings && Array.isArray(settings.people) ? settings.people : family.DEFAULT_FAMILY;
   return people.length ? people : family.DEFAULT_FAMILY;
 }
 
@@ -70,7 +69,7 @@ function shouldAppearForDate(task, dateObj) {
 
 const { emailConfigured, sendMail, logMailFailure } = require("./lib/mailer");
 
-async function sendEmail(subject, htmlContent, toAddress) {
+async function sendEmail(subject, htmlContent, toAddress, locale) {
   if (!emailConfigured()) {
     console.log("Email skipped (EMAIL_USER / EMAIL_PASSWORD not set). Daily reset still ran.");
     return;
@@ -80,6 +79,7 @@ async function sendEmail(subject, htmlContent, toAddress) {
     to: toAddress || process.env.EMAIL_TO || process.env.EMAIL_USER,
     subject,
     html: htmlContent,
+    locale,
   });
 }
 
@@ -148,13 +148,13 @@ async function markRunFailed(familyId, reportDateStr, error) {
    - percent = finalStars / normalTotal (si normalTotal == 0 => 0)
   ========================================================= */
 
-function computeStatsForTasks(tasksDocs, dateObj, peopleIds) {
+function computeStatsForTasks(tasksDocs, dateObj, peopleIds, locale) {
   const tasks = tasksDocs.map((d) => ({ id: d.id, ...d.data() }));
   const PEOPLE = peopleIds && peopleIds.length ? peopleIds : family.personIds(family.DEFAULT_FAMILY);
 
   const stats = {
     date: ymdLocal(dateObj),
-    dayName: DAY_NAMES_FR[dateObj.getDay()],
+    dayName: weekdayName(locale, dateObj.getDay()),
     dayOfWeek: dateObj.getDay(),
     byPerson: {},
     global: { totalStars: 0, maxStars: 0, percent: 0 },
@@ -263,108 +263,6 @@ async function saveDailyStatsAligned(familyId, stats) {
 }
 
 /* =========================================================
-   HTML EMAIL (joli + chiffres alignés)
-========================================================= */
-
-function generateEmailHtml(stats, resetCount, deleteCount, isFirstDayOfMonth, people) {
-  const P = stats.byPerson;
-  const members = people && people.length ? people : family.DEFAULT_FAMILY;
-
-  const row = (label, s) => {
-  const denom = s.normalTotal; // total possible (tâches normales uniquement)
-  const num = s.finalStars;    // score obtenu (incluant bonus, pénalités; faute grave => 0)
-
-  const detail = `
-    <div style="font-size:12px;line-height:1.35;color:#555;margin-top:4px;">
-      <div>Normal : <b>${s.normalEarned}</b> / ${s.normalTotal}</div>
-      <div>Bonus : <b>+${s.bonusStars}</b></div>
-      <div>Pénalités : <b>-${s.penaltyStars}</b></div>
-      <div>Faute grave : <b>${s.seriousFault ? "OUI" : "non"}</b></div>
-    </div>
-  `;
-
-  return `
-    <tr>
-      <td style="padding:10px 12px;border-bottom:1px solid #eee;"><b>${label}</b></td>
-      <td style="padding:10px 12px;border-bottom:1px solid #eee;">
-        <div style="font-weight:700;">${num} / ${denom} ⭐</div>
-        <div style="color:#777;font-size:12px;">${s.percent}%</div>
-        <div style="color:#999;font-size:12px;">(${s.tasksDone}/${s.tasksTotal} tâches)</div>
-        ${detail}
-      </td>
-    </tr>
-  `;
-};
-
-  const extra = [
-    isFirstDayOfMonth
-      ? `<div style="margin:10px 0 0;color:#1e88e5;"><b>📅 Mensuel :</b> reset mensuel effectué (1er jour du mois).</div>`
-      : "",
-    deleteCount > 0
-      ? `<div style="margin:6px 0 0;color:#e53935;"><b>🗑️ Ponctuel :</b> ${deleteCount} tâche(s) supprimée(s).</div>`
-      : "",
-  ].join("");
-
-  return `<!doctype html>
-<html lang="fr">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Rapport</title>
-</head>
-<body style="margin:0;background:#f6f7fb;font-family:Arial,Helvetica,sans-serif;">
-  <div style="max-width:720px;margin:0 auto;padding:22px;">
-    <div style="background:#fff;border-radius:14px;padding:18px 18px 10px;box-shadow:0 10px 26px rgba(0,0,0,.08);">
-      <h2 style="margin:0 0 6px;font-size:20px;">✅ Rapport — ${stats.dayName} ${stats.date}</h2>
-      <p style="margin:0 0 12px;color:#444;">
-        Reset : <b>${resetCount}</b> tâche(s) • Suppression : <b>${deleteCount}</b> ponctuelle(s)
-      </p>
-      ${extra}
-
-      <div style="background:#fafafa;border-radius:12px;padding:12px 14px;margin:14px 0;">
-        <b>🏆 Score global :</b> ${stats.global.percent}% —
-        <span style="white-space:nowrap;"><b>${stats.global.totalStars} ⭐</b> / ${stats.global.maxStars}</span>
-      </div>
-
-      <table style="width:100%;border-collapse:collapse;font-size:14px;">
-        <thead>
-  <tr>
-    <th style="text-align:left;padding:10px 12px;border-bottom:1px solid #eee;">Membre</th>
-    <th style="text-align:left;padding:10px 12px;border-bottom:1px solid #eee;">Score & détails</th>
-  </tr>
-</thead>
-
-        <tbody>
-          ${members
-            .map((person) => {
-              const emoji = person.role === "parent" ? (person.id === "maman" ? "👩" : "👨") : "👦";
-              const empty = {
-                normalEarned: 0,
-                normalTotal: 0,
-                bonusStars: 0,
-                penaltyStars: 0,
-                seriousFault: false,
-                finalStars: 0,
-                percent: 0,
-                tasksDone: 0,
-                tasksTotal: 0,
-              };
-              return row(`${emoji} ${person.name || person.id}`, P[person.id] || empty);
-            })
-            .join("")}
-        </tbody>
-      </table>
-
-      <div style="margin-top:14px;color:#777;font-size:12px;text-align:center;">
-        Rapport généré automatiquement — Système de récompenses
-      </div>
-    </div>
-  </div>
-</body>
-</html>`;
-}
-
-/* =========================================================
    DAILY CRON (2nd gen) — 06:00 Europe/Paris
    - Rapport = VEILLE (J-1 Paris)
    - Anti double-envoi
@@ -411,10 +309,12 @@ exports.dailyResetAndStats = onSchedule(
         const snapshot = await families.tasksCol(familyId).get();
         const tasksForReport = snapshot.docs.filter((docSnap) => shouldAppearForDate(docSnap.data(), reportDate));
 
-        const people = await loadFamilyPeople(familyId);
+        const settings = await families.readFamilySettings(familyId);
+        const people = peopleFromSettings(settings);
+        const locale = familyLocale(settings);
         const peopleIds = family.personIds(people);
 
-        const stats = computeStatsForTasks(tasksForReport, reportDate, peopleIds);
+        const stats = computeStatsForTasks(tasksForReport, reportDate, peopleIds, locale);
         await saveDailyStatsAligned(familyId, stats);
 
         const batch = db().batch();
@@ -455,12 +355,11 @@ exports.dailyResetAndStats = onSchedule(
           console.log(`✅ Famille ${familyId} : ${resetCount} reset, ${deleteCount} supprimées.`);
         }
 
-        const settings = await families.readFamilySettings(familyId);
         if (families.wantsDailySummaryEmail(settings)) {
           const familySnap = await families.familyRef(familyId).get();
           const ownerEmail = familySnap.exists ? familySnap.data().ownerEmail : "";
-          const html = generateEmailHtml(stats, resetCount, deleteCount, isFirstDayOfMonth, people);
-          await sendEmail(`✅ Rapport Quotidien - ${stats.dayName} ${stats.date}`, html, ownerEmail);
+          const mail = dailySummaryFromSettings(settings, stats, resetCount, deleteCount, isFirstDayOfMonth, people);
+          await sendEmail(mail.subject, mail.html, ownerEmail, mail.locale);
         } else {
           console.log(`⏭️ Famille ${familyId} : daily summary email opted out.`);
         }

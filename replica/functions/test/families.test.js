@@ -143,6 +143,10 @@ describe("replica platform is multi-family on one URL", () => {
     const cron = fs.readFileSync(path.join(repoRoot, "replica/functions/index.js"), "utf8");
     assert.match(cron, /wantsDailySummaryEmail\(settings\)/);
     assert.match(cron, /daily summary email opted out/);
+    assert.match(cron, /dailySummaryFromSettings\(settings,/);
+    assert.match(cron, /familyLocale\(settings\)/);
+    assert.match(cron, /mail\.locale/);
+    assert.equal(/Rapport Quotidien - \$\{/.test(cron), false);
   });
 
   it("does not wipe family data on cancel and keeps trialUsed off until first checkout", () => {

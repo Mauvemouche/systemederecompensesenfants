@@ -90,6 +90,31 @@ describe("recovery and welcome emails follow the requested locale", () => {
   });
 });
 
+describe("language switcher persists family locale live", () => {
+  it("calls setFamilyLocale when a logged-in parent changes language, not on the signup gate", () => {
+    const i18n = fs.readFileSync(path.join(repoRoot, "replica/public/js/i18n.js"), "utf8");
+    const gate = fs.readFileSync(path.join(repoRoot, "replica/public/js/family-gate.js"), "utf8");
+    assert.match(i18n, /select\.addEventListener\("change"/);
+    assert.match(i18n, /setLocale\(select\.value, \{ persist: true \}\)/);
+    assert.match(i18n, /if \(persist\) await persistLocaleIfSignedIn\(\)/);
+    assert.match(i18n, /httpsCallable\(window\.functions, "setFamilyLocale"\)\(\{ locale/);
+    assert.match(i18n, /if \(!window\.auth\?\.currentUser\)/);
+    assert.match(i18n, /__replicaState\?\.familyId/);
+    assert.match(i18n, /PERSIST_DEBOUNCE_MS = 400/);
+    assert.match(i18n, /clearTimeout\(persistTimer\)/);
+    assert.match(i18n, /window\.__replicaState\.locale = locale/);
+    assert.match(gate, /flushPendingFamilyLocale/);
+    assert.match(gate, /requestSignup/);
+    assert.match(gate, /locale: getLocale\(\)/);
+    assert.match(i18n, /export function persistLocaleIfSignedIn/);
+    assert.match(i18n, /persistPending = true/);
+    const billing = fs.readFileSync(path.join(repoRoot, "replica/functions/billing.js"), "utf8");
+    assert.match(billing, /exports\.setFamilyLocale = onCall/);
+    assert.match(billing, /persistFamilyLocale\(familyId, locale\)/);
+    assert.match(billing, /settingsRef\(familyId\)\.set\(\{ locale: loc/);
+  });
+});
+
 describe("replica client uses one HTML file plus locale dicts", () => {
   it("boots i18n on the board and keeps language control in JS, not duplicated pages", () => {
     const html = fs.readFileSync(path.join(repoRoot, "replica/public/index.html"), "utf8");
@@ -101,6 +126,21 @@ describe("replica client uses one HTML file plus locale dicts", () => {
     assert.match(i18n, /lang-switcher/);
     assert.match(i18n, /replica\.locale/);
     assert.match(i18n, /setFamilyLocale/);
+    assert.match(i18n, /persistLocaleIfSignedIn/);
+    assert.match(i18n, /canPersistFamilyLocale/);
+    assert.match(i18n, /persistFamilyLocaleNow/);
+    assert.match(i18n, /flushPendingFamilyLocale/);
+    assert.match(i18n, /PERSIST_DEBOUNCE_MS/);
+    assert.match(i18n, /select\.addEventListener\("change", \(\) => \{\s*setLocale\(select\.value, \{ persist: true \}\);/);
+    assert.match(i18n, /if \(persist\) await persistLocaleIfSignedIn\(\)/);
+    assert.match(i18n, /httpsCallable\(window\.functions, "setFamilyLocale"\)\(\{ locale/);
+    assert.match(i18n, /window\.auth\?\.currentUser/);
+    assert.match(i18n, /__replicaState\?\.familyId/);
+    assert.equal(/localeFromRequest/.test(i18n), false);
+    const gate = fs.readFileSync(path.join(repoRoot, "replica/public/js/family-gate.js"), "utf8");
+    assert.match(gate, /flushPendingFamilyLocale/);
+    assert.match(gate, /await applyFamilyLocale\(state\?\.locale\);\s*await flushPendingFamilyLocale\(\)/);
+    assert.match(gate, /locale: getLocale\(\)/);
     assert.match(i18n, /SUPPORTED = \["nl", "fr", "de", "en"\]/);
     assert.match(i18n, /DEFAULT_LOCALE = "nl"/);
     assert.match(
