@@ -1,0 +1,6 @@
+{
+  "projects": {
+    "default": "recompenses-test",
+    "prod": "kidsrewardsystem"
+  }
+}

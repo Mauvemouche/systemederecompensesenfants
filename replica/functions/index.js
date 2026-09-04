@@ -1,0 +1,386 @@
+"use strict";
+
+const { setGlobalOptions } = require("firebase-functions/v2");
+const { onSchedule } = require("firebase-functions/v2/scheduler");
+const family = require("./lib/family");
+const families = require("./lib/families");
+const { db, serverTimestamp } = require("./lib/adminApp");
+const { EMAIL_SECRETS } = require("./lib/callable");
+
+setGlobalOptions({ region: "europe-west1" });
+
+const billingFns = require("./billing");
+Object.assign(exports, billingFns);
+Object.assign(exports, require("./signup"));
+Object.assign(exports, require("./adminPin"));
+Object.assign(exports, require("./referrals"));
+Object.assign(exports, require("./passwordReset"));
+Object.assign(exports, require("./gdpr"));
+
+/* =========================================================
+   CONFIG
+========================================================= */
+
+const { familyLocale, weekdayName, dailySummaryFromSettings } = require("./lib/dailyEmail");
+
+function peopleFromSettings(settings) {
+  const people = settings && Array.isArray(settings.people) ? settings.people : family.DEFAULT_FAMILY;
+  return people.length ? people : family.DEFAULT_FAMILY;
+}
+
+/**
+ * Date/heure "Paris" fiable (sans lib externe).
+ * (Le scheduler est déjà en Europe/Paris, mais ça sécurise les calculs.)
+ */
+function nowParis() {
+  // En Node, la manière la plus simple sans lib est de convertir via locale string TZ
+  return new Date(new Date().toLocaleString("en-US", { timeZone: "Europe/Paris" }));
+}
+
+function ymdLocal(date) {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
+
+/**
+ * Reproduit la logique de visibilité de l'app :
+ * - ponctuel: visible uniquement si fullDate == YYYY-MM-DD (date exacte)
+ * - mensuel: visible uniquement si dayOfMonth == date.getDate()
+ * - quotidien/hebdomadaire: visible si dayOfWeek == date.getDay()
+ */
+function shouldAppearForDate(task, dateObj) {
+  const category = String(task.category || "").toLowerCase().trim();
+  const dow = dateObj.getDay();
+  const ymd = ymdLocal(dateObj);
+
+  if (category === "ponctuel") return task.fullDate === ymd;
+  if (category === "mensuel") return Number(task.dayOfMonth) === dateObj.getDate();
+
+  // quotidien + hebdomadaire + fallback
+  return Number(task.dayOfWeek) === dow;
+}
+
+/* =========================================================
+   EMAIL
+   EMAIL_* come from Secret Manager when bound on this function.
+   Empty/missing at runtime skips mail (EMAIL_NOT_CONFIGURED); do not read .value() at boot.
+========================================================= */
+
+const { emailConfigured, sendMail, logMailFailure } = require("./lib/mailer");
+
+async function sendEmail(subject, htmlContent, toAddress, locale) {
+  if (!emailConfigured()) {
+    console.log("Email skipped (EMAIL_USER / EMAIL_PASSWORD not set). Daily reset still ran.");
+    return;
+  }
+
+  await sendMail({
+    to: toAddress || process.env.EMAIL_TO || process.env.EMAIL_USER,
+    subject,
+    html: htmlContent,
+    locale,
+  });
+}
+
+/* =========================================================
+   ANTI DOUBLE-ENVOI (idempotence)
+   - 1 rapport / date (YYYY-MM-DD)
+========================================================= */
+
+async function claimRunOrSkip(familyId, reportDateStr) {
+  const runRef = families.familyRef(familyId).collection("cron_runs").doc(`daily_${reportDateStr}`);
+
+  const shouldContinue = await db().runTransaction(async (tx) => {
+    const snap = await tx.get(runRef);
+
+    if (snap.exists) {
+      const data = snap.data() || {};
+      if (data.status === "done") return false;
+
+      // Si "started" récent (<30min), on évite doublon parallèle
+      if (data.status === "started" && data.startedAt?.toDate) {
+        const startedAt = data.startedAt.toDate();
+        if (Date.now() - startedAt.getTime() < 30 * 60 * 1000) return false;
+      }
+    }
+
+    tx.set(
+      runRef,
+      {
+        status: "started",
+        startedAt: serverTimestamp(),
+      },
+      { merge: true }
+    );
+    return true;
+  });
+
+  return { shouldContinue, runRef };
+}
+
+async function markRunDone(runRef) {
+  await runRef.set(
+    { status: "done", doneAt: serverTimestamp() },
+    { merge: true }
+  );
+}
+
+async function markRunFailed(familyId, reportDateStr, error) {
+  await families.familyRef(familyId).collection("cron_runs").doc(`daily_${reportDateStr}`).set(
+    {
+      status: "failed",
+      failedAt: serverTimestamp(),
+      error: String(error?.message || error),
+    },
+    { merge: true }
+  );
+}
+
+/* =========================================================
+   STATS (alignées avec ton app.js)
+   - normalTotal = somme étoiles tâches non-bonus non-penalty
+   - normalEarned = idem cochées
+   - bonusStars compté seulement si 100% normal atteint
+   - penaltyStars soustrait
+   - seriousFault => score 0
+   - finalStars = (normalEarned + bonusStars - penaltyStars) (sauf seriousFault => 0)
+   - percent = finalStars / normalTotal (si normalTotal == 0 => 0)
+  ========================================================= */
+
+function computeStatsForTasks(tasksDocs, dateObj, peopleIds, locale) {
+  const tasks = tasksDocs.map((d) => ({ id: d.id, ...d.data() }));
+  const PEOPLE = peopleIds && peopleIds.length ? peopleIds : family.personIds(family.DEFAULT_FAMILY);
+
+  const stats = {
+    date: ymdLocal(dateObj),
+    dayName: weekdayName(locale, dateObj.getDay()),
+    dayOfWeek: dateObj.getDay(),
+    byPerson: {},
+    global: { totalStars: 0, maxStars: 0, percent: 0 },
+  };
+
+  PEOPLE.forEach((p) => {
+    stats.byPerson[p] = {
+      tasksDone: 0,
+      tasksTotal: 0,
+
+      normalEarned: 0,
+      normalTotal: 0,
+
+      bonusStars: 0,
+      penaltyStars: 0,
+
+      seriousFault: false,
+
+      finalStars: 0,
+      percent: 0,
+    };
+  });
+
+  // 1) base totals
+  tasks.forEach((t) => {
+    const person = String(t.assignedTo || "").toLowerCase().trim();
+    if (!stats.byPerson[person]) return;
+
+    const s = stats.byPerson[person];
+    s.tasksTotal += 1;
+    if (t.completed) s.tasksDone += 1;
+
+    const stars = Math.abs(Number(t.stars || 3));
+
+    if (t.isSeriousFault && t.completed) s.seriousFault = true;
+
+    if (t.isPenalty) {
+      if (t.completed) s.penaltyStars += stars;
+      return;
+    }
+
+// normal = ni bonus, ni pénalité, ni faute grave
+if (!t.isBonus && !t.isPenalty && !t.isSeriousFault) {
+  s.normalTotal += stars;
+  if (t.completed) s.normalEarned += stars;
+}
+
+  });
+
+  // 2) bonus only if 100% normal
+  PEOPLE.forEach((p) => {
+    const s = stats.byPerson[p];
+    const allowBonus = s.normalTotal === 0 || s.normalEarned === s.normalTotal;
+
+    tasks.forEach((t) => {
+      const person = String(t.assignedTo || "").toLowerCase().trim();
+      if (person !== p) return;
+      if (!t.isBonus || !t.completed) return;
+      if (!allowBonus) return;
+
+      s.bonusStars += Math.abs(Number(t.stars || 3));
+    });
+
+    const normalMax = s.normalTotal; // peut être 0
+let finalStars;
+
+if (s.seriousFault) finalStars = 0;
+else finalStars = (s.normalEarned + s.bonusStars) - s.penaltyStars;
+
+s.finalStars = finalStars;
+s.percent = normalMax === 0 ? 0 : Math.round((finalStars / normalMax) * 100);
+
+stats.global.totalStars += finalStars;
+stats.global.maxStars += normalMax;
+  });
+
+  stats.global.percent = stats.global.maxStars
+    ? Math.round((stats.global.totalStars / stats.global.maxStars) * 100)
+    : 0;
+
+  return stats;
+}
+
+async function saveDailyStatsAligned(familyId, stats) {
+  const docId = `stats_${stats.date}`;
+  await families.familyRef(familyId).collection("daily_stats").doc(docId).set(
+    {
+      date: stats.date,
+      dayName: stats.dayName.toLowerCase(),
+      dayOfWeek: stats.dayOfWeek,
+
+      // compat + nouveau format
+      byPerson: stats.byPerson,
+      global: stats.global,
+
+      // champs "ancien style" si tu en avais besoin ailleurs
+      totalStars: stats.global.totalStars,
+      maxStars: stats.global.maxStars,
+      familyCompletionRate: stats.global.percent,
+
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    },
+    { merge: true }
+  );
+}
+
+/* =========================================================
+   DAILY CRON (2nd gen) — 06:00 Europe/Paris
+   - Rapport = VEILLE (J-1 Paris)
+   - Anti double-envoi
+   - Stats alignées UI
+   - Reset + cleanup
+   - EMAIL_* bound via Secret Manager (empty value skips mail)
+========================================================= */
+
+exports.dailyResetAndStats = onSchedule(
+  {
+    region: "europe-west1",
+    schedule: "0 6 * * *",
+    timeZone: "Europe/Paris",
+    timeoutSeconds: 300,
+    secrets: EMAIL_SECRETS,
+  },
+  async () => {
+    console.log("🔄 Début du cycle quotidien");
+
+    const execNow = nowParis();
+    const reportDate = new Date(execNow);
+    reportDate.setDate(reportDate.getDate() - 1);
+
+    const reportDateStr = ymdLocal(reportDate);
+    const isFirstDayOfMonth = execNow.getDate() === 1;
+
+    const familyIds = await families.listFamilyIds();
+    if (!familyIds.length) {
+      console.log("ℹ️ Aucune famille à traiter.");
+      return null;
+    }
+
+    for (const familyId of familyIds) {
+      let runRef = null;
+      try {
+        const claim = await claimRunOrSkip(familyId, reportDateStr);
+        runRef = claim.runRef;
+
+        if (!claim.shouldContinue) {
+          console.log(`⏭️ Famille ${familyId} : rapport ${reportDateStr} déjà généré.`);
+          continue;
+        }
+
+        const snapshot = await families.tasksCol(familyId).get();
+        const tasksForReport = snapshot.docs.filter((docSnap) => shouldAppearForDate(docSnap.data(), reportDate));
+
+        const settings = await families.readFamilySettings(familyId);
+        const people = peopleFromSettings(settings);
+        const locale = familyLocale(settings);
+        const peopleIds = family.personIds(people);
+
+        const stats = computeStatsForTasks(tasksForReport, reportDate, peopleIds, locale);
+        await saveDailyStatsAligned(familyId, stats);
+
+        const batch = db().batch();
+        let resetCount = 0;
+        let deleteCount = 0;
+
+        tasksForReport.forEach((docSnap) => {
+          const data = docSnap.data();
+          const category = String(data.category || "").toLowerCase().trim();
+
+          if (category === "ponctuel") {
+            batch.delete(docSnap.ref);
+            deleteCount++;
+            return;
+          }
+
+          if (data.completed === true) {
+            let shouldReset = false;
+
+            if (category === "mensuel") {
+              if (isFirstDayOfMonth) shouldReset = true;
+            } else {
+              shouldReset = true;
+            }
+
+            if (shouldReset) {
+              batch.update(docSnap.ref, {
+                completed: false,
+                updatedAt: serverTimestamp(),
+              });
+              resetCount++;
+            }
+          }
+        });
+
+        if (resetCount > 0 || deleteCount > 0) {
+          await batch.commit();
+          console.log(`✅ Famille ${familyId} : ${resetCount} reset, ${deleteCount} supprimées.`);
+        }
+
+        if (families.wantsDailySummaryEmail(settings)) {
+          const familySnap = await families.familyRef(familyId).get();
+          const ownerEmail = familySnap.exists ? familySnap.data().ownerEmail : "";
+          const mail = dailySummaryFromSettings(settings, stats, resetCount, deleteCount, isFirstDayOfMonth, people);
+          await sendEmail(mail.subject, mail.html, ownerEmail, mail.locale);
+        } else {
+          console.log(`⏭️ Famille ${familyId} : daily summary email opted out.`);
+        }
+
+        await markRunDone(runRef);
+      } catch (error) {
+        console.error(`❌ Famille ${familyId} :`, error);
+        try {
+          await markRunFailed(familyId, reportDateStr, error);
+        } catch (e2) {
+          console.error("Impossible de marquer failed", e2);
+        }
+        try {
+          await sendEmail("⚠️ Erreur Reset Automatique", `<p>Le reset a échoué (${familyId}) : ${String(error?.message || error)}</p>`);
+        } catch (e) {
+          logMailFailure("Impossible d'envoyer l'email d'erreur", e);
+        }
+      }
+    }
+
+    console.log("✅ Cycle terminé.");
+    return null;
+  });

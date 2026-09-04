@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="nl" data-i18n-title="adminPage.title">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Reset Automatique</title>
+    <link rel="stylesheet" href="css/styles.css?v=4.0">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .admin-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .admin-header {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .admin-header h1 {
+            color: #667eea;
+            margin: 0;
+        }
+
+        .btn-back {
+            background: white;
+            border: 2px solid #667eea;
+            color: #667eea;
+            padding: 10px 20px;
+            border-radius: 25px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-back:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        /* Vérification du PIN */
+        #pinVerification {
+            background: white;
+            border-radius: 20px;
+            padding: 50px;
+            text-align: center;
+            max-width: 500px;
+            margin: 100px auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        #pinVerification h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+
+        #adminPinInput {
+            font-size: 2rem;
+            padding: 15px;
+            text-align: center;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            width: 200px;
+            margin: 20px 0;
+            letter-spacing: 10px;
+        }
+
+        #adminPinInput:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .pin-error {
+            color: #f44336;
+            margin-top: 10px;
+            display: none;
+        }
+
+        #adminContent {
+            display: none;
+        }
+
+        /* Fix Modal - Permettre le scroll */
+        .modal {
+            overflow-y: auto !important;
+            align-items: flex-start !important;
+            padding-top: 50px;
+        }
+
+        .modal-content {
+            max-height: 85vh !important;
+            overflow-y: auto !important;
+            margin: 20px auto !important;
+        }
+    </style>
+</head>
+<body>
+    <!-- Vérification PIN -->
+    <div id="pinVerification">
+        <h2>🔐 <span data-i18n="adminPage.title"></span></h2>
+        <p data-i18n="adminPage.lead"></p>
+        <form id="pinForm">
+            <input 
+                type="password" 
+                id="adminPinInput" 
+                maxlength="4" 
+                placeholder="****"
+                autofocus
+                autocomplete="off"
+            >
+            <div class="pin-error" id="pinError" data-i18n="admin.pinWrong"></div>
+            <button type="submit" class="btn-primary" style="margin-top: 20px;" data-i18n="admin.validate"></button>
+            <p style="margin-top: 14px;"><a href="#" id="recoverAdminPinLink" data-i18n="admin.recover"></a></p>
+        </form>
+        <div style="margin-top: 20px;">
+            <a href="index.html" class="btn-back">← <span data-i18n="adminPage.back"></span></a>
+        </div>
+    </div>
+
+    <!-- Contenu Admin (caché par défaut) -->
+    <div id="adminContent">
+        <div class="admin-container">
+            <!-- Header -->
+            <div class="admin-header">
+                <div>
+                    <h1>⚙️ <span data-i18n="adminPage.heading"></span></h1>
+                    <p style="margin: 5px 0 0 0; color: #666;">Gestion du Reset Automatique</p>
+                </div>
+                <a href="index.html" class="btn-back">← <span data-i18n="adminPage.back"></span></a>
+            </div>
+
+            <!-- Section Reset Admin -->
+            <div class="reset-admin-section" style="display: block;">
+                <!-- Configuration -->
+                <div class="reset-config-card">
+                    <h3>⚙️ Configuration Actuelle</h3>
+                    <div class="config-status">
+                        <div class="status-item">
+                            <span class="label">Statut :</span>
+                            <span id="resetStatus" class="value">Chargement...</span>
+                        </div>
+                        <div class="status-item">
+                            <span class="label">Heure de reset :</span>
+                            <span id="resetTimeDisplay" class="value">--:--</span>
+                        </div>
+                        <div class="status-item">
+                            <span class="label">Email :</span>
+                            <span id="resetEmailDisplay" class="value">---</span>
+                        </div>
+                        <div class="status-item">
+                            <span class="label">Prochain reset :</span>
+                            <span id="nextResetDisplay" class="value">---</span>
+                        </div>
+                    </div>
+                    <button id="editResetConfigBtn" class="btn-primary">🔧 Modifier la Configuration</button>
+                </div>
+
+                <!-- Dashboard Historique -->
+                <div class="reset-dashboard-card">
+                    <h3>📊 Historique des Resets (7 derniers jours)</h3>
+                    <div id="resetHistory" class="reset-history-list">
+                        <p class="loading">Chargement de l'historique...</p>
+                    </div>
+                </div>
+
+                <!-- Actions Manuelles -->
+                <div class="reset-actions-card">
+                    <h3>🎛️ Actions Manuelles</h3>
+                    <div class="action-buttons">
+                        <button id="testResetBtn" class="btn-warning">
+                            ⚙️ Test Reset (Mode Test)
+                        </button>
+                        <button id="forceResetBtn" class="btn-danger">
+                            🔄 Forcer Reset Immédiat
+                        </button>
+                    </div>
+                    <p class="action-warning">
+                        ⚠️ <strong>Attention :</strong> Le reset immédiat décochera toutes les tâches et enverra un email.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Configuration Reset -->
+    <div id="resetConfigModal" class="modal hidden">
+        <div class="modal-content">
+            <h3>⚙️ Configuration Reset Automatique</h3>
+            <form id="resetConfigForm">
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="resetEnabled">
+                        Activer le reset automatique quotidien
+                    </label>
+                </div>
+
+                <div class="form-group">
+                    <label for="resetTime">Heure de reset</label>
+                    <input type="time" id="resetTime" value="06:00" required>
+                    <small style="display: block; color: #666; margin-top: 5px;">
+                        ℹ️ Le reset s'effectue à l'<strong>heure pile</strong> (ex: 12:00, 15:00, etc.)<br>
+                        Les minutes ne sont pas prises en compte.
+                    </small>
+                </div>
+
+                <div class="form-group">
+                    <label for="resetTimezone">Fuseau horaire</label>
+                    <select id="resetTimezone">
+                        <option value="Europe/Paris" selected>Europe/Paris (GMT+1)</option>
+                        <option value="Europe/London">Europe/London (GMT+0)</option>
+                        <option value="America/New_York">America/New_York (GMT-5)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Jours actifs</label>
+                    <div class="days-selector">
+                        <label><input type="checkbox" class="day-checkbox" value="1" checked> Lun</label>
+                        <label><input type="checkbox" class="day-checkbox" value="2" checked> Mar</label>
+                        <label><input type="checkbox" class="day-checkbox" value="3" checked> Mer</label>
+                        <label><input type="checkbox" class="day-checkbox" value="4" checked> Jeu</label>
+                        <label><input type="checkbox" class="day-checkbox" value="5" checked> Ven</label>
+                        <label><input type="checkbox" class="day-checkbox" value="6" checked> Sam</label>
+                        <label><input type="checkbox" class="day-checkbox" value="0" checked> Dim</label>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <h4>📧 Notifications Email</h4>
+                    <label>
+                        <input type="checkbox" id="emailEnabled" checked>
+                        Activer les notifications email
+                    </label>
+                </div>
+
+                <div class="form-group" id="emailConfig">
+                    <label for="resetEmail">Email de notification</label>
+                    <input type="email" id="resetEmail" value="" placeholder="EMAIL_TO">
+                    
+                    <div class="email-types">
+                        <label><input type="checkbox" id="emailOnSuccess" checked> Reset effectué</label>
+                        <label><input type="checkbox" id="emailOnError" checked> Erreurs</label>
+                        <label><input type="checkbox" id="emailWeeklyStats"> Stats hebdomadaires</label>
+                    </div>
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" id="cancelResetConfigBtn" class="btn-secondary">Annuler</button>
+                    <button type="submit" class="btn-primary">💾 Sauvegarder</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getFirestore } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+        import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+        import { getFunctions, httpsCallable } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-functions.js';
+        import { firebaseConfig, FUNCTIONS_REGION } from './js/firebase-config.js';
+        import { syncFamilyClaim } from './js/family-path.js';
+        import { bootI18n, t, getLocale } from './js/i18n.js';
+
+        const app = initializeApp(firebaseConfig);
+        window.db = getFirestore(app);
+        window.auth = getAuth(app);
+        window.functions = getFunctions(app, FUNCTIONS_REGION);
+        await bootI18n();
+
+        onAuthStateChanged(window.auth, async (user) => {
+            if (!user) {
+                window.location.href = './index.html';
+                return;
+            }
+            try {
+                const res = await httpsCallable(window.functions, 'bootstrapInstance')({ locale: getLocale() });
+                await syncFamilyClaim(res.data);
+            } catch (err) {
+                console.error(err);
+            }
+        });
+
+        // Vérification PIN via callable (jamais de PIN partagé dans le client)
+        const pinForm = document.getElementById('pinForm');
+        const pinInput = document.getElementById('adminPinInput');
+        const pinError = document.getElementById('pinError');
+        const pinVerification = document.getElementById('pinVerification');
+        const adminContent = document.getElementById('adminContent');
+
+        // Vérifier si déjà authentifié (session)
+        if (sessionStorage.getItem('adminAuth') === 'true') {
+            showAdminContent();
+        }
+
+        pinForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const enteredPin = pinInput.value;
+            pinError.style.display = 'none';
+            try {
+                await httpsCallable(window.functions, 'verifyAdminPin')({ pin: enteredPin, locale: getLocale() });
+                sessionStorage.setItem('adminAuth', 'true');
+                showAdminContent();
+            } catch (err) {
+                pinError.textContent = err.message || t('admin.pinWrong');
+                pinError.style.display = 'block';
+                pinInput.value = '';
+                pinInput.classList.add('shake');
+                setTimeout(() => pinInput.classList.remove('shake'), 500);
+            }
+        });
+
+        document.getElementById('recoverAdminPinLink')?.addEventListener('click', async (e) => {
+            e.preventDefault();
+            pinError.style.display = 'none';
+            try {
+                await httpsCallable(window.functions, 'recoverAdminPin')({ locale: getLocale() });
+                pinError.style.color = '#2e7d32';
+                pinError.textContent = t('admin.recoverSent');
+                pinError.style.display = 'block';
+            } catch (err) {
+                pinError.style.color = '';
+                pinError.textContent = err.message || t('err.pinSend');
+                pinError.style.display = 'block';
+            }
+        });
+
+        function showAdminContent() {
+            pinVerification.style.display = 'none';
+            adminContent.style.display = 'block';
+            
+            // Charger le module reset-admin
+            import('./js/reset-admin-standalone.js').then(module => {
+                module.initResetAdmin();
+            });
+        }
+    </script>
+
+    <style>
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+        .shake {
+            animation: shake 0.5s;
+        }
+    </style>
+</body>
+</html>

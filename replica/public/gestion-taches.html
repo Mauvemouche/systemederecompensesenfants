@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gestion des tâches — Système de récompenses</title>
+
+  <!-- Reprend ton look existant -->
+  <link rel="stylesheet" href="./styles.css?v=2" />
+
+  <style>
+    /* Mini styles spécifiques à la page (léger) */
+    .page-wrap{max-width:1100px;margin:0 auto;padding:20px;}
+    .topbar{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;}
+    .topbar h1{margin:0;font-size:22px;}
+    .pillbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+    .pill{
+      border:1px solid rgba(0,0,0,.12);
+      background:#fff;
+      padding:8px 10px;
+      border-radius:999px;
+      cursor:pointer;
+      font-weight:800;
+    }
+    .pill.active{outline:2px solid rgba(130,90,255,.35);}
+    .grid{display:grid;grid-template-columns:1fr;gap:14px;margin-top:16px;}
+    @media(min-width:900px){.grid{grid-template-columns:420px 1fr;}}
+    .card{background:#fff;border:1px solid rgba(0,0,0,.08);border-radius:16px;padding:14px;box-shadow:0 8px 24px rgba(0,0,0,.06);}
+    .card h2{margin:0 0 10px 0;font-size:16px;}
+    .row{display:flex;gap:10px;flex-wrap:wrap;}
+    .row > *{flex:1;min-width:160px;}
+    .input, .select, .textarea{
+      width:100%;
+      padding:10px 12px;
+      border-radius:12px;
+      border:1px solid rgba(0,0,0,.15);
+      font-weight:700;
+      outline:none;
+      background:#fff;
+    }
+    .textarea{min-height:80px;resize:vertical;}
+    .btn{
+      padding:10px 12px;border-radius:12px;border:0;cursor:pointer;font-weight:900;
+      box-shadow:0 10px 20px rgba(0,0,0,.10);
+    }
+    .btn.primary{background:#111;color:#fff;}
+    .btn.danger{background:#d7263d;color:#fff;}
+    .btn.ghost{background:#f2f2f6;color:#111;box-shadow:none;}
+    .hint{font-size:12px;opacity:.75;font-weight:700;margin-top:6px;}
+
+    .list{display:flex;flex-direction:column;gap:10px;}
+    .task{
+      border:1px solid rgba(0,0,0,.10);
+      border-radius:14px;
+      padding:12px;
+      background:#fff;
+      display:flex;
+      gap:12px;
+      justify-content:space-between;
+      align-items:flex-start;
+    }
+    .task-left{display:flex;gap:10px;align-items:flex-start;}
+    .chk{
+      width:22px;height:22px;border-radius:7px;border:2px solid rgba(0,0,0,.25);
+      display:inline-flex;align-items:center;justify-content:center;
+      cursor:pointer;user-select:none;font-weight:900;
+      margin-top:2px;
+    }
+    .chk.on{background:#111;color:#fff;border-color:#111;}
+    .meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px;}
+    .tag{font-size:12px;font-weight:900;padding:5px 8px;border-radius:999px;background:#f2f2f6;}
+    .task-title{font-weight:1000;}
+    .task-desc{opacity:.8;font-weight:700;margin-top:4px;}
+    .task-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;}
+    .divider{height:1px;background:rgba(0,0,0,.08);margin:10px 0;}
+
+    <!-- PIN Overlay -->
+<div id="pinOverlay" class="overlay hidden" aria-hidden="true">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="pinTitle">
+    <div class="lockline">
+      <div class="lock">🔒</div>
+      <div>
+        <h3 id="pinTitle">Mode gestion</h3>
+        <p>Entre le code PIN pour accéder à l’édition des tâches.</p>
+      </div>
+    </div>
+
+    <form id="pinForm">
+      <input
+        id="pinInput"
+        type="password"
+        inputmode="numeric"
+        autocomplete="one-time-code"
+        placeholder="Code PIN"
+        required
+      />
+
+      <div class="actions">
+        <button id="pinCancelBtn" type="button" class="btn ghost">Retour</button>
+        <button id="pinUnlockBtn" type="submit" class="btn primary">Déverrouiller</button>
+      </div>
+      <p style="margin-top:10px;"><a href="#" id="recoverAdminPinLink">Récupérer le code Admin</a></p>
+    </form>
+  </div>
+</div>
+
+    /* ===== Edit modal (V2) ===== */
+.modal2-overlay{
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 20000;
+  padding: 16px;
+}
+.modal2-overlay.hidden{ display:none; }
+
+.modal2{
+  width: min(720px, 100%);
+  background: #fff;
+  border-radius: 18px;
+  border: 1px solid rgba(0,0,0,.10);
+  box-shadow: 0 18px 50px rgba(0,0,0,.25);
+  overflow: hidden;
+}
+
+.modal2-header{
+  display:flex;
+  align-items:center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  border-bottom: 1px solid rgba(0,0,0,.08);
+}
+.modal2-header h3{
+  margin:0;
+  font-size: 16px;
+  font-weight: 1000;
+}
+.modal2-close{
+  border:none;
+  background: transparent;
+  font-size: 18px;
+  cursor:pointer;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+}
+.modal2-close:hover{ background: rgba(0,0,0,.06); }
+
+.modal2-body{ padding: 14px 16px; }
+.modal2-footer{
+  display:flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 14px 16px 16px;
+  border-top: 1px solid rgba(0,0,0,.08);
+  flex-wrap: wrap;
+}
+
+.kbd-hint{ font-size:12px; opacity:.7; font-weight:800; }
+.small-note{ font-size:12px; opacity:.75; font-weight:800; margin-top:6px; }
+
+.days-grid{
+  display:flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+.day-chip{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding:8px 10px;
+  border-radius:999px;
+  background:#f2f2f6;
+  border:1px solid rgba(0,0,0,.08);
+  font-weight:900;
+  cursor:pointer;
+  user-select:none;
+}
+.day-chip input{ cursor:pointer; }
+  </style>
+</head>
+
+<body>
+  <div class="page-wrap">
+    <div class="topbar">
+      <div>
+        <h1>🛠️ Gestion des tâches</h1>
+        <div style="opacity:.8;font-weight:800;">Ajout / modification / suppression (avec PIN)</div>
+      </div>
+      <div class="pillbar">
+        <a class="pill" href="./index.html">↩ Retour à l’app</a>
+        <button id="logoutBtn" class="pill" type="button">🔒 Verrouiller</button>
+      </div>
+    </div>
+
+    <div class="grid">
+      <!-- LEFT: ADD / EDIT -->
+      <div class="card">
+        <h2>➕ Ajouter une tâche</h2>
+
+        <form id="taskForm">
+          <div class="row">
+            <div>
+              <label style="font-weight:900;">Titre</label>
+              <input id="taskTitle" class="input" type="text" placeholder="Ex: Ranger la chambre" required />
+              <div class="hint">Si le titre contient “bonus”, ça coche automatiquement 🎁 Bonus.</div>
+            </div>
+          </div>
+
+          <div class="row">
+            <div>
+              <label style="font-weight:900;">Description</label>
+              <textarea id="taskDescription" class="textarea" placeholder="Optionnel"></textarea>
+            </div>
+          </div>
+
+          <div class="row">
+            <div>
+              <label style="font-weight:900;">Personne</label>
+            <select id="assignedTo" class="select" required>
+                <option value="">— Choisir —</option>
+                <option value="papa">Papa</option>
+                <option value="maman">Maman</option>
+                <option value="kid-1">Kid 1</option>
+                <option value="kid-2">Kid 2</option>
+              </select>
+            </div>
+
+            <div id="starsGroup">
+              <label style="font-weight:900;">Étoiles</label>
+              <select id="stars" class="select">
+                <option value="1">1 ⭐</option>
+                <option value="2">2 ⭐</option>
+                <option value="3" selected>3 ⭐</option>
+                <option value="4">4 ⭐</option>
+                <option value="5">5 ⭐</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="row">
+            <div>
+              <label style="font-weight:900;">Catégorie</label>
+              <select id="category" class="select">
+                <option value="quotidien" selected>quotidien</option>
+                <option value="hebdomadaire">hebdomadaire</option>
+                <option value="mensuel">mensuel</option>
+                <option value="ponctuel">ponctuel</option>
+              </select>
+              <div class="hint">Hebdo = dimanche. Mensuel = jour du mois. Ponctuel = date exacte.</div>
+            </div>
+          </div>
+
+          <div id="specificDateGroup" class="row" style="display:none;">
+            <div>
+              <label id="dateLabel" style="font-weight:900;">Date</label>
+              <input id="specificDate" class="input" type="date" />
+            </div>
+          </div>
+
+          <div id="daysSelectionGroup" class="row">
+            <div>
+              <label style="font-weight:900;">Jours (quotidien)</label>
+              <div class="row" style="margin-top:8px;">
+                <label class="pill"><input id="allDays" type="checkbox" checked /> Tous</label>
+                <label class="pill"><input id="day1" type="checkbox" checked /> Lun</label>
+                <label class="pill"><input id="day2" type="checkbox" checked /> Mar</label>
+                <label class="pill"><input id="day3" type="checkbox" checked /> Mer</label>
+                <label class="pill"><input id="day4" type="checkbox" checked /> Jeu</label>
+                <label class="pill"><input id="day5" type="checkbox" checked /> Ven</label>
+                <label class="pill"><input id="day6" type="checkbox" checked /> Sam</label>
+                <label class="pill"><input id="day0" type="checkbox" checked /> Dim</label>
+              </div>
+            </div>
+          </div>
+
+          <div class="row" style="margin-top:10px;">
+            <label class="pill" title="Bonus accordé seulement si 100% des étoiles non-bonus atteintes">
+              <input id="isBonus" type="checkbox" /> 🎁 Bonus
+            </label>
+            <label class="pill">
+              <input id="isPenalty" type="checkbox" /> ⛔ Pénalité
+            </label>
+            <label class="pill">
+              <input id="isSeriousFault" type="checkbox" /> 💀 Faute grave
+            </label>
+          </div>
+
+          <div class="row" style="margin-top:12px;">
+            <button class="btn ghost" id="resetFormBtn" type="button">Annuler</button>
+            <button class="btn primary" type="submit">Ajouter</button>
+          </div>
+        </form>
+
+        <div class="divider"></div>
+
+        <h2 style="margin-top:0;">🎛️ Filtrer l’affichage</h2>
+        <div class="row">
+          <div>
+            <label style="font-weight:900;">Jour (dayOfWeek)</label>
+            <select id="dayFilter" class="select">
+              <option value="today">Aujourd’hui</option>
+              <option value="0">Dimanche (0)</option>
+              <option value="1">Lundi (1)</option>
+              <option value="2">Mardi (2)</option>
+              <option value="3">Mercredi (3)</option>
+              <option value="4">Jeudi (4)</option>
+              <option value="5">Vendredi (5)</option>
+              <option value="6">Samedi (6)</option>
+            </select>
+            <div class="hint">Ici on filtre sur <b>dayOfWeek</b> (comme ton app).</div>
+          </div>
+
+          <div>
+            <label style="font-weight:900;">Personne</label>
+            <select id="personFilter" class="select">
+              <option value="all">Tout le monde</option>
+              <option value="papa">Papa</option>
+              <option value="maman">Maman</option>
+              <option value="kid-1">Kid 1</option>
+              <option value="kid-2">Kid 2</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT: LIST -->
+      <div class="card">
+        <h2>📋 Tâches</h2>
+        <div id="tasksInfo" style="opacity:.8;font-weight:800;margin-bottom:10px;"></div>
+        <div id="tasksList" class="list"></div>
+      </div>
+    </div>
+  </div>" class="input" type="password" inputmode="numeric" autocomplete="one-time-code" placeholder="PIN" />
+
+      <div class="row" style="margin-top:12px;">
+        <button id="pinCancelBtn" class="btn ghost" type="button">Retour</button>
+        <button id="pinOkBtn" class="btn primary" type="button">Déverrouiller</button>
+      </div>
+
+      <div id="pinErr" style="color:#d7263d;font-weight:900;margin-top:10px;display:none;">
+        Code incorrect.
+      </div>
+    </div>
+  </div>
+
+  <!-- Firebase init: THIS replica instance only -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getFirestore } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+    import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-functions.js";
+    import { firebaseConfig, FUNCTIONS_REGION } from "./js/firebase-config.js";
+    import { renderFamilyShell } from "./js/family-ui.js";
+    import { syncFamilyClaim } from "./js/family-path.js";
+    import { bootI18n, getLocale } from "./js/i18n.js";
+
+    const app = initializeApp(firebaseConfig);
+    window.db = getFirestore(app);
+    window.auth = getAuth(app);
+    window.functions = getFunctions(app, FUNCTIONS_REGION);
+    await bootI18n();
+
+    onAuthStateChanged(window.auth, async (user) => {
+      if (!user) {
+        window.location.href = "./index.html";
+        return;
+      }
+      try {
+        const res = await httpsCallable(window.functions, "bootstrapInstance")({ locale: getLocale() });
+        const state = res.data;
+        await syncFamilyClaim(state);
+        if (!state.hasAccess) {
+          window.location.href = "./index.html";
+          return;
+        }
+        if (state.people) renderFamilyShell(state.people);
+        window.dispatchEvent(new Event("replica-ready"));
+      } catch (err) {
+        console.error(err);
+        window.location.href = "./index.html";
+      }
+    });
+  </script>
+
+  <script type="module" src="./js/gestion-taches.js?v=3"></script>
+  <!-- ===== Modal Edit (V2) ===== -->
+<div id="editOverlay" class="m
+
+  <!-- PIN Overlay -->
+  <div id="pinOverlay" class="overlay">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="pinTitle">
+      <div class="lockline">
+        <div class="lock">🔒</div>
+        <div>
+          <h3 id="pinTitle">Mode gestion</h3>
+          <p>Entre le code PIN pour accéder à l’édition des tâches.</p>
+        </div>
+      </div>
+
+      <input id="pinInputodal2-overlay hidden" aria-hidden="true">
+  <div class="modal2" role="dialog" aria-modal="true" aria-labelledby="editTitle">
+    <div class="modal2-header">
+      <h3 id="editTitle">✏️ Modifier la tâche</h3>
+      <button id="editCloseBtn" class="modal2-close" type="button" aria-label="Fermer">✕</button>
+    </div>
+
+    <form id="editForm">
+      <div class="modal2-body">
+        <input type="hidden" id="editId" />
+
+        <div class="row">
+          <div style="flex:2;min-width:220px;">
+            <label style="font-weight:900;">Titre</label>
+            <input id="editTaskTitle" class="input" type="text" required />
+            <div class="hint">Si le titre contient “bonus”, 🎁 Bonus sera auto-coché.</div>
+          </div>
+
+          <div style="flex:1;min-width:160px;">
+            <label style="font-weight:900;">Personne</label>
+            <select id="editAssignedTo" class="select" required>
+              <option value="">— Choisir —</option>
+              <option value="papa">Papa</option>
+              <option value="maman">Maman</option>
+              <option value="kid-1">Kid 1</option>
+              <option value="kid-2">Kid 2</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="row">
+          <div id="editStarsGroup" style="flex:1;min-width:160px;">
+            <label style="font-weight:900;">Étoiles</label>
+            <select id="editStars" class="select">
+              <option value="1">1 ⭐</option>
+              <option value="2">2 ⭐</option>
+              <option value="3">3 ⭐</option>
+              <option value="4">4 ⭐</option>
+              <option value="5">5 ⭐</option>
+            </select>
+          </div>
+
+          <div style="flex:1;min-width:160px;">
+            <label style="font-weight:900;">Catégorie</label>
+            <select id="editCategory" class="select">
+              <option value="quotidien">quotidien</option>
+              <option value="hebdomadaire">hebdomadaire</option>
+              <option value="mensuel">mensuel</option>
+              <option value="ponctuel">ponctuel</option>
+            </select>
+            <div class="hint">Hebdo=dimanche • Mensuel=jour du mois • Ponctuel=date exacte</div>
+          </div>
+        </div>
+
+        <div id="editSpecificDateGroup" class="row" style="display:none;">
+          <div style="flex:1;min-width:220px;">
+            <label id="editDateLabel" style="font-weight:900;">Date</label>
+            <input id="editSpecificDate" class="input" type="date" />
+          </div>
+        </div>
+
+        <div class="row">
+          <div style="flex:1;min-width:220px;">
+            <label style="font-weight:900;">Description</label>
+            <textarea id="editDescription" class="textarea" placeholder="Optionnel"></textarea>
+          </div>
+        </div>
+
+        <div class="row" style="margin-top:10px;">
+          <label class="pill" title="Bonus accordé seulement si 100% non-bonus atteints (dans l’app principale)">
+            <input id="editIsBonus" type="checkbox" /> 🎁 Bonus
+          </label>
+          <label class="pill">
+            <input id="editIsPenalty" type="checkbox" /> ⛔ Pénalité
+          </label>
+          <label class="pill">
+            <input id="editIsSeriousFault" type="checkbox" /> 💀 Faute grave
+          </label>
+        </div>
+
+        <div class="divider"></div>
+
+        <div>
+          <div style="font-weight:1000;">📌 Dupliquer sur d’autres jours</div>
+          <div class="small-note">
+            Cela crée des COPIES “quotidien” sur les jours choisis (completed=false), sans toucher à l’original.
+          </div>
+
+          <div class="days-grid">
+            <label class="day-chip"><input type="checkbox" id="dupDay1" /> Lun</label>
+            <label class="day-chip"><input type="checkbox" id="dupDay2" /> Mar</label>
+            <label class="day-chip"><input type="checkbox" id="dupDay3" /> Mer</label>
+            <label class="day-chip"><input type="checkbox" id="dupDay4" /> Jeu</label>
+            <label class="day-chip"><input type="checkbox" id="dupDay5" /> Ven</label>
+            <label class="day-chip"><input type="checkbox" id="dupDay6" /> Sam</label>
+            <label class="day-chip"><input type="checkbox" id="dupDay0" /> Dim</label>
+          </div>
+        </div>
+
+        <div class="small-note kbd-hint">Astuce: ESC pour fermer</div>
+      </div>
+
+      <div class="modal2-footer">
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+          <button id="editDeleteBtn" class="btn danger" type="button">🗑️ Supprimer</button>
+          <button id="editDuplicateBtn" class="btn ghost" type="button">📌 Dupliquer</button>
+        </div>
+
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+          <button id="editCancelBtn" class="btn ghost" type="button">Annuler</button>
+          <button class="btn primary" type="submit">Enregistrer</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+</body>
+</html>
