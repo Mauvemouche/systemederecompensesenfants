@@ -113,6 +113,24 @@ describe("replica legal pages stay public-safe", () => {
     assert.match(signup, /err\.acceptedLegal/);
   });
 
+  it("requires a withdrawal checkbox on the checkout gate before Stripe redirect", () => {
+    const html = fs.readFileSync(path.join(replicaPublic, "index.html"), "utf8");
+    const checkout = html.match(/<section id="gate-checkout"[\s\S]*?<\/section>/)[0];
+    assert.match(checkout, /id="acceptWithdrawal"/);
+    assert.match(checkout, /id="acceptWithdrawalWrap"/);
+    assert.match(checkout, /data-i18n="gate.acceptWithdrawal"/);
+    assert.ok(checkout.indexOf("acceptWithdrawal") < checkout.indexOf("checkoutMonthlyBtn"));
+    const gate = fs.readFileSync(path.join(replicaPublic, "js/family-gate.js"), "utf8");
+    assert.match(gate, /acceptWithdrawal/);
+    assert.match(gate, /err\.acceptedWithdrawal/);
+    assert.match(gate, /acceptedWithdrawal: true/);
+    const billing = fs.readFileSync(path.join(repoRoot, "replica/functions/billing.js"), "utf8");
+    assert.match(billing, /acceptedWithdrawal !== true/);
+    assert.match(billing, /err\.acceptedWithdrawal/);
+    assert.match(billing, /legalAcceptPatch/);
+    assert.equal(html.includes('data-i18n="legal.belgianDad"'), false);
+  });
+
   it("does not add replica legal pages or the operator callable to the live public/ app", () => {
     assert.equal(fs.existsSync(path.join(repoRoot, "public/privacy.html")), false);
     assert.equal(fs.existsSync(path.join(repoRoot, "public/terms.html")), false);
@@ -140,15 +158,24 @@ describe("privacy and terms copy covers the required GDPR / e-commerce points", 
         ui["privacy.processorsBody"],
         ui["privacy.cookiesBody"],
         ui["privacy.deletionHtml"],
+        ui["privacy.controllerBody"],
+        ui["privacy.basesBody"],
+        ui["privacy.minimiseBody"],
+        ui["privacy.retentionBody"],
+        ui["privacy.rightsBody"],
+        ui["privacy.securityBody"],
+        ui["privacy.kidsBody"],
         ui["legal.paidNote"],
         ui["terms.priceBody"],
         ui["terms.cancelBody"],
         ui["terms.withdrawBody"],
         ui["terms.productBody"],
         ui["gate.acceptLegal"],
+        ui["gate.acceptWithdrawal"],
       ].join("\n");
       assert.match(blob, /Firebase/i);
       assert.match(blob, /Stripe/i);
+      assert.match(blob, /Proton/i);
       assert.match(blob, /e-?mail/i);
       assert.match(blob, /voornamen|prénoms|Vornamen|first names/i);
       assert.match(blob, /taken|tâches|Aufgaben|tasks/i);
@@ -156,18 +183,40 @@ describe("privacy and terms copy covers the required GDPR / e-commerce points", 
       assert.match(blob, /hash/i);
       assert.match(blob, /vend|verkopen|verkaufen|sell/i);
       assert.match(blob, /analytics/i);
+      assert.match(ui["privacy.processorsBody"], /Firebase/i);
+      assert.match(ui["privacy.processorsBody"], /Stripe/i);
+      assert.match(ui["privacy.processorsBody"], /Proton/i);
+      assert.match(ui["privacy.processorsBody"], /SCC|standard contractual|standaardcontract|clauses contractuelles|Standardvertrag/i);
+      assert.match(ui["privacy.processorsBody"], /pas de SendGrid|geen SendGrid|kein SendGrid|no SendGrid/i);
+      assert.match(ui["privacy.minimiseBody"], /photo|foto|Foto/i);
+      assert.match(ui["privacy.minimiseBody"], /school|école|Schule/i);
+      assert.match(ui["privacy.minimiseBody"], /santé|gezondheid|Gesundheit|health/i);
+      assert.match(ui["privacy.minimiseBody"], /ne collectons pas|verzamelen geen|erheben kein|do not collect/i);
       assert.match(ui["privacy.deletionHtml"], /data-legal-mail/);
+      assert.match(ui["privacy.rightsBody"], /Exporter|exporteren|exportieren|Export/i);
+      assert.match(ui["privacy.retentionBody"], /30/);
+      assert.match(ui["privacy.retentionBody"], /ComplimentaryForever/);
       assert.match(ui["legal.paidNote"], /contact@kidsrewardsystem\.com/);
       assert.match(ui["legal.paidNote"], /kidsrewardsystem@proton\.me/);
       assert.match(ui["legal.paidNote"], /30/);
+      assert.match(ui["legal.paidNote"], /entreprise|ondernemingsnummer|Unternehmensnummer/i);
       assert.equal(/promo/i.test(ui["legal.paidNote"]), false, code);
       assert.equal(/gratuit pour toujours|free forever|voor altijd gratis|für immer kostenlos/i.test(ui["terms.priceBody"]), false, code);
       assert.match(ui["terms.priceBody"], /2,50|€2\.50/);
       assert.match(ui["terms.priceBody"], /25/);
       assert.match(ui["terms.priceBody"], /30/);
       assert.match(ui["terms.cancelBody"], /Stripe/);
+      assert.match(ui["terms.cancelBody"], /contact@kidsrewardsystem\.com/);
+      assert.match(ui["terms.cancelBody"], /période déjà payée|al betaalde periode|bereits bezahlten|already-paid period/i);
       assert.match(ui["terms.withdrawBody"], /14/);
+      assert.match(ui["terms.withdrawBody"], /30/);
+      assert.match(ui["terms.withdrawBody"], /inclus|zit in|eingeschlossen|included/i);
+      assert.match(ui["terms.withdrawBody"], /pas de délai|geen extra bedenktijd|keine extra Widerrufsfrist|no extra cooling-off/i);
+      assert.match(ui["terms.withdrawBody"], /renouvellement|verlenging|Verlängerung|renewal/i);
+      assert.match(ui["gate.acceptWithdrawal"], /14/);
+      assert.match(ui["gate.acceptWithdrawal"], /essai|proef|Test|trial/i);
       assert.match(ui["terms.productBody"], /belge|Belgische|belgischen|Belgian/i);
+      assert.equal(/papa belge|Belgische papa|belgischer Papa|Belgian (dad|father)/i.test(ui["legal.contactTitle"]), false, code);
       assert.ok(ui["gate.acceptLegal"].includes("terms.html"));
       assert.ok(ui["gate.acceptLegal"].includes("privacy.html"));
     }

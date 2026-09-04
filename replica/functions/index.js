@@ -15,6 +15,7 @@ Object.assign(exports, require("./signup"));
 Object.assign(exports, require("./adminPin"));
 Object.assign(exports, require("./referrals"));
 Object.assign(exports, require("./passwordReset"));
+Object.assign(exports, require("./gdpr"));
 
 /* =========================================================
    CONFIG

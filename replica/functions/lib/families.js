@@ -4,6 +4,7 @@ const { getAuth } = require("firebase-admin/auth");
 const { db, ensureApp, serverTimestamp } = require("./adminApp");
 const { DEFAULT_FAMILY } = require("./family");
 const { normalizeLocale } = require("./i18n");
+const { legalAcceptPatch } = require("./gdpr");
 
 const LEGACY_OWNER_EMAIL = "anthony.rsca@gmail.com";
 
@@ -228,6 +229,7 @@ async function createFamilyForOwner(uid, email, plan, locale) {
       ownerUid: uid,
       ownerEmail: email || "",
       locale: loc,
+      ...legalAcceptPatch({ termsPrivacy: true, locale: loc, now }),
       createdAt: now,
       updatedAt: now,
     });

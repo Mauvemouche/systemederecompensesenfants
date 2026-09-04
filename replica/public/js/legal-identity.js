@@ -27,6 +27,7 @@ export function applyPaidOperatorIdentity(identity) {
   const parts = [identity.legalName, identity.streetAddress, identity.postcodeCity, identity.country].filter(
     (part) => String(part || "").trim()
   );
+  if (identity.bceKbo) parts.push(String(identity.bceKbo).trim());
   if (line) line.textContent = parts.join(" · ");
   wrap.hidden = parts.length < 2;
 }

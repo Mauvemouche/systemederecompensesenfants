@@ -34,6 +34,7 @@ const {
   wrapCallable,
 } = require("./lib/callable");
 const { t, localeFromRequest, normalizeLocale, stripeCheckoutLocale } = require("./lib/i18n");
+const { legalAcceptPatch } = require("./lib/gdpr");
 const {
   publicContactPayload,
   invoicesIncludePaidCharge,
@@ -226,6 +227,9 @@ exports.createCheckoutSession = onCall(
     const data = request.data || {};
     const locale = localeFromRequest(request);
     const { familyId, billing } = await requireFamilyOwner(uid, locale);
+    if (data.acceptedWithdrawal !== true) {
+      throw new HttpsError("failed-precondition", t(locale, "err.acceptedWithdrawal"), { key: "err.acceptedWithdrawal" });
+    }
     if (!needsCheckout(billing)) {
       throw new HttpsError("failed-precondition", t(locale, "err.subscriptionActive"), { key: "err.subscriptionActive" });
     }
@@ -295,6 +299,13 @@ exports.createCheckoutSession = onCall(
 
     const session = await stripeRequest("POST", "/checkout/sessions", params, secret);
 
+    await familyRef(familyId).set(
+      {
+        ...legalAcceptPatch({ termsPrivacy: true, withdrawal: true, locale, now: serverTimestamp() }),
+        updatedAt: serverTimestamp(),
+      },
+      { merge: true }
+    );
     await billingRef(familyId).set(
       {
         plan,

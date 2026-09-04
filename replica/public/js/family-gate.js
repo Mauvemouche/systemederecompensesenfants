@@ -180,6 +180,11 @@ function accountBar(state, user) {
     optWrap.classList.toggle("hidden", !show);
     if (show) opt.checked = state.dailyEmailOptIn !== false;
   }
+  const showOwnerTools = !!(user && state?.isOwner);
+  ["exportDataBtn", "deleteAccountBtn"].forEach((id) => {
+    const el = $(id);
+    if (el) el.classList.toggle("hidden", !showOwnerTools);
+  });
 }
 
 async function refreshPaidLegalIdentity(state) {
@@ -591,6 +596,9 @@ function bindUi() {
     }
   });
 
+  $("exportDataBtn")?.addEventListener("click", () => exportFamilyData());
+  $("deleteAccountBtn")?.addEventListener("click", () => deleteFamilyAccount());
+
   document.addEventListener("click", (e) => {
     const btn = e.target.closest?.(".btn-rename-person");
     if (!btn) return;
@@ -624,12 +632,61 @@ async function renamePersonFromBoard(btn) {
 
 async function startCheckout(plan) {
   setError("");
+  if (!$("acceptWithdrawal")?.checked) {
+    setError(t("err.acceptedWithdrawal"), "err.acceptedWithdrawal");
+    return;
+  }
   try {
     await refreshState(plan);
-    const res = await callFn("createCheckoutSession", { plan, origin: location.origin });
+    const res = await callFn("createCheckoutSession", {
+      plan,
+      origin: location.origin,
+      acceptedWithdrawal: true,
+    });
     if (res.data?.url) location.href = res.data.url;
   } catch (err) {
     setError(callableErrorMessage(err) || t("err.checkout"), callableErrorKey(err) || "err.checkout");
+  }
+}
+
+function downloadJson(filename, data) {
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  a.rel = "noopener";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+async function exportFamilyData() {
+  const btn = $("exportDataBtn");
+  if (btn) btn.disabled = true;
+  try {
+    const res = await callFn("exportFamilyData");
+    const payload = res.data?.export || res.data;
+    const stamp = new Date().toISOString().slice(0, 10);
+    downloadJson(`systeme-de-recompenses-${stamp}.json`, payload);
+  } catch (err) {
+    setError(callableErrorMessage(err) || t("err.exportFailed"), callableErrorKey(err) || "err.exportFailed");
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+}
+
+async function deleteFamilyAccount() {
+  if (!window.confirm(t("account.deleteConfirm"))) return;
+  const btn = $("deleteAccountBtn");
+  if (btn) btn.disabled = true;
+  try {
+    await callFn("deleteFamilyAccount", { confirm: true });
+    await signOut(window.auth);
+  } catch (err) {
+    setError(callableErrorMessage(err) || t("err.deleteFailed"), callableErrorKey(err) || "err.deleteFailed");
+    if (btn) btn.disabled = false;
   }
 }
 

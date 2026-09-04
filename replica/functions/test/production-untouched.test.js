@@ -199,6 +199,8 @@ describe("replica functions bind mail and operator secrets without crashing at b
     assert.equal(typeof fns.refreshReferralBest, "function");
     assert.equal(typeof fns.requestPasswordReset, "function");
     assert.equal(typeof fns.confirmPasswordReset, "function");
+    assert.equal(typeof fns.exportFamilyData, "function");
+    assert.equal(typeof fns.deleteFamilyAccount, "function");
     const platform = fns.stripeWebhook.__endpoint?.platform || fns.bootstrapInstance.__endpoint?.platform;
     assert.equal(platform, "gcfv2");
     assert.equal(getApps().length, before);

@@ -6,7 +6,7 @@
   <title>Système de récompenses</title>
 
   <!-- IMPORTANT: garde ton styles.css existant -->
-  <link rel="stylesheet" href="./styles.css?v=116" />
+  <link rel="stylesheet" href="./styles.css?v=117" />
 </head>
 
 <body>
@@ -25,6 +25,8 @@
             <span id="accountEmail"></span>
             <span id="accountBilling"></span>
             <button id="portalBtn" class="btn-refresh" type="button" data-i18n="header.portal"></button>
+            <button id="exportDataBtn" class="btn-refresh hidden" type="button" data-i18n="header.exportData"></button>
+            <button id="deleteAccountBtn" class="btn-refresh hidden" type="button" data-i18n="header.deleteAccount"></button>
             <button id="changeAdminPinBtn" class="btn-refresh change-admin-pin-btn" type="button" data-i18n="header.changePin"></button>
             <button id="logoutBtn" class="btn-refresh" type="button" data-i18n="header.logout"></button>
             <label id="dailyEmailOptInWrap" class="daily-email-optin hidden">
@@ -420,6 +422,10 @@
         <h2 data-i18n="gate.checkoutTitle"></h2>
         <p class="gate-lead" data-i18n="gate.checkoutLead"></p>
         <p class="gate-lead" data-i18n="gate.checkoutCancel"></p>
+        <label id="acceptWithdrawalWrap" class="auth-legal-check">
+          <input id="acceptWithdrawal" type="checkbox" />
+          <span data-i18n="gate.acceptWithdrawal"></span>
+        </label>
         <p class="gate-error" role="alert" style="display:none;"></p>
         <div class="plan-row">
           <button id="checkoutMonthlyBtn" class="plan-card" type="button">
@@ -513,6 +519,6 @@
     startReplicaGate();
   </script>
 
-  <script type="module" src="./js/app.js?v=115"></script>
+  <script type="module" src="./js/app.js?v=117"></script>
 </body>
 </html>

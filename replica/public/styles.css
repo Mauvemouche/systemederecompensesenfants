@@ -836,9 +836,29 @@ body{
   font-size:13px;
 }
 .account-bar.hidden{ display:none; }
+.account-bar .hidden{ display:none !important; }
+.legal-page .legal-register{ overflow-x:auto; }
 .account-bar #portalBtn,
+.account-bar #exportDataBtn,
+.account-bar #deleteAccountBtn,
 .account-bar #logoutBtn,
 .account-bar #changeAdminPinBtn{ padding:8px 12px; font-size:13px; }
+.legal-register{
+  width:100%;
+  border-collapse:collapse;
+  margin:12px 0 4px;
+  font-size:13px;
+}
+.legal-register th,
+.legal-register td{
+  border:1px solid #ece6ff;
+  padding:8px 10px;
+  text-align:left;
+  vertical-align:top;
+  font-weight:600;
+}
+.legal-register th{ background:#faf8ff; font-weight:800; }
+.legal-page .legal-register + p{ margin-top:10px; }
 .change-admin-pin-btn{ display:none; }
 .admin-mode-active .change-admin-pin-btn{ display:inline-flex; }
 .daily-email-optin{
