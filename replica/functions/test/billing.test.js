@@ -229,6 +229,27 @@ describe("replica Stripe Checkout (sandbox)", () => {
     assert.match(checkoutFn, /offerTrial/);
     assert.match(checkoutFn, /trialUsed/);
   });
+
+  it("cancels at period end through an owner-only callable, not email", () => {
+    const src = fs.readFileSync(path.join(__dirname, "..", "billing.js"), "utf8");
+    const cancelFn = src.split("exports.cancelSubscription")[1];
+    assert.match(src, /exports\.cancelSubscription = onCall/);
+    assert.match(src, /CALLABLE_STRIPE/);
+    assert.match(cancelFn, /requireFamilyOwner/);
+    assert.match(cancelFn, /cancel_at_period_end/);
+    assert.match(cancelFn, /complimentaryForever/);
+    assert.match(cancelFn, /err\.noSubscription/);
+    assert.match(cancelFn, /err\.noCancelGift/);
+    assert.match(cancelFn, /applyFamilyBilling/);
+    assert.match(cancelFn, /billingFromSubscription/);
+    assert.equal(/contact@kidsrewardsystem\.com/.test(cancelFn), false);
+    assert.equal(cancelFn.includes('method: "DELETE"'), false);
+    const gate = fs.readFileSync(path.join(__dirname, "..", "..", "public", "js", "family-gate.js"), "utf8");
+    assert.match(gate, /callFn\("cancelSubscription"\)/);
+    assert.match(gate, /account\.cancelConfirm/);
+    assert.match(gate, /canCancelSubscription/);
+    assert.match(gate, /cancelAtPeriodEnd/);
+  });
 });
 
 describe("replica family names", () => {

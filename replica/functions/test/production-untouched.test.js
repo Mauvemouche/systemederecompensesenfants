@@ -28,6 +28,7 @@ describe("Anthony's live family app stays a separate instance", () => {
   it("does not add Stripe billing to Anthony's production Cloud Functions", () => {
     const index = fs.readFileSync(path.join(repoRoot, "functions/index.js"), "utf8");
     assert.equal(index.includes("stripeWebhook"), false);
+    assert.equal(index.includes("cancelSubscription"), false);
     assert.equal(index.includes("bootstrapHousehold"), false);
     assert.match(index, /firebase-functions\/v1/);
     assert.match(index, /const PEOPLE = \["papa", "maman", "florent", "harry"\]/);
@@ -201,6 +202,7 @@ describe("replica functions bind mail and operator secrets without crashing at b
     assert.equal(typeof fns.confirmPasswordReset, "function");
     assert.equal(typeof fns.exportFamilyData, "function");
     assert.equal(typeof fns.deleteFamilyAccount, "function");
+    assert.equal(typeof fns.cancelSubscription, "function");
     const platform = fns.stripeWebhook.__endpoint?.platform || fns.bootstrapInstance.__endpoint?.platform;
     assert.equal(platform, "gcfv2");
     assert.equal(getApps().length, before);

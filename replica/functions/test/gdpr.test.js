@@ -156,12 +156,15 @@ describe("account deletion cancels Stripe then wipes only that family", () => {
     const html = fs.readFileSync(path.join(repoRoot, "replica/public/index.html"), "utf8");
     assert.match(html, /id="exportDataBtn"/);
     assert.match(html, /id="deleteAccountBtn"/);
+    assert.match(html, /id="cancelSubBtn"/);
     const liveFns = fs.readFileSync(path.join(repoRoot, "functions/index.js"), "utf8");
     assert.equal(liveFns.includes("exportFamilyData"), false);
     assert.equal(liveFns.includes("deleteFamilyAccount"), false);
+    assert.equal(liveFns.includes("cancelSubscription"), false);
     const liveIndex = fs.readFileSync(path.join(repoRoot, "public/index.html"), "utf8");
     assert.equal(liveIndex.includes("exportDataBtn"), false);
     assert.equal(liveIndex.includes("deleteAccountBtn"), false);
+    assert.equal(liveIndex.includes("cancelSubBtn"), false);
   });
 });
 

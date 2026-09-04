@@ -35,11 +35,13 @@ describe("replica billing access", () => {
       status: "trialing",
       customer: "cus_123",
       trial_end: 1700000000,
+      cancel_at_period_end: true,
       items: { data: [{ price: { id: "price_1UAzwjA8Dakj1Sdel8QCE7II" } }] },
     });
     assert.equal(billing.status, "trialing");
     assert.equal(billing.stripeSubscriptionId, "sub_123");
     assert.equal(billing.stripeCustomerId, "cus_123");
+    assert.equal(billing.cancelAtPeriodEnd, true);
     assert.equal(!!billing.complimentaryForever, false);
 
     const canceled = billingFromSubscription({

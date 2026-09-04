@@ -151,6 +151,9 @@ function syncAuthLabels() {
 function billingLabel(state) {
   if (state?.complimentaryForever) return t("header.billingGift");
   const status = state?.billing?.status || "";
+  if (state?.billing?.cancelAtPeriodEnd && ["trialing", "active", "past_due"].includes(status)) {
+    return t("header.billingCancelScheduled");
+  }
   const labels = {
     trialing: t("header.billingTrial", { days: TRIAL_DAYS }),
     active: t("header.billingActive"),
@@ -159,6 +162,18 @@ function billingLabel(state) {
     canceled: t("header.billingCanceled"),
   };
   return labels[status] || "";
+}
+
+function canCancelSubscription(state, user) {
+  const status = state?.billing?.status || "";
+  return !!(
+    user &&
+    state?.isOwner &&
+    state?.billing?.stripeSubscriptionId &&
+    !state?.complimentaryForever &&
+    !state?.billing?.cancelAtPeriodEnd &&
+    ["trialing", "active", "past_due"].includes(status)
+  );
 }
 
 function accountBar(state, user) {
@@ -185,6 +200,8 @@ function accountBar(state, user) {
     const el = $(id);
     if (el) el.classList.toggle("hidden", !showOwnerTools);
   });
+  const cancelBtn = $("cancelSubBtn");
+  if (cancelBtn) cancelBtn.classList.toggle("hidden", !canCancelSubscription(state, user));
 }
 
 async function refreshPaidLegalIdentity(state) {
@@ -596,6 +613,7 @@ function bindUi() {
     }
   });
 
+  $("cancelSubBtn")?.addEventListener("click", () => cancelFamilySubscription());
   $("exportDataBtn")?.addEventListener("click", () => exportFamilyData());
   $("deleteAccountBtn")?.addEventListener("click", () => deleteFamilyAccount());
 
@@ -672,6 +690,20 @@ async function exportFamilyData() {
     downloadJson(`systeme-de-recompenses-${stamp}.json`, payload);
   } catch (err) {
     setError(callableErrorMessage(err) || t("err.exportFailed"), callableErrorKey(err) || "err.exportFailed");
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+}
+
+async function cancelFamilySubscription() {
+  if (!window.confirm(t("account.cancelConfirm"))) return;
+  const btn = $("cancelSubBtn");
+  if (btn) btn.disabled = true;
+  try {
+    const res = await callFn("cancelSubscription");
+    await applyState(res.data);
+  } catch (err) {
+    setError(callableErrorMessage(err) || t("err.cancelFailed"), callableErrorKey(err) || "err.cancelFailed");
   } finally {
     if (btn) btn.disabled = false;
   }

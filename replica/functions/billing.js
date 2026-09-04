@@ -34,7 +34,7 @@ const {
   wrapCallable,
 } = require("./lib/callable");
 const { t, localeFromRequest, normalizeLocale, stripeCheckoutLocale } = require("./lib/i18n");
-const { legalAcceptPatch } = require("./lib/gdpr");
+const { legalAcceptPatch, stripeSubscriptionCancelPath } = require("./lib/gdpr");
 const {
   publicContactPayload,
   invoicesIncludePaidCharge,
@@ -393,6 +393,51 @@ exports.createPortalSession = onCall(
       process.env.STRIPE_SECRET_KEY
     );
     return { url: session.url };
+  })
+);
+
+exports.cancelSubscription = onCall(
+  CALLABLE_STRIPE,
+  wrapCallable("cancelSubscription", async (request) => {
+    const { uid } = requireAuth(request);
+    const locale = localeFromRequest(request);
+    const { familyId, billing } = await requireFamilyOwner(uid, locale);
+    if (billing.complimentaryForever) {
+      throw new HttpsError("failed-precondition", t(locale, "err.noCancelGift"), { key: "err.noCancelGift" });
+    }
+    const path = stripeSubscriptionCancelPath(billing.stripeSubscriptionId);
+    if (!path) {
+      throw new HttpsError("failed-precondition", t(locale, "err.noSubscription"), { key: "err.noSubscription" });
+    }
+
+    const secret = process.env.STRIPE_SECRET_KEY;
+    if (!secret) {
+      throw new HttpsError("failed-precondition", t(locale, "err.cancelFailed"), { key: "err.cancelFailed" });
+    }
+
+    let sub;
+    try {
+      if (billing.cancelAtPeriodEnd) {
+        sub = await stripeRequest("GET", path, {}, secret);
+      } else {
+        sub = await stripeRequest("POST", path, { cancel_at_period_end: true }, secret);
+      }
+    } catch (err) {
+      const msg = String(err?.message || err);
+      if (/already been canceled|No such subscription|resource_missing/i.test(msg)) {
+        await applyFamilyBilling(familyId, {
+          status: "canceled",
+          cancelAtPeriodEnd: false,
+          stripeSubscriptionId: billing.stripeSubscriptionId,
+        });
+        return loadState(familyId, uid);
+      }
+      console.error("cancelSubscription Stripe failed", err?.message || err);
+      throw new HttpsError("unavailable", t(locale, "err.cancelFailed"), { key: "err.cancelFailed" });
+    }
+
+    await applyFamilyBilling(familyId, billingFromSubscription(sub, { customerId: billing.stripeCustomerId }));
+    return loadState(familyId, uid);
   })
 );
 

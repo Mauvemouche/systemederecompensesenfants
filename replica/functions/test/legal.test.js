@@ -119,6 +119,8 @@ describe("replica legal pages stay public-safe", () => {
     assert.match(checkout, /id="acceptWithdrawal"/);
     assert.match(checkout, /id="acceptWithdrawalWrap"/);
     assert.match(checkout, /data-i18n="gate.acceptWithdrawal"/);
+    assert.match(html, /id="cancelSubBtn"/);
+    assert.match(html, /data-i18n="header.cancelSubscription"/);
     assert.ok(checkout.indexOf("acceptWithdrawal") < checkout.indexOf("checkoutMonthlyBtn"));
     const gate = fs.readFileSync(path.join(replicaPublic, "js/family-gate.js"), "utf8");
     assert.match(gate, /acceptWithdrawal/);
@@ -205,17 +207,38 @@ describe("privacy and terms copy covers the required GDPR / e-commerce points", 
       assert.match(ui["terms.priceBody"], /2,50|€2\.50/);
       assert.match(ui["terms.priceBody"], /25/);
       assert.match(ui["terms.priceBody"], /30/);
-      assert.match(ui["terms.cancelBody"], /Stripe/);
-      assert.match(ui["terms.cancelBody"], /contact@kidsrewardsystem\.com/);
+      assert.match(ui["header.cancelSubscription"], /Annuler l['’]abonnement \/ se rétracter|Abonnement opzeggen \/ herroepen|Abo kündigen \/ widerrufen|Cancel subscription \/ withdraw/);
+      assert.match(ui["account.cancelConfirm"], /./);
+      assert.equal(ui["terms.cancelBody"].includes("contact@kidsrewardsystem.com"), false, `${code} terms.cancelBody`);
+      assert.equal(ui["terms.withdrawBody"].includes("contact@kidsrewardsystem.com"), false, `${code} terms.withdrawBody`);
+      assert.equal(/par e-mail|per e-mail|per E-Mail|by email/i.test(ui["terms.cancelBody"]), false, `${code} cancel email`);
+      assert.equal(/par e-mail|per e-mail|per E-Mail|by email/i.test(ui["terms.withdrawBody"]), false, `${code} withdraw email`);
+      assert.match(ui["terms.cancelBody"], /Annuler l['’]abonnement \/ se rétracter|Abonnement opzeggen \/ herroepen|Abo kündigen \/ widerrufen|Cancel subscription \/ withdraw/);
+      assert.match(ui["terms.withdrawBody"], /Annuler l['’]abonnement \/ se rétracter|Abonnement opzeggen \/ herroepen|Abo kündigen \/ widerrufen|Cancel subscription \/ withdraw/);
+      assert.match(ui["terms.cancelBody"], /fin des 30|einde van de 30|Ende der 30|end of the 30/i);
       assert.match(ui["terms.cancelBody"], /période déjà payée|al betaalde periode|bereits bezahlten|already-paid period/i);
+      assert.match(ui["terms.cancelBody"], /puis s['’]arrête|dan stopt|endet dann|then stops/i);
       assert.match(ui["terms.withdrawBody"], /14/);
       assert.match(ui["terms.withdrawBody"], /30/);
       assert.match(ui["terms.withdrawBody"], /inclus|zit in|eingeschlossen|included/i);
       assert.match(ui["terms.withdrawBody"], /pas de délai|geen extra bedenktijd|keine extra Widerrufsfrist|no extra cooling-off/i);
       assert.match(ui["terms.withdrawBody"], /renouvellement|verlenging|Verlängerung|renewal/i);
+      assert.match(ui["terms.withdrawBody"], /puis s['’]arrête|dan stopt|endet dann|then stops/i);
       assert.match(ui["gate.acceptWithdrawal"], /14/);
       assert.match(ui["gate.acceptWithdrawal"], /essai|proef|Test|trial/i);
+      assert.match(ui["gate.acceptWithdrawal"], /Annuler l['’]abonnement \/ se rétracter|Abonnement opzeggen \/ herroepen|Abo kündigen \/ widerrufen|Cancel subscription \/ withdraw/);
+      assert.match(ui["gate.checkoutCancel"], /Annuler l['’]abonnement \/ se rétracter|Abonnement opzeggen \/ herroepen|Abo kündigen \/ widerrufen|Cancel subscription \/ withdraw/);
       assert.match(ui["terms.productBody"], /belge|Belgische|belgischen|Belgian/i);
+      assert.match(ui["terms.productBody"], /tâches à réaliser|taken te doen|zu erledigenden Aufgaben|tasks to do/i);
+      assert.match(ui["terms.productBody"], /récompense en temps d['’]écran|beloning in schermtijd|Belohnung in Bildschirmzeit|reward in screen time/i);
+      assert.equal(
+        /tâches, les récompenses et le temps|taken, beloningen en schermtijd|Aufgaben, Belohnungen und Bildschirmzeit|tasks, rewards and screen time/i.test(
+          ui["terms.productBody"]
+        ),
+        false,
+        `${code} old product wording`
+      );
+      assert.equal(/récompense[s]? (personnalis|custom)|custom reward image|beloningsafbeelding|Belohnungsbild/i.test(ui["terms.productBody"]), false, `${code} no custom reward images`);
       assert.equal(/papa belge|Belgische papa|belgischer Papa|Belgian (dad|father)/i.test(ui["legal.contactTitle"]), false, code);
       assert.ok(ui["gate.acceptLegal"].includes("terms.html"));
       assert.ok(ui["gate.acceptLegal"].includes("privacy.html"));
