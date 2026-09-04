@@ -84,6 +84,16 @@ describe("replica legal pages stay public-safe", () => {
     assert.equal(index.includes('data-legal="legalName"'), false);
     assert.equal(privacy.includes("data-legal=\"legalName\""), false);
     assert.equal(terms.includes("data-legal=\"streetAddress\""), false);
+    assert.match(privacy, /data-i18n="privacy.storageTitle"/);
+    assert.match(privacy, /data-i18n="privacy.storageBody"/);
+    assert.ok(
+      privacy.indexOf("privacy.processorsBody") < privacy.indexOf("privacy.storageTitle"),
+      "storage section follows processors"
+    );
+    assert.ok(
+      privacy.indexOf("privacy.storageBody") < privacy.indexOf("privacy.retentionTitle"),
+      "storage section precedes retention"
+    );
     assert.match(privacy, /data-i18n="legal.paidNote"/);
     assert.match(terms, /data-i18n="legal.paidNote"/);
     assert.match(privacy, /data-i18n="legal.contactTitle"/);
@@ -158,6 +168,7 @@ describe("privacy and terms copy covers the required GDPR / e-commerce points", 
         ui["privacy.dataStripe"],
         ui["privacy.purposeBody"],
         ui["privacy.processorsBody"],
+        ui["privacy.storageBody"],
         ui["privacy.cookiesBody"],
         ui["privacy.deletionHtml"],
         ui["privacy.controllerBody"],
@@ -190,6 +201,26 @@ describe("privacy and terms copy covers the required GDPR / e-commerce points", 
       assert.match(ui["privacy.processorsBody"], /Proton/i);
       assert.match(ui["privacy.processorsBody"], /SCC|standard contractual|standaardcontract|clauses contractuelles|Standardvertrag/i);
       assert.match(ui["privacy.processorsBody"], /pas de SendGrid|geen SendGrid|kein SendGrid|no SendGrid/i);
+      assert.match(ui["privacy.storageTitle"], /Stockage|Opslag|Speicherung|Storage/);
+      assert.match(ui["privacy.storageBody"], /Firebase/i);
+      assert.match(ui["privacy.storageBody"], /Stripe/i);
+      assert.match(ui["privacy.storageBody"], /Proton/i);
+      assert.match(
+        ui["privacy.storageBody"],
+        /uniquement via ces sous-traitants|uitsluitend via deze verwerkers|ausschließlich über diese Auftragsverarbeiter|only through these processors/i
+      );
+      assert.match(
+        ui["privacy.storageBody"],
+        /serveur ou un cloud qui nous serait propre|geen persoonsgegevens op een eigen server of in een eigen cloud|keine personenbezogenen Daten auf einem eigenen Server oder in einer eigenen Cloud|do not keep personal data on a server or cloud of our own/i
+      );
+      assert.match(
+        ui["privacy.storageBody"],
+        /uniquement conservées dans Firebase, Stripe et Proton|uitsluitend bewaard in Firebase, Stripe en Proton|ausschließlich in Firebase, Stripe und Proton|held only in Firebase, Stripe and Proton/i
+      );
+      assert.match(
+        ui["privacy.storageBody"],
+        /stockage séparé de notre part|aparte opslag van onze kant|gesonderte Speicherung unsererseits|separate storage on our part/i
+      );
       assert.match(ui["privacy.minimiseBody"], /photo|foto|Foto/i);
       assert.match(ui["privacy.minimiseBody"], /school|école|Schule/i);
       assert.match(ui["privacy.minimiseBody"], /santé|gezondheid|Gesundheit|health/i);

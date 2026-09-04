@@ -198,6 +198,8 @@ describe("UI locale files share the same keys", () => {
       "header.billingCancelScheduled",
       "account.cancelConfirm",
       "privacy.processorsBody",
+      "privacy.storageTitle",
+      "privacy.storageBody",
       "terms.withdrawBody",
       "terms.productBody",
       "terms.cancelBody",

@@ -259,6 +259,8 @@
   "privacy.purposeBody": "This data is used only to run the family app and billing. We do not sell your data. No behavioural ads on children’s profiles. No sharing of children’s data with marketing third parties.",
   "privacy.processorsTitle": "Processors",
   "privacy.processorsBody": "Google Firebase (hosting, Auth, Firestore, Cloud Functions — EU region where applicable); Stripe (payments); Proton (transactional email). Each processes data under a data-processing agreement (DPA). Transfers outside the EEA, where they occur, rely on standard contractual clauses (SCCs). No analytics. No SendGrid.",
+  "privacy.storageTitle": "Storage",
+  "privacy.storageBody": "All data listed above is stored only through these processors. We do not keep personal data on a server or cloud of our own. Your data is therefore held only in Firebase, Stripe and Proton. They are established infrastructure, payment and email providers, who process the data under a DPA (and SCCs in the event of a transfer outside the EEA). The app is displayed in your browser during the session; it does not constitute separate storage on our part.",
   "privacy.retentionTitle": "Retention",
   "privacy.retentionBody": "While the account is active. After account deletion, the family, children’s profiles and tasks are erased within 30 days, except legal or accounting duties (invoices Stripe retains). ComplimentaryForever families follow the same deletion rules.",
   "privacy.rightsTitle": "Your rights",

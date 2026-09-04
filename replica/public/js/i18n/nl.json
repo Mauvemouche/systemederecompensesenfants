@@ -259,6 +259,8 @@
   "privacy.purposeBody": "Deze gegevens dienen alleen om de gezinsapp en de facturatie te laten werken. We verkopen uw gegevens niet. Geen gedragsreclame op kinderprofielen. Geen delen van kindgegevens met marketingderden.",
   "privacy.processorsTitle": "Verwerkers",
   "privacy.processorsBody": "Google Firebase (hosting, Auth, Firestore, Cloud Functions — EU-regio waar mogelijk); Stripe (betalingen); Proton (transactionele e-mail). Elk verwerkt gegevens met een verwerkersovereenkomst (DPA). Doorgiften buiten de EER steunen, waar nodig, op standaardcontractbepalingen (SCC). Geen analytics. Geen SendGrid.",
+  "privacy.storageTitle": "Opslag",
+  "privacy.storageBody": "Alle hierboven vermelde gegevens worden uitsluitend via deze verwerkers opgeslagen. We bewaren geen persoonsgegevens op een eigen server of in een eigen cloud. Uw gegevens worden dus uitsluitend bewaard in Firebase, Stripe en Proton. Dat zijn gevestigde infrastructuur-, betalings- en e-mailproviders, die de gegevens verwerken volgens een DPA (en SCC bij doorgifte buiten de EER). De app wordt tijdens de sessie in uw browser weergegeven; zij vormt geen aparte opslag van onze kant.",
   "privacy.retentionTitle": "Bewaartermijn",
   "privacy.retentionBody": "Zolang het account actief is. Na verwijdering van het account worden gezin, kinderprofielen en taken binnen 30 dagen gewist, behalve wettelijke of boekhoudkundige verplichtingen (facturen die Stripe bewaart). ComplimentaryForever-gezinnen volgen dezelfde verwijderingsregels.",
   "privacy.rightsTitle": "Uw rechten",

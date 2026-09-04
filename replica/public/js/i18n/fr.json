@@ -259,6 +259,8 @@
   "privacy.purposeBody": "Ces données servent uniquement à faire fonctionner l’appli familiale et la facturation. Nous ne vendons pas vos données. Pas de publicité comportementale sur les profils des enfants. Pas de partage des données des enfants avec des tiers marketing.",
   "privacy.processorsTitle": "Sous-traitants",
   "privacy.processorsBody": "Google Firebase (hébergement, Auth, Firestore, Cloud Functions — région UE lorsque c’est possible) ; Stripe (paiements) ; Proton (e-mail transactionnel). Chacun traite les données avec un contrat de sous-traitance (DPA). Les transferts hors EEE, le cas échéant, reposent sur les clauses contractuelles types (SCC). Pas d’analytics. Pas de SendGrid.",
+  "privacy.storageTitle": "Stockage",
+  "privacy.storageBody": "Toutes les données listées ci-dessus sont stockées uniquement via ces sous-traitants. Nous ne conservons pas de données personnelles sur un serveur ou un cloud qui nous serait propre. Vos données sont donc uniquement conservées dans Firebase, Stripe et Proton. Ce sont des prestataires d’infrastructure, de paiement et d’e-mail établis, qui traitent les données selon un DPA (et des SCC en cas de transfert hors EEE). L’appli s’affiche dans votre navigateur pendant la session ; elle ne constitue pas un stockage séparé de notre part.",
   "privacy.retentionTitle": "Durée de conservation",
   "privacy.retentionBody": "Tant que le compte est actif. Après suppression du compte, la famille, les profils des enfants et les tâches sont effacés sous 30 jours, sauf obligations légales ou comptables (factures conservées par Stripe). Les familles ComplimentaryForever suivent les mêmes règles de suppression.",
   "privacy.rightsTitle": "Vos droits",
