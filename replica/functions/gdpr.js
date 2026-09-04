@@ -116,7 +116,7 @@ exports.deleteFamilyAccount = onCall(
     if (request.data?.confirm !== true) fail("failed-precondition", locale, "err.deleteConfirm");
     ensureApp();
     const { familyId, billing } = await requireFamilyOwner(uid, locale);
-    // ComplimentaryForever families follow the same deletion rules.
+    // complimentaryForever families follow the same deletion rules.
 
     await cancelFamilySubscription(billing, locale);
     await deleteFamilyTree(familyId, uid, billing);
