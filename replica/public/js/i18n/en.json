@@ -117,7 +117,7 @@
   "gate.resent": "New code sent. Check your inbox.",
   "gate.resendNeedSignup": "Go back to “Create an account” with the same email to resend the code.",
   "gate.checkoutTitle": "Choose a plan",
-  "gate.checkoutLead": "30-day free trial. A card is collected at checkout and kept on file (you are not charged until the trial ends). Then €2.50 / month or €25 / year (Stripe sandbox).",
+  "gate.checkoutLead": "30-day free trial. A card is collected at checkout and kept on file (you are not charged until the trial ends). Then €2.50 / month or €25 / year.",
   "gate.checkoutCancel": "To avoid a charge, use the “Cancel subscription / withdraw” button in the app before the 30 days end.",
   "gate.monthly": "Monthly",
   "gate.yearly": "Yearly",

@@ -117,7 +117,7 @@
   "gate.resent": "Neuer Code gesendet. Schau in dein Postfach.",
   "gate.resendNeedSignup": "Geh zurück zu « Konto erstellen » mit derselben E-Mail, um den Code erneut zu senden.",
   "gate.checkoutTitle": "Abo wählen",
-  "gate.checkoutLead": "30 Tage kostenlos testen. An der Kasse wird eine Karte hinterlegt (keine Belastung vor Ende der Testphase). Danach 2,50 € / Monat oder 25 € / Jahr (Stripe-Sandbox).",
+  "gate.checkoutLead": "30 Tage kostenlos testen. An der Kasse wird eine Karte hinterlegt (keine Belastung vor Ende der Testphase). Danach 2,50 € / Monat oder 25 € / Jahr.",
   "gate.checkoutCancel": "Um nicht belastet zu werden, kündige vor Ablauf der 30 Tage über die Schaltfläche « Abo kündigen / widerrufen » in der App.",
   "gate.monthly": "Monatlich",
   "gate.yearly": "Jährlich",

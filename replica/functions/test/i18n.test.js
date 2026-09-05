@@ -186,6 +186,7 @@ describe("UI locale files share the same keys", () => {
       "referral.thanks",
       "gate.forgotPassword",
       "gate.passwordHint",
+      "gate.checkoutLead",
       "gate.checkoutCancel",
       "header.dailyEmail",
       "terms.priceBody",
@@ -223,6 +224,13 @@ describe("UI locale files share the same keys", () => {
     assert.equal(/month/i.test(en["referral.lead"]), false);
     assert.match(en["gate.passwordHint"], /6/);
     assert.match(fr["gate.passwordHint"], /6/);
+    for (const [code, dict] of [["nl", nl], ["fr", fr], ["de", de], ["en", en]]) {
+      const lead = dict["gate.checkoutLead"];
+      assert.match(lead, /2,50|€2\.50/, `${code} checkoutLead price`);
+      assert.match(lead, /25/, `${code} checkoutLead yearly`);
+      assert.equal(/sandbox/i.test(lead), false, `${code} checkoutLead must not mention sandbox`);
+      assert.equal(/test mode/i.test(lead), false, `${code} checkoutLead must not mention test mode`);
+    }
     for (const key of ["err.verifyMailFailed", "err.emailInUse", "err.tosNotAccepted", "err.createUserFailed"]) {
       for (const dict of [nl, fr, de, en]) {
         assert.ok(dict[key], key);
