@@ -17,7 +17,7 @@ const {
   resolveFamilyForUser,
   shouldKeepExistingMembership,
 } = require("./lib/families");
-const { buildCheckoutSessionParams, resolvePriceId, assertSandboxKey, resolveCheckoutTrial, isLiveStripeProject, assertStripeLivemode, checkoutSessionIdOk } = require("./lib/stripeCheckout");
+const { buildCheckoutSessionParams, resolvePriceId, resolveCheckoutPlan, assertSandboxKey, resolveCheckoutTrial, isLiveStripeProject, assertStripeLivemode, checkoutSessionIdOk } = require("./lib/stripeCheckout");
 const { stripeRequest, verifyStripeSignature } = require("./lib/stripeHttp");
 const {
   onCall,
@@ -239,7 +239,7 @@ exports.createCheckoutSession = onCall(
       throw new HttpsError("invalid-argument", t(locale, "err.originHttps"), { key: "err.originHttps" });
     }
 
-    const plan = data.plan === "yearly" ? "yearly" : billing.plan || "monthly";
+    const plan = resolveCheckoutPlan(data.plan, billing.plan);
     const secret = process.env.STRIPE_SECRET_KEY;
     assertSandboxKey(secret);
 
