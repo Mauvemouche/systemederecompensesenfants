@@ -117,7 +117,7 @@
   "gate.resent": "Nieuwe code verstuurd. Check je mailbox.",
   "gate.resendNeedSignup": "Ga terug naar « Een account aanmaken » met hetzelfde e-mailadres om de code opnieuw te sturen.",
   "gate.checkoutTitle": "Kies het abonnement",
-  "gate.checkoutLead": "30 dagen gratis proef. Bij het afrekenen wordt een kaart geregistreerd (nog niet afgeschreven tot het einde van de proef). Daarna 2,50 € / maand of 25 € / jaar (Stripe-sandbox).",
+  "gate.checkoutLead": "30 dagen gratis proef. Bij het afrekenen wordt een kaart geregistreerd (nog niet afgeschreven tot het einde van de proef). Daarna 2,50 € / maand of 25 € / jaar.",
   "gate.checkoutCancel": "Om niet te betalen, zeg je op via de knop « Abonnement opzeggen / herroepen » in de app vóór het einde van de 30 dagen.",
   "gate.monthly": "Maandelijks",
   "gate.yearly": "Jaarlijks",

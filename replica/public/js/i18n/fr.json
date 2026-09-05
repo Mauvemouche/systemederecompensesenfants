@@ -117,7 +117,7 @@
   "gate.resent": "Nouveau code envoyé. Vérifie ta boîte mail.",
   "gate.resendNeedSignup": "Repars de « Créer un compte » avec le même email pour renvoyer le code.",
   "gate.checkoutTitle": "Choisir l’abonnement",
-  "gate.checkoutLead": "Essai de 30 jours gratuits. Une carte est enregistrée à la caisse (non débitée avant la fin de l’essai). Ensuite 2,50 € / mois ou 25 € / an (Stripe sandbox).",
+  "gate.checkoutLead": "Essai de 30 jours gratuits. Une carte est enregistrée à la caisse (non débitée avant la fin de l’essai). Ensuite 2,50 € / mois ou 25 € / an.",
   "gate.checkoutCancel": "Pour ne pas être facturé, utilise le bouton « Annuler l’abonnement / se rétracter » dans l’appli avant la fin des 30 jours.",
   "gate.monthly": "Mensuel",
   "gate.yearly": "Annuel",
