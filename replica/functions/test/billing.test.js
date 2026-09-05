@@ -15,6 +15,7 @@ const {
   isLiveStripeProject,
   resolveGcpProjectId,
   resolvePriceId,
+  resolveCheckoutPlan,
   buildCheckoutSessionParams,
   encodeStripeParams,
   resolveCheckoutTrial,
@@ -213,6 +214,24 @@ describe("replica Stripe Checkout (sandbox)", () => {
     const v1 = crypto.createHmac("sha256", secret).update(`${timestamp}.${payload}`).digest("hex");
     const event = verifyStripeSignature(payload, `t=${timestamp},v1=${v1}`, secret);
     assert.equal(event.livemode, false);
+  });
+
+  it("prefers a client monthly or yearly plan over a previously stored billing.plan", () => {
+    assert.equal(resolveCheckoutPlan("monthly", "yearly"), "monthly");
+    assert.equal(resolveCheckoutPlan("yearly", "monthly"), "yearly");
+    assert.equal(resolveCheckoutPlan("yearly", "yearly"), "yearly");
+    assert.equal(resolveCheckoutPlan("monthly", "monthly"), "monthly");
+    assert.equal(resolveCheckoutPlan(undefined, "yearly"), "yearly");
+    assert.equal(resolveCheckoutPlan("", "yearly"), "yearly");
+    assert.equal(resolveCheckoutPlan("weekly", "yearly"), "yearly");
+    assert.equal(resolveCheckoutPlan(undefined, undefined), "monthly");
+    assert.equal(resolvePriceId(resolveCheckoutPlan("monthly", "yearly")), PRICE_MONTHLY);
+    assert.equal(resolvePriceId(resolveCheckoutPlan("yearly", "monthly")), PRICE_YEARLY);
+
+    const src = fs.readFileSync(path.join(__dirname, "..", "billing.js"), "utf8");
+    const checkoutFn = src.split("exports.createCheckoutSession")[1].split("exports.confirmCheckoutSession")[0];
+    assert.match(checkoutFn, /resolveCheckoutPlan\(data\.plan, billing\.plan\)/);
+    assert.equal(checkoutFn.includes('data.plan === "yearly" ? "yearly" : billing.plan'), false);
   });
 
   it("locks the trial after first checkout and still offers it to a new family", () => {

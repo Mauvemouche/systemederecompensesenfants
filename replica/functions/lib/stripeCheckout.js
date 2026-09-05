@@ -60,6 +60,11 @@ function checkoutSessionIdOk(sessionId, env = process.env) {
   return id.startsWith("cs_test_");
 }
 
+function resolveCheckoutPlan(requestedPlan, storedPlan) {
+  if (requestedPlan === "yearly" || requestedPlan === "monthly") return requestedPlan;
+  return storedPlan || "monthly";
+}
+
 function resolvePriceId(plan, env = process.env) {
   if (plan === "yearly") return env.STRIPE_PRICE_YEARLY || PRICE_YEARLY;
   return env.STRIPE_PRICE_MONTHLY || PRICE_MONTHLY;
@@ -158,6 +163,7 @@ module.exports = {
   assertStripeLivemode,
   checkoutSessionIdOk,
   resolvePriceId,
+  resolveCheckoutPlan,
   buildCheckoutSessionParams,
   encodeStripeParams,
   stripeCustomerHadTrialOrSubscription,
